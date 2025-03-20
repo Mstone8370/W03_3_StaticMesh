@@ -114,6 +114,23 @@ void ObjReader::ReadFile()
         File.open(*FilePath);
     }
 
+    /**
+     * 블렌더에서 Export 시 공통 설정
+     *   Geometry
+     *     ✅ Triangulated Mesh
+     *
+     * 방식에 따른 Export 옵션
+     *   1. 언리얼 엔진 방식 (Yaw를 -90도로 맞추어야 X축 방향에 Forward가 맞춰짐)
+     *     General
+     *       Forward Axis:  Y
+     *       Up Axis:       Z
+     *       
+     *   2. 기본으로 X축 방향에 Forward가 맞춰지는 방식
+     *     General
+     *       Forward Axis: -X
+     *       Up Axis:       Z
+     */
+
     std::string Line; // std::string을 참조해야하므로, FString 대신 std::string 사용
     while (std::getline(File, Line))
     {
@@ -129,17 +146,17 @@ void ObjReader::ReadFile()
         if (Key == "v")
         {
             TArray<float> Vertex(3);
-            Vertex[0] = std::stof(Tokens[1]); // Location X
-            Vertex[1] = std::stof(Tokens[2]); // Location Y
-            Vertex[2] = -std::stof(Tokens[3]); // Location Z
+            Vertex[0] = std::stof(Tokens[1]);  // Location X
+            Vertex[1] = -std::stof(Tokens[2]); // Location Y
+            Vertex[2] = std::stof(Tokens[3]);  // Location Z
             Vertices.Add(Vertex);
         }
         else if (Key == "vn")
         {
             TArray<float> Normal(3);
-            Normal[0] = std::stof(Tokens[1]); // Normal X
-            Normal[1] = std::stof(Tokens[2]); // Normal Y
-            Normal[2] = -std::stof(Tokens[3]); // Normal Z
+            Normal[0] = std::stof(Tokens[1]);  // Normal X
+            Normal[1] = -std::stof(Tokens[2]); // Normal Y
+            Normal[2] = std::stof(Tokens[3]);  // Normal Z
             Normals.Add(Normal);
         }
         else if (Key == "vt")
