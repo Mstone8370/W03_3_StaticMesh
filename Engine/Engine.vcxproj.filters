@@ -169,9 +169,6 @@
     <ClCompile Include="Source\Static\ObjManager.cpp">
       <Filter>Source Files\Static</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp">
-      <Filter>Source Files\Engine\GameFrameWork</Filter>
-    </ClCompile>
     <ClCompile Include="Source\CoreUObject\Components\StaticMeshComponent.cpp">
       <Filter>Source Files\CoreUObject\Components</Filter>
     </ClCompile>
@@ -183,6 +180,9 @@
     </ClCompile>
     <ClCompile Include="Source\CoreUObject\Components\AnimatedBillboardComponent.cpp">
       <Filter>Source Files\CoreUObject\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp">
+      <Filter>Source Files\Engine\GameFrameWork</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -429,9 +429,6 @@
     <ClInclude Include="Source\CoreUObject\Components\StaticMeshComponent.h">
       <Filter>Header Files\CoreUObject\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h">
-      <Filter>Header Files\Engine\GameFrameWork</Filter>
-    </ClInclude>
     <ClInclude Include="Source\CoreUObject\Components\TextBillboardComponent.h">
       <Filter>Header Files\CoreUObject\Components</Filter>
     </ClInclude>
@@ -440,6 +437,9 @@
     </ClInclude>
     <ClInclude Include="Source\CoreUObject\Components\AnimatedBillboardComponent.h">
       <Filter>Header Files\CoreUObject\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h">
+      <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
