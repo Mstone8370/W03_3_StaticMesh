@@ -33,8 +33,10 @@ public:
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaTime);
 	virtual void LateTick (float DeltaTime); // 렌더 후 호출
-	
+
+	// Called when this actor is explicitly destroyed.
 	virtual void Destroyed();
+	// TODO: EndPlay는 추후 삭제
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	TSet<UActorComponent*>& GetComponents() { return Components; }
 
@@ -114,6 +116,7 @@ public:
 	bool CanEverTick() const { return bCanEverTick; }
 	virtual const char* GetTypeName();
 
+	// Destroy this actor.
 	bool Destroy();
 
 public:

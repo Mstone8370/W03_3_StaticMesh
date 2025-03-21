@@ -21,6 +21,9 @@ public:
 	UObject();
 	virtual ~UObject();
 
+	// Called before destroying the object.
+	virtual void BeginDestroy();
+
 public:
 	uint32 GetUUID() const { return UUID; }
 	uint32 GetInternalIndex() const { return InternalIndex; }

@@ -67,7 +67,6 @@ void AActor::Destroyed()
 	EndPlay(EEndPlayReason::Destroyed);
 }
 
-
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	for (auto& Component : Components)
