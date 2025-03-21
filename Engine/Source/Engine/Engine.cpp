@@ -264,6 +264,10 @@ void UEngine::InitWorld()
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
+#ifdef _DEBUG
+    World->LoadWorld("Default");
+#endif
+
     World->BeginPlay();
 }
 
