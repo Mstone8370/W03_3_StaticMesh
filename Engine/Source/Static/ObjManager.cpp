@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "ObjManager.h"
 
+#include "ObjectFactory.h"
 #include "GameFrameWork/StaticMesh.h"
 
 TMap<FString, FStaticMesh*> FObjManager::ObjStaticMeshMap;
@@ -30,5 +31,8 @@ UStaticMesh* FObjManager::LoadObjStaticMesh(const FString& PathFileName)
     }
     */
 
-    return nullptr;
+    FStaticMesh* StaticMeshAsset = LoadObjStaticMeshAsset(PathFileName);
+    UStaticMesh* StaticMesh = FObjectFactory::ConstructObject<UStaticMesh>();
+    StaticMesh->SetStaticMeshAsset(StaticMeshAsset);
+    return StaticMesh;
 }
