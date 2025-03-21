@@ -12,6 +12,7 @@
 #include "GameFrameWork/Camera.h"
 #include "Gizmo/GizmoHandle.h"
 #include "Core/Rendering/TextureLoader.h"
+#include "Obj/AMeshActor.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTK/Libs/x64/Debug/DirectXTK.lib")
@@ -281,6 +282,7 @@ void UEngine::InitWorld()
     
     World->SpawnActor<AAxis>();
     World->SpawnActor<APicker>();
+    World->SpawnActor<AMeshActor>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
     World->BeginPlay();

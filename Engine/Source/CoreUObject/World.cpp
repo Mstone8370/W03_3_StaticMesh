@@ -18,6 +18,8 @@
 
 #include "Components/Billboard.h"
 #include "Components/TextBillboard.h"
+#include "Obj/UMeshComp.h"
+#include "Obj/UStaticMeshComp.h"
 
 REGISTER_CLASS(UWorld);
 void UWorld::BeginPlay()
@@ -89,6 +91,7 @@ void UWorld::Render(float DeltaTime)
 	RenderBillboard(*Renderer);
     RenderText(*Renderer);
     RenderMesh(*Renderer);
+    RenderMeshComp(*Renderer);
     
 	RenderBoundingBoxes(*Renderer);
     RenderDebugLines(*Renderer, DeltaTime);
@@ -146,7 +149,19 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         RenderComponent->Render(&Renderer);
     }
 }
-
+void UWorld::RenderMeshComp(URenderer& Renderer)
+{
+    Renderer.PrepareMeshComp();
+    
+    bool bRenderPrimitives = UEngine::Get().GetShowPrimitives();
+    for (auto& RenderComponent : RenderComponents)
+    {
+        RenderComponent->GetClass()->Name;
+        if (RenderComponent->IsA<UStaticMeshComp>()){
+            RenderComponent->Render(&Renderer);
+        }
+    }
+}
 void UWorld::RenderMesh(URenderer& Renderer)
 {
     Renderer.PrepareMesh();

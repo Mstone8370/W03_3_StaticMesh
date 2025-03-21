@@ -9,6 +9,8 @@
 #include "Components/TextBillboard.h"
 #include "Core/Rendering/TextureLoader.h"
 #include "Camera.h"
+#include "Obj/UStaticMeshComp.h"
+#include "Obj/UMeshComp.h"
 
 REGISTER_CLASS(AActor);
 AActor::AActor() : Depth{ 0 }
@@ -17,7 +19,7 @@ AActor::AActor() : Depth{ 0 }
 
 void AActor::BeginPlay()
 {
-	for (auto& Component : Components)
+ 	for (auto& Component : Components)
 	{
 		Component->BeginPlay();
 
@@ -25,7 +27,11 @@ void AActor::BeginPlay()
 		{
 			if(PrimitiveComponent->bCanBeRendered)
 				PrimitiveComponent->RegisterComponentWithWorld(World);
-
+			if (PrimitiveComponent->IsA<UMeshComp>())
+			{
+				PrimitiveComponent->RegisterComponentWithWorld(World);
+				PrimitiveComponent->bCanBeRendered = true;
+			}
 			if (bUseBoundingBox)
 			{
 				PrimitiveComponent->InitBoundingBox();

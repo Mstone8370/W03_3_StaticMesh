@@ -126,9 +126,10 @@ FVertexBufferInfo FBufferCache::CreateVertexBufferInfo(EPrimitiveType Type)
         PrimitiveVertices.Add(EPrimitiveType::EPT_Cone, CreateConeVertices());
         VerticeSize = PrimitiveVertices[EPrimitiveType::EPT_Cone].Num();
         Vertices = PrimitiveVertices[EPrimitiveType::EPT_Cone].GetData();
-        break;
+        break; 
     }
     }
+    if (!(Type==EPrimitiveType::EPT_None))
     VertexBuffer = UEngine::Get().GetRenderer()->CreateImmutableVertexBuffer(Vertices, sizeof(FVertexSimple) * VerticeSize);
 
     return FVertexBufferInfo(VertexBuffer, VerticeSize, Topology, Vertices);

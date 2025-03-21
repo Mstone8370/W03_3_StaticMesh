@@ -53,6 +53,7 @@ public:
 	void RenderBox(const class FBox& Box, const FVector4& Color = FVector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	void RenderMesh(class UMeshComponent* MeshComp);
+	void RenderMesh(class UMeshComp* MeshComp);
 
 	void PrepareMesh();
 
@@ -299,7 +300,7 @@ public:
 
 	void PrepareMain();
 	void PrepareMainShader();
-
+	void PrepareMeshComp();
 	FVector4 GetPixel(int32 X, int32 Y);
 
 	void RenderPickingTexture();

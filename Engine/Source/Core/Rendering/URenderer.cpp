@@ -6,6 +6,7 @@
 #include "Core/Math/Transform.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
+#include "Obj/UStaticMeshComp.h"
 
 
 void URenderer::Create(HWND hWindow)
@@ -341,6 +342,55 @@ void URenderer::RenderMesh(class UMeshComponent* MeshComp)
 
     DeviceContext->DrawIndexed(Info.VertexBufferInfo.GetSize(), 0, 0);
 }
+void URenderer::RenderMesh(UMeshComp* Comp)
+{
+    UStaticMeshComp* StaticMeshComp = dynamic_cast<UStaticMeshComp*>(Comp);
+    if (!StaticMeshComp) return;
+
+    UStaticMesh* Mesh = StaticMeshComp->GetStaticMesh();
+    if (!Mesh) return;
+
+    FStaticMesh* MeshAsset = Mesh->GetStaticMeshAsset();
+    if (!MeshAsset) return;
+
+    // 정점 데이터 준비
+    const std::vector<FNormalVertex>& Vertices = MeshAsset->Vertices;
+    const std::vector<uint32_t>& Indices = MeshAsset->Indices;
+    if (Vertices.empty() || Indices.empty()) return;
+
+    // 정점 버퍼 생성 (IMMUTABLE 타입으로 1회만 생성되게 수정 가능)
+    ID3D11Buffer* VertexBuffer = CreateImmutableVertexBuffer(
+        reinterpret_cast<const FStaticMeshVertex*>(Vertices.data()),
+        static_cast<UINT>(Vertices.size() * sizeof(FStaticMeshVertex))
+    );
+
+    ID3D11Buffer* IndexBuffer = CreateIndexBuffer(
+        Indices.data(),
+        static_cast<UINT>(Indices.size() * sizeof(uint32_t))
+    );
+
+    if (!VertexBuffer || !IndexBuffer) return;
+
+    // 버퍼 바인딩 및 렌더링
+    UINT Offset = 0;
+    UINT Stride = sizeof(FStaticMeshVertex);
+    DeviceContext->IASetVertexBuffers(0, 1, &VertexBuffer, &Stride, &Offset);
+    DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    ConstantUpdateInfo ConstantInfo = {
+        Comp->GetWorldTransform().GetMatrix(),
+        Comp->GetCustomColor(),
+        true, // vertex color 사용 여부
+    };
+    UpdateObjectConstantBuffer(ConstantInfo);
+
+    DeviceContext->DrawIndexed(static_cast<UINT>(Indices.size()), 0, 0);
+
+    // 생성된 버퍼 해제 (BufferCache가 없다면 직접 해제 필요)
+    ReleaseVertexBuffer(VertexBuffer);
+    ReleaseVertexBuffer(IndexBuffer);
+}
 
 void URenderer::PrepareMesh()
 {
@@ -374,6 +424,28 @@ void URenderer::PrepareWorldGrid()
 	DeviceContext->VSSetShader(ShaderGridVS, nullptr, 0);
 	DeviceContext->PSSetShader(ShaderGridPS, nullptr, 0);
 	DeviceContext->IASetInputLayout(InputLayoutGrid);
+}
+void URenderer::PrepareMeshComp()
+{
+    UINT Offset = 0;
+
+    // 이 시점에서는 VertexBuffer/IndexBuffer는 개별 메시마다 바인딩되므로, 여기서는 생략
+
+    // Render Target 및 Depth 설정
+    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
+    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    
+    // Topology는 TriangleList로 고정
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // 쉐이더 및 InputLayout 설정
+    ID3D11VertexShader* MeshVS = ShaderCache->GetVertexShader(TEXT("ShaderStaticMesh"));
+    ID3D11PixelShader*  MeshPS = ShaderCache->GetPixelShader(TEXT("ShaderStaticMesh"));
+    ID3D11InputLayout*  MeshLayout = ShaderCache->GetInputLayout(TEXT("ShaderStaticMesh"));
+
+    DeviceContext->VSSetShader(MeshVS, nullptr, 0);
+    DeviceContext->PSSetShader(MeshPS, nullptr, 0);
+    DeviceContext->IASetInputLayout(MeshLayout);
 }
 
 void URenderer::RenderWorldGrid()

@@ -47,6 +47,7 @@ public:
 	void RenderDebugLines(URenderer& Renderer, float DeltaTime);
 	void RenderBillboard(URenderer& Renderer);
 	void RenderText(URenderer& Renderer);
+	void RenderMeshComp(URenderer& Renderer);
 
 	void ClearWorld();
 	void LoadWorld(const char* SceneName);
