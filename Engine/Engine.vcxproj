@@ -361,6 +361,14 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\AppleCat.png" />
+    <Content Include="Resources\ASCII.png" />
+    <Content Include="Resources\cat.jpg" />
+    <Content Include="Resources\DancingCat.png" />
+    <Content Include="Resources\GizmoRotation.obj" />
+    <Content Include="Resources\GizmoScale.obj" />
+    <Content Include="Resources\GizmoTranslation.obj" />
+    <Content Include="Resources\HappyCat.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
