@@ -12,7 +12,7 @@ class APlayerInput : public TSingleton<APlayerInput>
 public:
 	APlayerInput();
 
-	void SetWindowSize(uint32 InWidth, uint32 InHeight);
+	void SetClientSize(uint32 InClientWidth, uint32 InClientHeight);
 
 	void UpdateInput();
 
@@ -35,8 +35,8 @@ public:
 
 	void GetMouseDelta(int32& OutX, int32& OutY) const;
 
-	// 윈도우 상대적인 마우스 위치 값
-	void GetMousePosition(int32& OutX, int32& OutY) const;
+	// 클라이언트에 상대적인 마우스 위치 값
+	void GetMousePositionClient(int32& OutX, int32& OutY) const;
 
 	void GetMousePositionNDC(float& OutX, float& OutY) const;
 
@@ -54,8 +54,8 @@ public:
 	void FixMouseCursor();
 	
 private:
-	uint32 WindowWidth;
-	uint32 WindowHeight;
+	uint32 ClientWidth;
+	uint32 ClientHeight;
 	
 	std::unique_ptr<DirectX::Keyboard> Keyboard;
 	std::unique_ptr<DirectX::Mouse> Mouse;

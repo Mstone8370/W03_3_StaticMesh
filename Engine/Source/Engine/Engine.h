@@ -47,20 +47,18 @@ public:
     void Shutdown();
 
 	class URenderer* GetRenderer() const { return Renderer.get(); }
-	float GetScreenRatio() const { return static_cast<float>(ScreenWidth) / ScreenHeight; }
-    int GetScreenWidth() const { return ScreenWidth; }
-    int GetScreenHeight() const { return ScreenHeight; }
-    int GetInitializedScreenWidth() const { return InitializedScreenWidth; }
-    int GetInitializedScreenHeight() const { return InitializedScreenHeight; }
+	float GetScreenRatio() const { return static_cast<float>(ClientWidth) / ClientHeight; }
+    int GetScreenWidth() const { return ClientWidth; }
+    int GetScreenHeight() const { return ClientHeight; }
 
 
 private:
-    void InitWindow(int InScreenWidth, int InScreenHeight);
+    void InitWindow(uint32 InClientWidth, uint32 InCliehtHeight);
     void InitRenderer();
     void InitWorld();
     void InitTextureLoader();
     void ShutdownWindow();
-    void UpdateWindowSize(uint32 InScreenWidth, uint32 InScreenHeight);
+    void UpdateWindowSize(uint32 InClientWidth, uint32 InClientHeight);
 
 public:
 	UWorld* GetWorld() const { return World; }
@@ -89,11 +87,11 @@ private:
     HWND WindowHandle = nullptr;
     HINSTANCE WindowInstance = nullptr;
 
-    uint32 InitializedScreenWidth = 0;
-    uint32 InitializedScreenHeight = 0;
-
-    uint32 ScreenWidth = 0;
-    uint32 ScreenHeight = 0;
+    /**
+     * 윈도우의 타이틀 바, 테두리, 메뉴 바를 제외 한 클라이언트의 크기 
+     */
+    uint32 ClientWidth = 0;
+    uint32 ClientHeight = 0;
 
 	// 텍스처 로더
     TextureLoader* TextureLoaderInstance = nullptr;

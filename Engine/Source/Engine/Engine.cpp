@@ -64,9 +64,9 @@ LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
                 return 0;
             }
-            int32 Width = LOWORD(lParam);
-            int32 Height = HIWORD(lParam);
-            UEngine::Get().UpdateWindowSize(Width, Height);
+            int32 ClientWidth = LOWORD(lParam);
+            int32 ClientHeight = HIWORD(lParam);
+            UEngine::Get().UpdateWindowSize(ClientWidth, ClientHeight);
         }
         return 0;
     }
@@ -79,38 +79,31 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 	EngineConfig = new FEngineConfig();
 	EngineConfig->LoadEngineConfig();
 
-	int width = EngineConfig->GetEngineConfigValue<int>(EEngineConfigValueType::EEC_ScreenWidth);
-	int height = EngineConfig->GetEngineConfigValue<int>(EEngineConfigValueType::EEC_ScreenHeight);
+	uint32 width = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenWidth);
+	uint32 height = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenHeight);
 
     WindowInstance = hInstance;
     WindowTitle = InWindowTitle;
     WindowClassName = InWindowClassName;
-    ScreenWidth = width <= 0 ? InScreenWidth : width;
-    ScreenHeight = height <= 0 ? InScreenHeight : height;
+    ClientWidth = width <= 0 ? InScreenWidth : width;
+    ClientHeight = height <= 0 ? InScreenHeight : height;
 
     ScreenMode = InScreenMode;
 
-    InitWindow(ScreenWidth, ScreenHeight);
-
-    EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, ScreenWidth);
-    EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, ScreenHeight);
-
-	// Get Client Rect
-	RECT ClientRect;
-	GetClientRect(WindowHandle, &ClientRect);
-	ScreenWidth = ClientRect.right - ClientRect.left;
-	ScreenHeight = ClientRect.bottom - ClientRect.top;
-
-    APlayerInput::Get().SetWindowSize(ScreenWidth, ScreenHeight);
+    InitWindow(ClientWidth, ClientHeight);
 
     InitRenderer();
 
     InitTextureLoader();
-
-    InitializedScreenWidth = ScreenWidth;
-    InitializedScreenHeight = ScreenHeight;
+    
     InitWorld();
-    ui.Initialize(WindowHandle, *Renderer, ScreenWidth, ScreenHeight);
+    
+    ui.Initialize(WindowHandle, *Renderer, ClientWidth, ClientHeight);
+
+    APlayerInput::Get().SetClientSize(ClientWidth, ClientHeight);
+
+    EngineConfig->SaveEngineConfig<uint32>(EEngineConfigValueType::EEC_ScreenWidth, ClientWidth);
+    EngineConfig->SaveEngineConfig<uint32>(EEngineConfigValueType::EEC_ScreenHeight, ClientHeight);
     
     UE_LOG("Engine Initialized!");
 }
@@ -195,7 +188,7 @@ void UEngine::Shutdown()
 }
 
 
-void UEngine::InitWindow(int InScreenWidth, int InScreenHeight)
+void UEngine::InitWindow(uint32 InClientWidth, uint32 InCliehtHeight)
 {
 	// Register Window Class //
     WNDCLASSW wnd_class{};
@@ -204,8 +197,8 @@ void UEngine::InitWindow(int InScreenWidth, int InScreenHeight)
     wnd_class.lpszClassName = WindowClassName;
     RegisterClassW(&wnd_class);
 
-    // 파라미터로 전달 받은 Client 크기를 Window 크기로 변경
-    RECT ClientRect = {0, 0, InScreenWidth, InScreenHeight};
+    // 파라미터로 전달 받은 Client 크기를 Window 크기로 변경 (윈도우 타이틀 바, 테두리, 메뉴 바 등을 포함한 크기)
+    RECT ClientRect = {0, 0, static_cast<int32>(InClientWidth), static_cast<int32>(InCliehtHeight)};
     AdjustWindowRect(&ClientRect, WS_OVERLAPPEDWINDOW, false);
     int WindowWidth = ClientRect.right - ClientRect.left;
     int WindowHeight = ClientRect.bottom - ClientRect.top;
@@ -323,34 +316,25 @@ void UEngine::ShutdownWindow()
 	delete EngineConfig;
 }
 
-void UEngine::UpdateWindowSize(const uint32 InScreenWidth, const uint32 InScreenHeight)
+void UEngine::UpdateWindowSize(const uint32 InClientWidth, const uint32 InClientHeight)
 {
-    ScreenWidth = InScreenWidth;
-    ScreenHeight = InScreenHeight;
+    ClientWidth = InClientWidth;
+    ClientHeight = InClientHeight;
     
     if(Renderer)
     {
-        Renderer->OnUpdateWindowSize(InScreenWidth, InScreenHeight);
+        Renderer->OnClientSizeUpdated(InClientWidth, InClientHeight);
     }
 
     if (ui.bIsInitialized)
     {
-        ui.OnUpdateWindowSize(InScreenWidth, InScreenHeight);
+        ui.OnClientSizeUpdated(InClientWidth, InClientHeight);
     }
 
-    APlayerInput::Get().SetWindowSize(ScreenWidth, ScreenHeight);
+    APlayerInput::Get().SetClientSize(ClientWidth, ClientHeight);
 
-
-    RECT windowRect;
-
-    // 전체 윈도우 영역 가져오기
-    GetWindowRect(WindowHandle, &windowRect);
-
-    UINT TotalWidth = windowRect.right - windowRect.left;
-    UINT TotalHeignt = windowRect.bottom - windowRect.top;
-
-	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, ScreenWidth);
-	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, ScreenHeight);
+	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, ClientWidth);
+	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, ClientHeight);
 }
 
 UObject* UEngine::GetObjectByUUID(uint32 InUUID) const

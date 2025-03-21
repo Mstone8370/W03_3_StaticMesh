@@ -30,7 +30,7 @@
 
 std::shared_ptr<ConsoleWindow> UI::ConsoleWindowInstance = nullptr;
 
-void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 ScreenWidth, uint32 ScreenHeight)
+void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 InClientWidth, uint32 InClientHeight)
 {
     // Initialize ImGui
     IMGUI_CHECKVERSION();
@@ -48,11 +48,11 @@ void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 ScreenWidth, ui
     ImGui_ImplWin32_Init(hWnd);
     ImGui_ImplDX11_Init(Renderer.GetDevice(), Renderer.GetDeviceContext());
 
-    ScreenSize = ImVec2(static_cast<float>(ScreenWidth), static_cast<float>(ScreenHeight));
-    InitialScreenSize = ScreenSize;
+    ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
+    InitialClientSize = ClientSize;
     bIsInitialized = true;
     
-    io.DisplaySize = ScreenSize;
+    io.DisplaySize = ClientSize;
 
     PreRatio = GetRatio();
     CurRatio = GetRatio();
@@ -112,19 +112,19 @@ void UI::Shutdown()
     ImGui::DestroyContext();
 }
 
-void UI::OnUpdateWindowSize(UINT InScreenWidth, UINT InScreenHeight)
+void UI::OnClientSizeUpdated(uint32 InClientWidth, uint32 InClientHeight)
 {
 	// Create ImGUI Resources Again
     ImGui_ImplDX11_InvalidateDeviceObjects();
     ImGui_ImplDX11_CreateDeviceObjects();
 
 	// Resize ImGui Window
-    ScreenSize = ImVec2(static_cast<float>(InScreenWidth), static_cast<float>(InScreenHeight));
+    ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
 
     bWasWindowSizeUpdated = true;
 
     // Render Windows //
-    UEditorDesigner::Get().OnResize(InScreenWidth, InScreenHeight);
+    UEditorDesigner::Get().OnResize(InClientWidth, InClientHeight);
 }
 
 void UI::RenderControlPanelWindow()
@@ -144,7 +144,7 @@ void UI::RenderControlPanelWindow()
     ImGui::Separator();
 
     ImGui::Text("Mouse pos: (%g, %g)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
-	ImGui::Text("Screen Size: (%g, %g)", ScreenSize.x, ScreenSize.y);
+	ImGui::Text("Screen Size: (%g, %g)", ClientSize.x, ClientSize.y);
 
     ImGui::Separator();
 

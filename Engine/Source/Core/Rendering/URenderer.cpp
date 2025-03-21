@@ -1563,7 +1563,7 @@ void URenderer::UpdateProjectionMatrix(ACamera* Camera)
     DeviceContext->UpdateSubresource(CbChangeOnResizeAndFov, 0, NULL, &ChangesOnResizeAndFov, 0, 0);
 }
 
-void URenderer::OnUpdateWindowSize(int Width, int Height)
+void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight)
 {
     if (SwapChain)
     {
@@ -1573,11 +1573,6 @@ void URenderer::OnUpdateWindowSize(int Width, int Height)
 
         ReleaseDepthStencilBuffer();
         ReleaseFrameBuffer();
-
-        //if (Width <= 0 || Height <= 0) {
-        //    MessageBox(hWnd, TEXT("Invalid window size parameters."), TEXT("Error"), MB_ICONERROR | MB_OK);
-        //    return;
-        //}
 
         HRESULT hr = SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 		if (FAILED(hr))
@@ -1599,8 +1594,8 @@ void URenderer::OnUpdateWindowSize(int Width, int Height)
 
         ViewportInfo = {
             .TopLeftX= 0.0f, .TopLeftY= 0.0f,
-            .Width= static_cast<float>(Width),
-			.Height= static_cast<float>(Height),
+            .Width= static_cast<float>(InClientWidth),
+			.Height= static_cast<float>(InClientHeight),
             .MinDepth= 0.0f, .MaxDepth= 1.0f
         };
 

@@ -149,6 +149,10 @@ public:
 			{
 				return std::stoi(*ValueStr);
 			}
+			else if constexpr (std::is_same_v<T, unsigned int>)
+			{
+				return std::stoul(*ValueStr);
+			}
 			else if constexpr (std::is_same_v<T, float>)
 			{
 				return std::stof(*ValueStr);
