@@ -184,6 +184,7 @@
     <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp">
       <Filter>Source Files\Engine\GameFrameWork</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CoreUObject\ObjectIterator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\HAL\PlatformType.h">
@@ -441,6 +442,7 @@
     <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h">
       <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CoreUObject\ObjectIterator.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
