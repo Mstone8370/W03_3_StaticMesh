@@ -204,13 +204,19 @@ void UEngine::InitWindow(int InScreenWidth, int InScreenHeight)
     wnd_class.lpszClassName = WindowClassName;
     RegisterClassW(&wnd_class);
 
+    // 파라미터로 전달 받은 Client 크기를 Window 크기로 변경
+    RECT ClientRect = {0, 0, InScreenWidth, InScreenHeight};
+    AdjustWindowRect(&ClientRect, WS_OVERLAPPEDWINDOW, false);
+    int WindowWidth = ClientRect.right - ClientRect.left;
+    int WindowHeight = ClientRect.bottom - ClientRect.top;
+
     // Create Window Handle //
     WindowHandle = CreateWindowExW(
         WS_EX_NOREDIRECTIONBITMAP,
         WindowClassName, WindowTitle,
         WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        ScreenWidth, ScreenHeight,
+        WindowWidth, WindowHeight,
         nullptr, nullptr, WindowInstance, nullptr
     );
 
@@ -321,8 +327,7 @@ void UEngine::UpdateWindowSize(const uint32 InScreenWidth, const uint32 InScreen
 {
     ScreenWidth = InScreenWidth;
     ScreenHeight = InScreenHeight;
-
-
+    
     if(Renderer)
     {
         Renderer->OnUpdateWindowSize(InScreenWidth, InScreenHeight);
@@ -344,8 +349,8 @@ void UEngine::UpdateWindowSize(const uint32 InScreenWidth, const uint32 InScreen
     UINT TotalWidth = windowRect.right - windowRect.left;
     UINT TotalHeignt = windowRect.bottom - windowRect.top;
 
-	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, TotalWidth);
-	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, TotalHeignt);
+	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, ScreenWidth);
+	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, ScreenHeight);
 }
 
 UObject* UEngine::GetObjectByUUID(uint32 InUUID) const
