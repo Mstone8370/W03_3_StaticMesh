@@ -178,6 +178,15 @@
     <ClCompile Include="Source\Engine\GameFrameWork\CatActor.cpp">
       <Filter>Source Files\Engine\GameFrameWork</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Static\ObjManager.cpp">
+      <Filter>Source Files\Static</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp">
+      <Filter>Source Files\Engine\GameFrameWork</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CoreUObject\Components\StaticMeshComponent.cpp">
+      <Filter>Source Files\CoreUObject\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\HAL\PlatformType.h">
@@ -429,6 +438,15 @@
     <ClInclude Include="Source\Engine\GameFrameWork\CatActor.h">
       <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Static\ObjManager.h">
+      <Filter>Header Files\Static</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CoreUObject\Components\StaticMeshComponent.h">
+      <Filter>Header Files\CoreUObject\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h">
+      <Filter>Header Files\Engine\GameFrameWork</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -574,7 +592,7 @@
     <None Include="Shaders\ShaderGrid.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\ShaderMesh.hlsl">
+    <None Include="Shaders\StaticMeshShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -347,13 +347,13 @@ void URenderer::PrepareMesh()
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderMesh")));
+    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("StaticMeshShader")));
 }
 
 void URenderer::PrepareMeshShader()
 {
-    DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("ShaderMesh")), nullptr, 0);
-    DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("ShaderMesh")), nullptr, 0);
+    DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("StaticMeshShader")), nullptr, 0);
+    DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("StaticMeshShader")), nullptr, 0);
 }
 
 void URenderer::PrepareWorldGrid()
