@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "Core/Math/Vector.h"
 #include "Core/Math/Matrix.h"
 #include "Core/Math/Transform.h"
 #include "Core/HAL/PlatformType.h"
@@ -23,45 +22,32 @@ class ACamera : public AActor
 public:
     ACamera();
 
+    virtual void SetActorTransform(const FTransform& InTransform) override;
+
+    void SetFieldOfView(float InFov);
+    void SetFar(float InFarClip);
+    void SetNear(float InNearClip);
+    void SetProjectionMode(ECameraProjectionMode::Type InProjectionMode);
+    
+    float GetFieldOfView() const { return FieldOfView; }
+    float GetNearClip() const { return NearClip; }
+    float GetFarClip() const { return FarClip; }
+    float GetMaxPitch() const { return MaxPitch; }
+    ECameraProjectionMode::Type GetProjectionMode() const { return ProjectionMode; }
+
+    FMatrix GetViewMatrix() const { return GetActorTransform().GetViewMatrix(); }
+
 private:    
     float NearClip;
+    
     float FarClip;
-    // 화면각
-    float FieldOfView;
-
-public:
-    const float MaxYDegree = 89.8f;
+    
+    float FieldOfView; // 화면각
+    
+    float MaxPitch;
     
     // 투영 타입 - Perspective, Orthographic
     ECameraProjectionMode::Type ProjectionMode;
-    // float AspectRatio;	// 카메라 비율 (이번 프로젝트에서는 사용 안할듯) 
 
-    void SetFieldOfView(float Fov);
-    void SetFar(float Far);
-    void SetNear(float Near);
-    
-    float GetFieldOfView() const;
-    float GetNearClip() const;
-    float GetFarClip() const;
-
-        
-    FVector GetForward() const
-    {
-        return GetActorTransform().GetForward();
-    }
-    
-    FVector GetRight() const
-    {
-        return GetActorTransform().GetRight();
-    }
-    
-    FVector GetUp() const
-    {
-        return GetActorTransform().GetUp();
-    }
-
-    FMatrix GetViewMatrix() const
-    {
-        return GetActorTransform().GetViewMatrix();
-    }
+    void OnProjectionMatrixChanged() const;
 };

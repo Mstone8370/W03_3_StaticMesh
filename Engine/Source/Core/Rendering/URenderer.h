@@ -89,7 +89,7 @@ public:
 	void UpdateViewMatrix(const FTransform& CameraTransform);
 
 	/** Projection 변환 Matrix를 업데이트 합니다. */
-	void UpdateProjectionMatrix(ACamera* Camera);
+	void UpdateProjectionMatrix(const ACamera* Camera);
 
 	// 클라이언트의 크기가 변경되면 호출됨.
 	void OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight);

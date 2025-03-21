@@ -1522,7 +1522,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
     DeviceContext->Unmap(CbChangeOnCameraMove, 0);
 }
 
-void URenderer::UpdateProjectionMatrix(ACamera* Camera)
+void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
 {
     float AspectRatio = UEngine::Get().GetClientRatio();
 
@@ -1530,7 +1530,7 @@ void URenderer::UpdateProjectionMatrix(ACamera* Camera)
     float NearClip = Camera->GetNearClip();
     float FarClip = Camera->GetFarClip();
 
-    if (Camera->ProjectionMode == ECameraProjectionMode::Perspective)
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
     {
         ProjectionMatrix = FMatrix::PerspectiveFovLH(FOV, AspectRatio, NearClip, FarClip);
     }

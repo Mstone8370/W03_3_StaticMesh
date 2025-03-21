@@ -282,11 +282,11 @@ void UI::RenderCameraSettings()
     ACamera* Camera = FEditorManager::Get().GetCamera();
 
     bool IsOrthogonal;
-    if (Camera->ProjectionMode == ECameraProjectionMode::Orthographic)
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
     {
         IsOrthogonal = true;
     }
-    else if (Camera->ProjectionMode == ECameraProjectionMode::Perspective)
+    else if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
     {
         IsOrthogonal = false;
     }
@@ -295,14 +295,12 @@ void UI::RenderCameraSettings()
     {
         if (IsOrthogonal)
         {
-            Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+            Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
         }
         else
         {
-            Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+            Camera->SetProjectionMode(ECameraProjectionMode::Perspective);
         }
-
-        UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
     }
 
     float FOV = Camera->GetFieldOfView();
@@ -310,8 +308,6 @@ void UI::RenderCameraSettings()
     {
         FOV = FMath::Clamp(FOV, 20.f, 150.f);
         Camera->SetFieldOfView(FOV);
-
-        UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
     }
 
     float NearFar[2] = { Camera->GetNearClip(), Camera->GetFarClip() };
@@ -327,8 +323,6 @@ void UI::RenderCameraSettings()
 
         Camera->SetNear(NearFar[0]);
         Camera->SetFar(NearFar[1]);
-        
-        UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
     }
     
     FVector CameraPosition = Camera->GetActorTransform().GetPosition();
@@ -344,11 +338,8 @@ void UI::RenderCameraSettings()
     if (ImGui::DragFloat3("Camera Rotation", reinterpret_cast<float*>(&UIEulerAngle), 0.1f))
     {
         FTransform Transform = Camera->GetActorTransform();
-
-        //FVector DeltaEulerAngle = UIEulerAngle - PrevEulerAngle;
-        //Transform.Rotate(DeltaEulerAngle);
         
-        UIEulerAngle.Y = FMath::Clamp(UIEulerAngle.Y, -Camera->MaxYDegree, Camera->MaxYDegree);
+        UIEulerAngle.Y = FMath::Clamp(UIEulerAngle.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
         Transform.SetRotation(UIEulerAngle);
         Camera->SetActorTransform(Transform);
     }

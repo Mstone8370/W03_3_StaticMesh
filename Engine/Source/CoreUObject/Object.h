@@ -6,7 +6,6 @@
 
 class UObject : public UClass
 {
-public:
 	UCLASS(UObject, UClass);
 
 private:

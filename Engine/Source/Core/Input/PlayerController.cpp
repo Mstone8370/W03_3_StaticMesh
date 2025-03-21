@@ -56,7 +56,7 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
     NewRotation.Y += MouseSensitivity * static_cast<float>(DeltaY); // Pitch
     NewRotation.Z += MouseSensitivity * static_cast<float>(DeltaX); // Yaw
 
-    NewRotation.Y = FMath::Clamp(NewRotation.Y, -Camera->MaxYDegree, Camera->MaxYDegree);
+    NewRotation.Y = FMath::Clamp(NewRotation.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
     CameraTransform.SetRotation(NewRotation);
 
     if (APlayerInput::Get().IsMousePressed(true))
@@ -74,19 +74,19 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
 
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
     {
-        NewVelocity -= Camera->GetRight();
+        NewVelocity -= Camera->GetActorRightVector();
     }
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
     {
-        NewVelocity += Camera->GetRight();
+        NewVelocity += Camera->GetActorRightVector();
     }
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
     {
-        NewVelocity += Camera->GetForward();
+        NewVelocity += Camera->GetActorForwardVector();
     }
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
         {
-        NewVelocity -= Camera->GetForward();
+        NewVelocity -= Camera->GetActorForwardVector();
     }
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::Q))
     {
@@ -105,8 +105,6 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
     Camera->SetActorTransform(CameraTransform);
     
     SaveCameraProperties(Camera);
-	
-	UEngine::Get().GetRenderer()->UpdateViewMatrix(CameraTransform);
 }
 
 void APlayerController::SaveCameraProperties(ACamera* Camera)

@@ -58,8 +58,7 @@ LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     // End Handle Input
     
     case WM_SIZE:
-        {
-            // 다른 case에서 아래의 변수에 접근하지 못하도록 스코프 제한
+        {   // 다른 case에서 아래의 변수에 접근하지 못하도록 스코프 제한
             if (wParam == SIZE_MINIMIZED)
             {
                 return 0;
@@ -79,14 +78,14 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 	EngineConfig = new FEngineConfig();
 	EngineConfig->LoadEngineConfig();
 
-	uint32 width = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenWidth);
-	uint32 height = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenHeight);
+	uint32 ConfigWidth = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenWidth);
+	uint32 ConfigHeight = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenHeight);
 
     WindowInstance = hInstance;
     WindowTitle = InWindowTitle;
     WindowClassName = InWindowClassName;
-    ClientWidth = width <= 0 ? InScreenWidth : width;
-    ClientHeight = height <= 0 ? InScreenHeight : height;
+    ClientWidth = ConfigWidth <= 0 ? InScreenWidth : ConfigWidth;
+    ClientHeight = ConfigHeight <= 0 ? InScreenHeight : ConfigHeight;
 
     ScreenMode = InScreenMode;
 
@@ -171,18 +170,25 @@ void UEngine::Run()
         // FPS 제한
         if (bShouldLimitFPS)
         {
-            double ElapsedTime;
-            do
-            {
-                Sleep(0);
-
-                LARGE_INTEGER CurrentTime;
-                QueryPerformanceCounter(&CurrentTime);
-
-                ElapsedTime = static_cast<double>(CurrentTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
-            } while (ElapsedTime < TargetDeltaTime);
+            LimitFPS(StartTime, Frequency, TargetDeltaTime);
         }
     }
+
+    // End Run
+}
+
+void UEngine::LimitFPS(const LARGE_INTEGER& StartTime, const LARGE_INTEGER& Frequency, double TargetDeltaTime) const
+{
+    double ElapsedTime;
+    do
+    {
+        Sleep(0);
+
+        LARGE_INTEGER CurrentTime;
+        QueryPerformanceCounter(&CurrentTime);
+
+        ElapsedTime = static_cast<double>(CurrentTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
+    } while (ElapsedTime < TargetDeltaTime);
 }
 
 
@@ -303,7 +309,6 @@ void UEngine::InitEditorCameraWithEngineConfig(ACamera* InCamera)
     APlayerController::Get().SetMouseSensitivity(CameraSensitivity);
 
     // 카메라 초기화 후 상수 버퍼 업데이트
-    Renderer->UpdateViewMatrix(CameraTransform);
     Renderer->UpdateProjectionMatrix(InCamera);
 
     // Update all camera config
@@ -328,10 +333,6 @@ void UEngine::InitTextureLoader()
 	// Texture Load
     bool bLoaded = true;
     bLoaded |= LoadTexture(TEXT("ASCII"), TEXT("ASCII.png"), 16, 16);
-    bLoaded |= LoadTexture(TEXT("Cat"), TEXT("Cat.jpg"), 1, 1);
-    bLoaded |= LoadTexture(TEXT("HappyCat"), TEXT("HappyCat.png"), 11, 11);
-    bLoaded |= LoadTexture(TEXT("AppleCat"), TEXT("AppleCat.png"), 2, 2);
-    bLoaded |= LoadTexture(TEXT("DancingCat"), TEXT("DancingCat.png"), 2, 2);
 }
 
 void UEngine::ShutdownWindow()
@@ -343,6 +344,7 @@ void UEngine::ShutdownWindow()
     WindowInstance = nullptr;
 
     ui.Shutdown();
+    
     EngineConfig->SaveAllConfig();
 	delete EngineConfig;
 }

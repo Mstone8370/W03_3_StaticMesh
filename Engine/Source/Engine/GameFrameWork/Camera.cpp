@@ -5,13 +5,13 @@
 
 REGISTER_CLASS(ACamera);
 ACamera::ACamera()
+    : NearClip(0.1f)
+    , FarClip(100.f)
+    , FieldOfView(90.f)
+    , ProjectionMode(ECameraProjectionMode::Perspective)
+    , MaxPitch(89.8f)
 {
     bIsGizmo = true;
-    
-    NearClip = 0.1f;
-    FarClip = 100.f;
-    FieldOfView = 90.f;
-    ProjectionMode = ECameraProjectionMode::Perspective;
 
     RootComponent = AddComponent<USceneComponent>();
 
@@ -22,32 +22,48 @@ ACamera::ACamera()
     SetActorTransform(StartTransform);
 }
 
-void ACamera::SetFieldOfView(float Fov)
+void ACamera::SetActorTransform(const FTransform& InTransform)
 {
-    FieldOfView = Fov;
+    AActor::SetActorTransform(InTransform);
+
+    if (URenderer* Renderer = UEngine::Get().GetRenderer())
+    {
+        /**
+         * 기존에는 외부에서 카메라의 트랜스폼을 변경할 때마다 추가적으로 렌더러의 UpdateViewMatrix를 호출해야함.
+         * 따라서 ACamera에서 호출해주면 실수로 렌더러의 UpdateViewMatrix를 호출하지 못하는 경우를 방지할 수 있을 듯.
+         */
+        Renderer->UpdateViewMatrix(InTransform);
+    }
 }
 
-void ACamera::SetFar(float Far)
+void ACamera::SetFieldOfView(float InFov)
 {
-    this->FarClip = Far;
+    FieldOfView = InFov;
+    OnProjectionMatrixChanged();
 }
 
-void ACamera::SetNear(float Near)
+void ACamera::SetFar(float InFarClip)
 {
-    this->NearClip = Near;
+    FarClip = InFarClip;
+    OnProjectionMatrixChanged();
 }
 
-float ACamera::GetFieldOfView() const
+void ACamera::SetNear(float InNearClip)
 {
-    return FieldOfView;
+    NearClip = InNearClip;
+    OnProjectionMatrixChanged();
 }
 
-float ACamera::GetNearClip() const
+void ACamera::SetProjectionMode(ECameraProjectionMode::Type InProjectionMode)
 {
-    return NearClip;
+    ProjectionMode = InProjectionMode;
+    OnProjectionMatrixChanged();
 }
 
-float ACamera::GetFarClip() const
+void ACamera::OnProjectionMatrixChanged() const
 {
-    return FarClip;
+    if (URenderer* Renderer = UEngine::Get().GetRenderer())
+    {
+        Renderer->UpdateProjectionMatrix(this);
+    }
 }

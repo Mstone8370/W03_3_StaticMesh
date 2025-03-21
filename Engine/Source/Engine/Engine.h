@@ -64,6 +64,8 @@ private:
     void ShutdownWindow();
     void UpdateWindowSize(uint32 InClientWidth, uint32 InClientHeight);
 
+    void LimitFPS(const LARGE_INTEGER& StartTime, const LARGE_INTEGER& Frequency, double TargetDeltaTime) const;
+    
 public:
 	UWorld* GetWorld() const { return World; }
 
