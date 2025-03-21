@@ -1,25 +1,28 @@
 ﻿#pragma once
 #include "Core/Container/String.h"
 #include "Core/Container/Map.h"
-#include <Debugging/DebugConsole.h>
 
 class UClass;
 
-#define UCLASS(ClassName, ParentClass) \
-public: \
-    static UClass* StaticClass() { \
-        static UClass StaticClassInstance(#ClassName, ParentClass::StaticClass()); \
-        return &StaticClassInstance; \
-    } \
-    virtual UClass* GetClass() const { return StaticClass(); } \
-private:
+#define UCLASS(ClassName, ParentClass)                                                    \
+public:                                                                                   \
+    static UClass* StaticClass()                                                          \
+    {                                                                                     \
+		static UClass StaticClassInstance(#ClassName, ParentClass::StaticClass());        \
+        return &StaticClassInstance;                                                      \
+    }                                                                                     \
+    virtual UClass* GetClass() const { return StaticClass(); }                            \
+private:                                                                                  \
+    struct AutoRegister_##ClassName                                                       \
+    {                                                                                     \
+        AutoRegister_##ClassName()                                                        \
+        {                                                                                 \
+            UClass::RegisterClass(StaticClass());                                         \
+        }                                                                                 \
+    };                                                                                    \
+inline static AutoRegister_##ClassName AutoRegisterInstance_##ClassName;                  \
+using Super = ParentClass;
 
-#define REGISTER_CLASS(ClassName) \
-    static UClass ClassName##_StaticClass(#ClassName, nullptr); \
-    struct ClassName##_ClassInfo { \
-        ClassName##_ClassInfo() { UClass::RegisterClass(&ClassName##_StaticClass); } \
-    }; \
-    static ClassName##_ClassInfo ClassName##_AutoRegister;
 
 class UClass
 {

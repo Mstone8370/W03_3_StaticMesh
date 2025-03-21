@@ -2,7 +2,6 @@
 #include "ActorComponent.h"
 #include "Engine/GameFrameWork/Actor.h"
 
-REGISTER_CLASS(UActorComponent);
 void UActorComponent::BeginPlay()
 {
 }

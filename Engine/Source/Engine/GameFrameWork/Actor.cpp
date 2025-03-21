@@ -10,7 +10,6 @@
 #include "Core/Rendering/TextureLoader.h"
 #include "Camera.h"
 
-REGISTER_CLASS(AActor);
 AActor::AActor()
 {
 }

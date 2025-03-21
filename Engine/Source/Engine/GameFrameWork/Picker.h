@@ -4,8 +4,8 @@
 
 class APicker : public AActor
 {
-	UCLASS(APicker, AActor);
-    using Super = AActor;
+	UCLASS(APicker, AActor)
+
 public:
     APicker();
     ~APicker() = default;

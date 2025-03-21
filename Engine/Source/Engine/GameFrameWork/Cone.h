@@ -4,8 +4,8 @@
 
 class ACone : public AActor
 {
-	UCLASS(ACone, AActor);
-    using Super = AActor;
+	UCLASS(ACone, AActor)
+
 public:
     ACone();
     virtual ~ACone() = default;

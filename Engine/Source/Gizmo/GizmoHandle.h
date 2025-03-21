@@ -2,6 +2,8 @@
 
 #include "Engine/GameFrameWork/Actor.h"
 
+class UStaticMeshComponent;
+
 enum class ESelectedAxis : uint8
 {
 	None,
@@ -20,8 +22,8 @@ enum class EGizmoType : uint8
 
 class AGizmoHandle : public AActor
 {
-	UCLASS(AGizmoHandle, AActor);
-	using Super = AActor;
+	UCLASS(AGizmoHandle, AActor)
+
 public:
 	AGizmoHandle();
 
@@ -46,11 +48,11 @@ private:
 	FVector GizmoScale = FVector(0.5f, 0.5f, 0.5f);
 	
 	bool bIsActive = false;
-	TArray<class UMeshComponent*> AllGizmos;
+	TArray<UStaticMeshComponent*> AllGizmos;
 
-	TArray<UMeshComponent*> TranslationGizmos;
-	TArray<UMeshComponent*> RotationGizmos;
-	TArray<UMeshComponent*> ScaleGizmos;
+	TArray<UStaticMeshComponent*> TranslationGizmos;
+	TArray<UStaticMeshComponent*> RotationGizmos;
+	TArray<UStaticMeshComponent*> ScaleGizmos;
 
 	ESelectedAxis SelectedAxis = ESelectedAxis::None;
 	EGizmoType GizmoType = EGizmoType::Translate;

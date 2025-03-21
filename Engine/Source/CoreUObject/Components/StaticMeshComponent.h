@@ -4,7 +4,6 @@
 class UStaticMeshComponent : public UMeshComponent
 {
     UCLASS(UStaticMeshComponent, UMeshComponent)
-    using Super = UMeshComponent;
     
 public:
     UStaticMeshComponent() = default;

@@ -4,8 +4,8 @@
 
 class ACylinder : public AActor
 {
-	UCLASS(ACylinder, AActor);
-    using Super = AActor;
+	UCLASS(ACylinder, AActor)
+
 public:
     ACylinder();
     virtual ~ACylinder() = default;

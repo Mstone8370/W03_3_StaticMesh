@@ -8,8 +8,8 @@
 
 class UPrimitiveComponent : public USceneComponent
 {
-	UCLASS(UPrimitiveComponent, USceneComponent);
-	using Super = USceneComponent;
+	UCLASS(UPrimitiveComponent, USceneComponent)
+
 public:
 	UPrimitiveComponent() = default;
 	virtual ~UPrimitiveComponent() = default;
@@ -63,8 +63,8 @@ protected:
 
 class UCubeComp : public UPrimitiveComponent
 {
-	UCLASS(UCubeComp, UPrimitiveComponent);
-	using Super = UPrimitiveComponent;
+	UCLASS(UCubeComp, UPrimitiveComponent)
+
 public:
 	UCubeComp()
 	{
@@ -73,12 +73,11 @@ public:
 	}
 	virtual ~UCubeComp() = default;
 };
-REGISTER_CLASS(UCubeComp);
 
 class USphereComp : public UPrimitiveComponent
 {
-	UCLASS(USphereComp, UPrimitiveComponent);
-	using Super = UPrimitiveComponent;
+	UCLASS(USphereComp, UPrimitiveComponent)
+
 public:
 	USphereComp()
 	{
@@ -87,12 +86,11 @@ public:
 	}
 	virtual ~USphereComp() = default;
 };
-REGISTER_CLASS(USphereComp);
 
 class UTriangleComp : public UPrimitiveComponent
 {
-	UCLASS(UTriangleComp, UPrimitiveComponent);
-	using Super = UPrimitiveComponent;
+	UCLASS(UTriangleComp, UPrimitiveComponent)
+
 public:
 	UTriangleComp()
 	{
@@ -101,12 +99,10 @@ public:
 	}
 	virtual ~UTriangleComp() = default;
 };
-REGISTER_CLASS(UTriangleComp);
 
 class ULineComp : public UPrimitiveComponent
 {
-	UCLASS(ULineComp, UPrimitiveComponent);
-	using Super = UPrimitiveComponent;
+	UCLASS(ULineComp, UPrimitiveComponent)
 
 public:
 	ULineComp()
@@ -116,12 +112,10 @@ public:
 	}
 	virtual ~ULineComp() = default;
 };
-REGISTER_CLASS(ULineComp);
 
 class UCylinderComp : public UPrimitiveComponent
 {
-	UCLASS(UCylinderComp, UPrimitiveComponent);
-	using Super = UPrimitiveComponent;
+	UCLASS(UCylinderComp, UPrimitiveComponent)
 
 public:
 	UCylinderComp()
@@ -131,12 +125,11 @@ public:
 	}
 	virtual ~UCylinderComp() = default;
 };
-REGISTER_CLASS(UCylinderComp);
 
 class UConeComp : public UPrimitiveComponent
 {
-	UCLASS(UConeComp, UPrimitiveComponent);
-	using Super = UPrimitiveComponent;
+	UCLASS(UConeComp, UPrimitiveComponent)
+
 public:
 	UConeComp()
 	{
@@ -147,4 +140,3 @@ public:
 
 protected:
 };
-REGISTER_CLASS(UConeComp);

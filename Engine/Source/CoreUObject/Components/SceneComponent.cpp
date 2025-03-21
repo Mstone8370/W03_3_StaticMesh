@@ -8,8 +8,6 @@
 #include "GameFrameWork/Actor.h"
 #include "World.h"
 
-
-REGISTER_CLASS(USceneComponent);
 void USceneComponent::BeginPlay()
 {
     Super::BeginPlay();
