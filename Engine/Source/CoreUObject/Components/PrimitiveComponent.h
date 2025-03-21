@@ -73,7 +73,6 @@ public:
 	}
 	virtual ~UCubeComp() = default;
 };
-REGISTER_CLASS(UCubeComp);
 
 class USphereComp : public UPrimitiveComponent
 {
@@ -87,7 +86,6 @@ public:
 	}
 	virtual ~USphereComp() = default;
 };
-REGISTER_CLASS(USphereComp);
 
 class UTriangleComp : public UPrimitiveComponent
 {
@@ -101,7 +99,6 @@ public:
 	}
 	virtual ~UTriangleComp() = default;
 };
-REGISTER_CLASS(UTriangleComp);
 
 class ULineComp : public UPrimitiveComponent
 {
@@ -116,7 +113,6 @@ public:
 	}
 	virtual ~ULineComp() = default;
 };
-REGISTER_CLASS(ULineComp);
 
 class UCylinderComp : public UPrimitiveComponent
 {
@@ -131,7 +127,6 @@ public:
 	}
 	virtual ~UCylinderComp() = default;
 };
-REGISTER_CLASS(UCylinderComp);
 
 class UConeComp : public UPrimitiveComponent
 {
@@ -147,4 +142,3 @@ public:
 
 protected:
 };
-REGISTER_CLASS(UConeComp);

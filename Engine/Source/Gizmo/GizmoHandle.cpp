@@ -6,9 +6,8 @@
 #include "CoreUObject/World.h"
 #include "Core/Input/PlayerInput.h"
 #include "Static/EditorManager.h"
-#include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 
-REGISTER_CLASS(AGizmoHandle);
 AGizmoHandle::AGizmoHandle()
 {
 	bIsGizmo = true;
@@ -30,7 +29,7 @@ AGizmoHandle::AGizmoHandle()
 void AGizmoHandle::InitTranslationGizmo()
 {
     // x
-    UMeshComponent* TranslationX = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* TranslationX = AddComponent<UStaticMeshComponent>();
     TranslationX->SetMeshName("GizmoTranslation");
     TranslationX->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), GizmoScale));
     TranslationX->SetCustomColor(FVector4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -39,7 +38,7 @@ void AGizmoHandle::InitTranslationGizmo()
     TranslationX->SetupAttachment(RootComponent);
 
     // y
-    UMeshComponent* TranslationY = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* TranslationY = AddComponent<UStaticMeshComponent>();
     TranslationY->SetMeshName("GizmoTranslation");
     TranslationY->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 90.0f), GizmoScale));
     TranslationY->SetCustomColor(FVector4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -48,7 +47,7 @@ void AGizmoHandle::InitTranslationGizmo()
     TranslationY->SetupAttachment(RootComponent);
 
     // z
-    UMeshComponent* TranslationZ = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* TranslationZ = AddComponent<UStaticMeshComponent>();
     TranslationZ->SetMeshName("GizmoTranslation");
     TranslationZ->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, -90.0f, 0.0f), GizmoScale));
     TranslationZ->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));
@@ -64,7 +63,7 @@ void AGizmoHandle::InitTranslationGizmo()
 void AGizmoHandle::InitRotationGizmo()
 {
     // x
-    UMeshComponent* RotationX = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* RotationX = AddComponent<UStaticMeshComponent>();
     RotationX->SetMeshName("GizmoRotation");
     RotationX->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), GizmoScale));
     RotationX->SetCustomColor(FVector4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -73,7 +72,7 @@ void AGizmoHandle::InitRotationGizmo()
     RotationX->SetupAttachment(RootComponent);
 
     // y
-    UMeshComponent* RotationY = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* RotationY = AddComponent<UStaticMeshComponent>();
     RotationY->SetMeshName("GizmoRotation");
     RotationY->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(90.0f, 0.0f, 90.0f), GizmoScale));
     RotationY->SetCustomColor(FVector4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -82,7 +81,7 @@ void AGizmoHandle::InitRotationGizmo()
     RotationY->SetupAttachment(RootComponent);
 
     // z
-    UMeshComponent* RotationZ = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* RotationZ = AddComponent<UStaticMeshComponent>();
     RotationZ->SetMeshName("GizmoRotation");
     RotationZ->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, -90.0f, -90.0f), GizmoScale));
     RotationZ->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));
@@ -98,7 +97,7 @@ void AGizmoHandle::InitRotationGizmo()
 void AGizmoHandle::InitScaleGizmo()
 {
     // x
-    UMeshComponent* ScaleX = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* ScaleX = AddComponent<UStaticMeshComponent>();
     ScaleX->SetMeshName("GizmoScale");
     ScaleX->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), GizmoScale));
     ScaleX->SetCustomColor(FVector4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -107,7 +106,7 @@ void AGizmoHandle::InitScaleGizmo()
     ScaleX->SetupAttachment(RootComponent);
 
     // y
-    UMeshComponent* ScaleY = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* ScaleY = AddComponent<UStaticMeshComponent>();
     ScaleY->SetMeshName("GizmoScale");
     ScaleY->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 90.0f), GizmoScale));
     ScaleY->SetCustomColor(FVector4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -116,7 +115,7 @@ void AGizmoHandle::InitScaleGizmo()
     ScaleY->SetupAttachment(RootComponent);
 
     // z
-    UMeshComponent* ScaleZ = AddComponent<UMeshComponent>();
+    UStaticMeshComponent* ScaleZ = AddComponent<UStaticMeshComponent>();
     ScaleZ->SetMeshName("GizmoScale");
     ScaleZ->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, -90.0f, 0.0f), GizmoScale));
     ScaleZ->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));

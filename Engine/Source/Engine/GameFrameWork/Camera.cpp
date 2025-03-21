@@ -2,8 +2,6 @@
 #include "Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 
-
-REGISTER_CLASS(ACamera);
 ACamera::ACamera()
     : NearClip(0.1f)
     , FarClip(100.f)

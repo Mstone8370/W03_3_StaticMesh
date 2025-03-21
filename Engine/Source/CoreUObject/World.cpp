@@ -4,7 +4,7 @@
 #include "WorldGrid.h"
 #include "Core/Input/PlayerInput.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
-#include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "Core/Container/Map.h"
 #include "Utils/JsonSavehelper.h"
@@ -19,7 +19,6 @@
 #include "Components/TextBillboardComponent.h"
 #include "GameFrameWork/Picker.h"
 
-REGISTER_CLASS(UWorld);
 void UWorld::BeginPlay()
 {
     for (const auto& Actor : Actors)

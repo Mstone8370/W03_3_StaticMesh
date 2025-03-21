@@ -1,8 +1,6 @@
 ﻿#include "pch.h"
 #include "AnimatedBillboardComponent.h"
 
-REGISTER_CLASS(UAnimatedBillboardComponent)
-
 UAnimatedBillboardComponent::UAnimatedBillboardComponent()
     : PlayRate(1.f)
     , RemainingNextFrameTime(1.f / PlayRate)

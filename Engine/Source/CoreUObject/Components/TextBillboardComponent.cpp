@@ -3,8 +3,6 @@
 #include "Engine/GameFrameWork/Actor.h"
 #include "CoreUObject/World.h"
 
-REGISTER_CLASS(UTextBillboardComponent)
-
 UTextBillboardComponent::UTextBillboardComponent()
 {
 }
