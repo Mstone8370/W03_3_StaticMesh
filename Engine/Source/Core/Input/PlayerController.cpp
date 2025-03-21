@@ -119,26 +119,26 @@ void APlayerController::SaveCameraProperties(ACamera* Camera)
     float FarClip = Camera->GetFarClip();
     float CameraSpeed = CurrentSpeed;
 
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosX, CameraTransform.GetPosition().X);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosY, CameraTransform.GetPosition().Y);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosZ, CameraTransform.GetPosition().Z);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosX, CameraTransform.GetPosition().X);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosY, CameraTransform.GetPosition().Y);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosZ, CameraTransform.GetPosition().Z);
 
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotX, CameraTransform.GetRotation().X);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotY, CameraTransform.GetRotation().Y);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotZ, CameraTransform.GetRotation().Z);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotW, CameraTransform.GetRotation().W);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotX, CameraTransform.GetRotation().X);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotY, CameraTransform.GetRotation().Y);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotZ, CameraTransform.GetRotation().Z);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotW, CameraTransform.GetRotation().W);
 }
 
 void APlayerController::SetCurrentSpeed(float InSpeed)
 {
     CurrentSpeed = FMath::Clamp(InSpeed, MinSpeed, MaxSpeed);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraSpeed, CurrentSpeed);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraSpeed, CurrentSpeed);
 }
 
 void APlayerController::SetMouseSensitivity(float InSensitivity)
 {
     MouseSensitivity = FMath::Clamp(InSensitivity, MinSensitivity, MaxSensitivity);
-    UEngine::Get().GetEngineConfig()->SaveEngineConfig(EEngineConfigValueType::EEC_EditorCameraSensitivity, MouseSensitivity);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraSensitivity, MouseSensitivity);
 }
 
 void APlayerController::ProcessPlayerInput(float DeltaTime)

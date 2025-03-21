@@ -13,8 +13,8 @@ FRay FRay::GetRayByMousePoint(ACamera* InCamera)
     GetCursorPos(&pt);
 
     ScreenToClient(UEngine::Get().GetWindowHandle(), &pt);
-    float ScreenWidth = UEngine::Get().GetScreenWidth();
-    float ScreenHeight = UEngine::Get().GetScreenHeight();
+    float ScreenWidth = UEngine::Get().GetClientWidth();
+    float ScreenHeight = UEngine::Get().GetClientHeight();
 
     float NDCX = 2.0f * pt.x / ScreenWidth - 1.0f;
     float NDCY = -2.0f * pt.y / ScreenHeight + 1.0f;

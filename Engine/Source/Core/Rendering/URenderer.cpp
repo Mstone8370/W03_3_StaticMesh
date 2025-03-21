@@ -168,9 +168,6 @@ void URenderer::PrepareRender()
     DeviceContext->ClearRenderTargetView(PickingFrameBufferRTV, PickingClearColor);
     DeviceContext->ClearDepthStencilView(PickingDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    // InputAssembler의 Vertex 해석 방식을 설정
-    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
     // Rasterization할 Viewport를 설정 
     DeviceContext->RSSetViewports(1, &ViewportInfo);
 
@@ -188,13 +185,6 @@ void URenderer::PrepareRender()
     }
 
     DeviceContext->RSSetState(*CurrentRasterizerState);
-
-    /**
-     * OutputMerger 설정
-     * 렌더링 파이프라인의 최종 단계로써, 어디에 그릴지(렌더 타겟)와 어떻게 그릴지(블렌딩)를 지정
-     */
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);    // DepthStencil 뷰 설정
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 }
 
 void URenderer::PrepareMainShader() const
@@ -1400,8 +1390,6 @@ void URenderer::PreparePicking()
     DeviceContext->OMSetRenderTargets(1, &PickingFrameBufferRTV, PickingDepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-
-    DeviceContext->ClearRenderTargetView(PickingFrameBufferRTV, PickingClearColor);
 }
 
 void URenderer::PreparePickingShader() const
@@ -1536,7 +1524,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
 
 void URenderer::UpdateProjectionMatrix(ACamera* Camera)
 {
-    float AspectRatio = UEngine::Get().GetScreenRatio();
+    float AspectRatio = UEngine::Get().GetClientRatio();
 
     float FOV = FMath::DegreesToRadians(Camera->GetFieldOfView());
     float NearClip = Camera->GetNearClip();
@@ -1550,8 +1538,8 @@ void URenderer::UpdateProjectionMatrix(ACamera* Camera)
     {
         //@TODO: Delete Magic Number '360'
         float SizeDivisor = 360.f;
-        int32 ScreenWidth = UEngine::Get().GetScreenWidth();
-        int32 ScreenHeight = UEngine::Get().GetScreenHeight();
+        int32 ScreenWidth = UEngine::Get().GetClientWidth();
+        int32 ScreenHeight = UEngine::Get().GetClientHeight();
         ProjectionMatrix = FMatrix::OrthoLH(ScreenWidth / SizeDivisor, ScreenHeight / SizeDivisor, NearClip, FarClip);
     }
 

@@ -4,9 +4,10 @@
 #include "Core/HAL/PlatformType.h"
 #include "Core/AbstractClass/Singleton.h"
 #include "Core/Rendering/UI.h"
-#include "Core/Rendering/URenderer.h"
 #include "EngineConfig.h"
+#include "Core/Rendering/URenderer.h"
 
+class ACamera;
 class UObject;
 class UWorld;
 class TextureLoader;
@@ -46,16 +47,17 @@ public:
      */
     void Shutdown();
 
-	class URenderer* GetRenderer() const { return Renderer.get(); }
-	float GetScreenRatio() const { return static_cast<float>(ClientWidth) / ClientHeight; }
-    int GetScreenWidth() const { return ClientWidth; }
-    int GetScreenHeight() const { return ClientHeight; }
+	URenderer* GetRenderer() const { return Renderer.get(); }
+	float GetClientRatio() const { return static_cast<float>(ClientWidth) / static_cast<float>(ClientHeight); }
+    uint32 GetClientWidth() const { return ClientWidth; }
+    uint32 GetClientHeight() const { return ClientHeight; }
 
 
 private:
-    void InitWindow(uint32 InClientWidth, uint32 InCliehtHeight);
+    void InitWindow(uint32 InClientWidth, uint32 InClientHeight);
     void InitRenderer();
     void InitWorld();
+    void InitEditorCameraWithEngineConfig(ACamera* InCamera);
     void InitTextureLoader();
     void ShutdownWindow();
     void UpdateWindowSize(uint32 InClientWidth, uint32 InClientHeight);
@@ -78,6 +80,7 @@ public:
 
     bool LoadTexture(const FName& Name, const FString& FileName, int32 Rows = 1, int32 Columns = 1);
     TextureInfo* GetTextureInfo(const FName& Name) const;
+    
 private:
     bool bIsExit = false;
     EScreenMode ScreenMode = EScreenMode::Windowed;
