@@ -32,12 +32,6 @@ struct alignas(16) FPickingConstants
 	FVector4 UUIDColor;
 };
 
-struct alignas(16) FDepthConstants {
-	unsigned int DepthOffset;
-	int nearPlane;
-	int farPlane;
-};
-
 struct alignas(16) FTextureConstants
 {
 	FMatrix WorldViewProj;

@@ -19,16 +19,6 @@ public:
 	AActor();
 	virtual ~AActor() override = default;
 
-	void SetDepth(int InDepth)
-	{
-		Depth = InDepth;
-	}
-
-	int GetDepth() const
-	{
-		return Depth;
-	}
-
 public:
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaTime);
@@ -53,7 +43,6 @@ private:
 	virtual void Pick();
 	virtual void UnPick();
 
-	uint32 Depth;
 	bool bIsPicked = false;
 
 public:

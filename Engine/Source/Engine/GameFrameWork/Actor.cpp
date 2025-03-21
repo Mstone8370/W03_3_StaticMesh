@@ -11,7 +11,7 @@
 #include "Camera.h"
 
 REGISTER_CLASS(AActor);
-AActor::AActor() : Depth{ 0 }
+AActor::AActor()
 {
 }
 

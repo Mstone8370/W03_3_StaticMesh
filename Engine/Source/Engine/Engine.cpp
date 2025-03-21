@@ -1,8 +1,6 @@
 #include "pch.h" 
 #include "Engine.h"
 
-#include "WorldGrid.h"
-#include "Components/MeshComponent.h"
 #include "Static/EditorManager.h"
 #include "Core/Input/PlayerInput.h"
 #include "Core/Input/PlayerController.h"
@@ -12,6 +10,7 @@
 #include "GameFrameWork/Camera.h"
 #include "Gizmo/GizmoHandle.h"
 #include "Core/Rendering/TextureLoader.h"
+#include "GameFrameWork/Picker.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTK/Libs/x64/Debug/DirectXTK.lib")

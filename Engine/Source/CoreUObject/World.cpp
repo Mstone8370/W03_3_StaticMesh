@@ -17,6 +17,7 @@
 
 #include "Components/BillboardComponent.h"
 #include "Components/TextBillboardComponent.h"
+#include "GameFrameWork/Picker.h"
 
 REGISTER_CLASS(UWorld);
 void UWorld::BeginPlay()
