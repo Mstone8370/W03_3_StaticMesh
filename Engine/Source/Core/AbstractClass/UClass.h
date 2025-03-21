@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Core/Container/String.h"
 #include "Core/Container/Map.h"
-#include <Debugging/DebugConsole.h>
 
 class UClass;
 
@@ -21,7 +20,8 @@ private:                                                                        
             UClass::RegisterClass(StaticClass());                                         \
         }                                                                                 \
     };                                                                                    \
-inline static AutoRegister_##ClassName AutoRegisterInstance_##ClassName;
+inline static AutoRegister_##ClassName AutoRegisterInstance_##ClassName;                  \
+using Super = ParentClass;
 
 
 class UClass

@@ -4,7 +4,6 @@
 class UBillboardComponent : public UPrimitiveComponent
 {
 	UCLASS(UBillboard, UPrimitiveComponent)
-	using Super = UPrimitiveComponent;
 	
 public:
 	UBillboardComponent();

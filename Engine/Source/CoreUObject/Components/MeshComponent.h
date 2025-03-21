@@ -4,7 +4,6 @@
 class UMeshComponent : public UPrimitiveComponent
 {
     UCLASS(UMeshComponent, UPrimitiveComponent);
-    using Super = UPrimitiveComponent;
     
 public:
     UMeshComponent() = default;

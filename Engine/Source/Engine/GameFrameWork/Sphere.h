@@ -4,8 +4,8 @@
 
 class ASphere : public AActor
 {
-	UCLASS(ASphere, AActor);
-	using Super = AActor;
+	UCLASS(ASphere, AActor)
+
 public:
 	ASphere();
 	virtual ~ASphere() = default;

@@ -4,7 +4,6 @@
 class UTextBillboardComponent : public UBillboardComponent
 {
 	UCLASS(UTextBillboard, UBillboardComponent)
-	using Super = UBillboardComponent;
 
 public:
 	UTextBillboardComponent();
