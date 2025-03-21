@@ -16,7 +16,7 @@
 
 
 class AActor;
-class UBillboard;
+class UBillboardComponent;
 
 class UWorld :public UObject
 {
@@ -61,12 +61,12 @@ public:
 	void RemoveRenderComponent(class UPrimitiveComponent* Component) { RenderComponents.Remove(Component); }
 
 	// billboard
-	void AddBillboardComponent(class UBillboard* Component) { BillboardComponents.Add(Component); }
-	void RemoveBillboardComponent(class UBillboard* Component) { BillboardComponents.Remove(Component); }
+	void AddBillboardComponent(class UBillboardComponent* Component) { BillboardComponents.Add(Component); }
+	void RemoveBillboardComponent(class UBillboardComponent* Component) { BillboardComponents.Remove(Component); }
 
 	// billboard
-	void AddTextBillboardComponent(class UTextBillboard* Component) { TextBillboardComponents.Add(Component); }
-	void RemoveTextBillboardComponent(class UTextBillboard* Component) { TextBillboardComponents.Remove(Component); }
+	void AddTextBillboardComponent(class UTextBillboardComponent* Component) { TextBillboardComponents.Add(Component); }
+	void RemoveTextBillboardComponent(class UTextBillboardComponent* Component) { TextBillboardComponents.Remove(Component); }
 
 	TArray<AActor*> GetActors() const { return Actors; }
 	
@@ -93,8 +93,8 @@ public:
 protected:
 	TArray<AActor*> Actors;
 	TArray<UPrimitiveComponent*> ZIgnoreRenderComponents;
-	TArray<UBillboard*> BillboardComponents;
-	TArray<UTextBillboard*> TextBillboardComponents;
+	TArray<UBillboardComponent*> BillboardComponents;
+	TArray<UTextBillboardComponent*> TextBillboardComponents;
 	TArray<AActor*> ActorsToSpawn;
 	TArray<AActor*> PendingDestroyActors; // TODO: 추후에 TQueue로 변경
 	TSet<UPrimitiveComponent*> RenderComponents;

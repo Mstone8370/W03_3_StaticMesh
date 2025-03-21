@@ -1,14 +1,14 @@
 #pragma once
 #include "CoreUObject/Components/PrimitiveComponent.h"
 
-class UBillboard : public UPrimitiveComponent
+class UBillboardComponent : public UPrimitiveComponent
 {
 	UCLASS(UBillboard, UPrimitiveComponent);
 	using Super = UPrimitiveComponent;
 	
 public:
-	UBillboard();
-	virtual ~UBillboard() = default;
+	UBillboardComponent();
+	virtual ~UBillboardComponent() = default;
 
 	virtual void BeginPlay() override;
 	virtual void Render(class URenderer* Renderer) override;
@@ -25,12 +25,5 @@ protected:
 	float TotalRows = 1.0f;
 	float RenderCol = 1.0f;
 	float RenderRow = 1.0f;
-
-	FVector4 PartyMode = FVector4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	float PartyHue = 0.0f;
-	
-protected:
-	virtual	FVector4 PartyHsvToRgb(float Hue);
 };
 

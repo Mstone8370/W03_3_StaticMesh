@@ -19,7 +19,6 @@
 #include "Engine/GameFrameWork/Arrow.h"
 #include "Engine/GameFrameWork/Cone.h"
 #include "Engine/GameFrameWork/Cylinder.h"
-#include "GameFrameWork/CatActor.h"
 #include "Gizmo/GizmoHandle.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui_impl_win32.h"
@@ -209,7 +208,7 @@ void UI::RenderMemoryUsage()
 
 void UI::RenderPrimitiveSelection()
 {
-    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "Cat" };
+    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow" };
 
     ImGui::Combo("Primitive", &currentItem, items, IM_ARRAYSIZE(items));
 
@@ -237,10 +236,6 @@ void UI::RenderPrimitiveSelection()
             else if (strcmp(items[currentItem], "Arrow") == 0)
             {
                 World->SpawnActor<AArrow>();
-            }
-            else if (strcmp(items[currentItem], "Cat") == 0)
-            {
-                World->SpawnActor<ACatActor>();
             }
             //else if (strcmp(items[currentItem], "Triangle") == 0)
             //{

@@ -9,7 +9,6 @@ cbuffer TextureBuffer : register(b5)
     float2 UVOffset;
     float2 AtlasColsRows;
     int bIsText; // 0 이면 일반 텍스처, 1 이면 텍스트
-    float4 PartyMode;
 }
 
 struct VS_INPUT
@@ -57,13 +56,6 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
         else
         {
             Color.a = 1.f;
-        }
-    }
-    else
-    {
-        if (Color.a < Threshold)
-        {
-            Color = PartyMode;
         }
     }
     

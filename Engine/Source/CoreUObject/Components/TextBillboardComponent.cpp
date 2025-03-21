@@ -1,13 +1,15 @@
 #include "pch.h"
-#include "TextBillboard.h"
+#include "TextBillboardComponent.h"
 #include "Engine/GameFrameWork/Actor.h"
 #include "CoreUObject/World.h"
 
-UTextBillboard::UTextBillboard()
+REGISTER_CLASS(UTextBillboardComponent)
+
+UTextBillboardComponent::UTextBillboardComponent()
 {
 }
 
-void UTextBillboard::BeginPlay()
+void UTextBillboardComponent::BeginPlay()
 {
 	// Super::BeginPlay(); // TODO: 부모인 UBillboard와 UTextBillboard의 동작이 달라서 발생하는 문제
 
@@ -17,7 +19,7 @@ void UTextBillboard::BeginPlay()
 	GetOwner()->GetWorld()->AddTextBillboardComponent(this);
 }
 
-void UTextBillboard::Render(class URenderer* Renderer)
+void UTextBillboardComponent::Render(class URenderer* Renderer)
 {
 	if (nullptr == Texture || TextString.empty())
 	{
@@ -32,12 +34,12 @@ void UTextBillboard::Render(class URenderer* Renderer)
 	Renderer->RenderTextBillboard(TextString, TotalCols, TotalRows);
 }
 
-void UTextBillboard::EndPlay(const EEndPlayReason::Type Reason)
+void UTextBillboardComponent::EndPlay(const EEndPlayReason::Type Reason)
 {
 	GetOwner()->GetWorld()->RemoveTextBillboardComponent(this);
 }
 
-void UTextBillboard::SetText(const std::wstring& InString)
+void UTextBillboardComponent::SetText(const std::wstring& InString)
 {
 	TextString = InString;
 }

@@ -13,11 +13,10 @@
 #include "Engine/GameFrameWork/Cube.h"
 #include "Engine/GameFrameWork/Cylinder.h"
 #include "Engine/GameFrameWork/Sphere.h"
-#include "Engine/GameFrameWork/CatActor.h"
 #include "Input/PlayerController.h"
 
-#include "Components/Billboard.h"
-#include "Components/TextBillboard.h"
+#include "Components/BillboardComponent.h"
+#include "Components/TextBillboardComponent.h"
 
 REGISTER_CLASS(UWorld);
 void UWorld::BeginPlay()
@@ -205,7 +204,7 @@ void UWorld::RenderBillboard(URenderer& Renderer)
     // 텍스처와 샘플러 상태를 셰이더에 설정
     Renderer.PrepareBillboard();
 
-	for (UBillboard* Billboard : BillboardComponents)
+	for (UBillboardComponent* Billboard : BillboardComponents)
 	{
         if (Billboard)
         {
@@ -219,7 +218,7 @@ void UWorld::RenderText(URenderer& Renderer)
     // 텍스처와 샘플러 상태를 셰이더에 설정
     Renderer.PrepareTextBillboard();
 
-    for (UTextBillboard* TextBillboard : TextBillboardComponents)
+    for (UTextBillboardComponent* TextBillboard : TextBillboardComponents)
     {
         if (TextBillboard)
         {
@@ -353,10 +352,6 @@ void UWorld::LoadWorld(const char* SceneName)
         else if (ObjectInfo->ObjectType == "Cone")
         {
             Actor = SpawnActor<ACone>();
-        }
-        else if (ObjectInfo->ObjectType == "CatActor")
-        {
-            Actor = SpawnActor<ACatActor>();
         }
         if (Actor)
         {

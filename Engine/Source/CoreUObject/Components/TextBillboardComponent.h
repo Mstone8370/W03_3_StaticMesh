@@ -1,15 +1,19 @@
 #pragma once
-#include "Billboard.h"
-class UTextBillboard : public UBillboard
+#include "BillboardComponent.h"
+
+class UTextBillboardComponent : public UBillboardComponent
 {
-	UCLASS(UTextBillboard, UBillboard);
-	using Super = UBillboard;
+	UCLASS(UTextBillboard, UBillboardComponent)
+	using Super = UBillboardComponent;
 
 public:
-	UTextBillboard();
-	virtual ~UTextBillboard() = default;
+	UTextBillboardComponent();
+	virtual ~UTextBillboardComponent() = default;
+	
 	virtual void BeginPlay() override;
+	
 	virtual void Render(class URenderer* Renderer) override;
+	
 	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 	
 	void SetText(const std::wstring& InString);
