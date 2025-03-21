@@ -102,6 +102,11 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
     UpdateWindowSize(ClientWidth, ClientHeight);
     
     UE_LOG("Engine Initialized!");
+    
+#ifdef _DEBUG
+    World->LoadWorld("Default");
+#endif
+
 }
 
 void UEngine::Run()
@@ -263,10 +268,6 @@ void UEngine::InitWorld()
     World->SpawnActor<AAxis>();
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
-
-#ifdef _DEBUG
-    World->LoadWorld("Default");
-#endif
 
     World->BeginPlay();
 }

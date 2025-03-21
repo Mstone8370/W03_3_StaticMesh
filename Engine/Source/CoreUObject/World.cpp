@@ -354,6 +354,7 @@ void UWorld::LoadWorld(const char* SceneName)
         {
             Actor = SpawnActor<ACone>();
         }
+
         if (Actor)
         {
             Actor->SetActorTransform(Transform);
@@ -379,7 +380,7 @@ UWorldInfo UWorld::GetWorldInfo() const
         WorldInfo.ObjctInfos[i] = new UObjectInfo();
         const FTransform& Transform = actor->GetActorTransform();
         WorldInfo.ObjctInfos[i]->Location = Transform.GetPosition();
-        WorldInfo.ObjctInfos[i]->Rotation = Transform.GetRotation(); // TODO: GetRotation()의 리턴 타입은 FQuat으로, FVector로 변환된다는 보장 없음.
+        WorldInfo.ObjctInfos[i]->Rotation = Transform.GetRotation().GetEuler();
         WorldInfo.ObjctInfos[i]->Scale = Transform.GetScale();
         WorldInfo.ObjctInfos[i]->ObjectType = actor->GetTypeName();
 
