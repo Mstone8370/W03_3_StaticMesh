@@ -13,7 +13,8 @@ public:
 
 private:
 	MapType PrivateMap;
-	
+
+public:
 	class Iterator
 	{
 	private:
@@ -41,7 +42,7 @@ private:
 		ConstIterator& operator++() { ++InnerIt; return *this; }
 		bool operator!=(const ConstIterator& other) const { return InnerIt != other.InnerIt; }
 	};
-public:
+
 	// TPair를 반환하는 커스텀 반복자
 	Iterator begin() noexcept { return Iterator(PrivateMap.begin()); }
 	Iterator end() noexcept { return Iterator(PrivateMap.end()); }
