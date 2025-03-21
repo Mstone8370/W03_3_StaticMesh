@@ -3,8 +3,6 @@
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "Engine/Engine.h"
 
-
-REGISTER_CLASS(ASphere);
 ASphere::ASphere()
 {
     bCanEverTick = true;

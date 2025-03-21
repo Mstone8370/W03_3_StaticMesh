@@ -13,13 +13,16 @@ public:
 
 private:
 	MapType PrivateMap;
-
+	
 	class Iterator
 	{
 	private:
 		typename MapType::iterator InnerIt;
 	public:
+		Iterator() :InnerIt{} {}
 		Iterator(typename MapType::iterator it) : InnerIt(it) {}
+		PairType& operator*() const { return reinterpret_cast<PairType&>(*InnerIt); }
+		PairType* operator->() const { return reinterpret_cast<PairType*>(&(*InnerIt)); }
 		PairType& operator*() { return reinterpret_cast<PairType&>(*InnerIt); }
 		PairType* operator->() { return reinterpret_cast<PairType*>(&(*InnerIt)); }
 		Iterator& operator++() { ++InnerIt; return *this; }
@@ -31,13 +34,13 @@ private:
 	private:
 		typename MapType::const_iterator InnerIt;
 	public:
+		ConstIterator() : InnerIt() {}
 		ConstIterator(typename MapType::const_iterator it) : InnerIt(it) {}
 		const PairType& operator*() const { return reinterpret_cast<const PairType&>(*InnerIt); }
 		const PairType* operator->() const { return reinterpret_cast<const PairType*>(&(*InnerIt)); }
 		ConstIterator& operator++() { ++InnerIt; return *this; }
 		bool operator!=(const ConstIterator& other) const { return InnerIt != other.InnerIt; }
 	};
-
 public:
 	// TPair를 반환하는 커스텀 반복자
 	Iterator begin() noexcept { return Iterator(PrivateMap.begin()); }

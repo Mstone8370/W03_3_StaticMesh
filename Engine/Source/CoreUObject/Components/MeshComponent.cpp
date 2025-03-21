@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "MeshComponent.h"
 
-REGISTER_CLASS(UMeshComponent);
 void UMeshComponent::BeginPlay()
 {
     Super::BeginPlay();

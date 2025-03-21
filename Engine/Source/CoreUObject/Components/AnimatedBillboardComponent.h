@@ -4,7 +4,6 @@
 class UAnimatedBillboardComponent : public UBillboardComponent
 {
     UCLASS(UAnimatedBillboardComponent, UBillboardComponent)
-    using Super = UBillboardComponent;
     
 public:
     UAnimatedBillboardComponent();

@@ -3,7 +3,6 @@
 #include "Engine/GameFrameWork/Camera.h"
 #include "World.h"
 
-REGISTER_CLASS(UBillboard);
 UBillboardComponent::UBillboardComponent()
 	: Texture(nullptr)
 {

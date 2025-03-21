@@ -4,7 +4,7 @@
 
 class AArrow : public AActor
 {
-	using Super = AActor;
+	UCLASS(AArrow, AActor)
 
 public:
 	AArrow();

@@ -12,7 +12,6 @@
 #include "Input/PlayerController.h"
 #include "Static/EditorManager.h"
 
-REGISTER_CLASS(APicker);
 APicker::APicker()
 {
     bIsGizmo = true;

@@ -4,7 +4,7 @@
 #include "WorldGrid.h"
 #include "Core/Input/PlayerInput.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
-#include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "Core/Container/Map.h"
 #include "Utils/JsonSavehelper.h"
@@ -18,8 +18,8 @@
 #include "Components/BillboardComponent.h"
 #include "Components/TextBillboardComponent.h"
 #include "GameFrameWork/Picker.h"
+#include "CoreUObject/ObjectIterator.h"
 
-REGISTER_CLASS(UWorld);
 void UWorld::BeginPlay()
 {
     for (const auto& Actor : Actors)
@@ -44,6 +44,18 @@ void UWorld::Tick(float DeltaTime)
             Actor->Tick(DeltaTime);
         }
     }
+    for (TObjectIterator<USphereComp> it; it; ++it) {
+        USphereComp* sp =(*it);
+        UCubeComp* cb = dynamic_cast<UCubeComp*>(*it);
+        if (sp && sp->bCanBeRendered) {
+            UE_LOG("hello sphere!");
+        }
+        if (cb && cb->bCanBeRendered) {
+            UE_LOG("hello cube!");
+        }
+    }
+
+
 }
 
 void UWorld::LateTick(float DeltaTime)

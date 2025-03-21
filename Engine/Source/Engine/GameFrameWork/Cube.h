@@ -4,8 +4,8 @@
 
 class ACube : public AActor
 {
-	UCLASS(ACube, AActor);
-	using Super = AActor;
+	UCLASS(ACube, AActor)
+
 public:
 	ACube();
 	virtual ~ACube() = default;

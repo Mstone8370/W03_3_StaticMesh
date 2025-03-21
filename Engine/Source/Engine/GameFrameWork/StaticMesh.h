@@ -6,7 +6,6 @@ struct FStaticMesh;
 class UStaticMesh : public UObject
 {
     UCLASS(UStaticMesh, UObject)
-        using Super = UStaticMesh;
 
 public:
 

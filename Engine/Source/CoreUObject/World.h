@@ -18,8 +18,8 @@ class UBillboardComponent;
 
 class UWorld :public UObject
 {
-	UCLASS(UWorld, UObject);
-	using Super = UObject;
+	UCLASS(UWorld, UObject)
+
 public:
 	UWorld() = default;
 	virtual ~UWorld() = default;

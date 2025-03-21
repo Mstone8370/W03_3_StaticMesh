@@ -4,7 +4,6 @@
 #include "Static/EditorManager.h"
 #include "Camera.h"
 
-REGISTER_CLASS(ACube);
 ACube::ACube()
 {
     bCanEverTick = true;

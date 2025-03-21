@@ -4,8 +4,6 @@
 #include "Engine/GameFrameWork/Actor.h"
 #include "World.h"
 
-
-REGISTER_CLASS(UPrimitiveComponent);
 void UPrimitiveComponent::BeginPlay()
 {
     Super::BeginPlay();

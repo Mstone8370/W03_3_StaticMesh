@@ -2,8 +2,6 @@
 #include "Cylinder.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 
-
-REGISTER_CLASS(ACylinder);
 ACylinder::ACylinder()
 {
     bCanEverTick = true;

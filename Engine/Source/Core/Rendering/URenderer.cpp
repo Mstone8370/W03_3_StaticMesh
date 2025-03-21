@@ -1,7 +1,7 @@
 #include "pch.h" 
 #include "URenderer.h"
 
-#include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Static/EditorManager.h"
 #include "Core/Math/Transform.h"
 #include "Engine/GameFrameWork/Camera.h"

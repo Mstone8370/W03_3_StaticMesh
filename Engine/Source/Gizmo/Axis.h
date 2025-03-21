@@ -8,8 +8,8 @@
 */ 
 class AAxis : public AActor
 {
-	UCLASS(AAxis, AActor);
-	using Super = AActor;
+	UCLASS(AAxis, AActor)
+
 public:
 	AAxis();
 	virtual ~AAxis() = default;

@@ -2,7 +2,6 @@
 #include "Cone.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 
-REGISTER_CLASS(ACone);
 ACone::ACone()
 {
     bCanEverTick = true;
