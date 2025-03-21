@@ -21,6 +21,10 @@
 // ImGui WndProc
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+UEngine::UEngine()
+    : TargetFPS(60)
+{}
+
 LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     // Handle ImGui Msg
@@ -103,9 +107,14 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 
 void UEngine::Run()
 {
-    // Limit FPS
-    constexpr int TargetFPS = 60;
-    constexpr double TargetDeltaTime = 1000.0f / TargetFPS; // 1 FPS's target time (ms)
+    double TargetDeltaTime = -1.f;
+    
+    bool bShouldLimitFPS = TargetFPS > 0;
+    if (bShouldLimitFPS)
+    {
+        // Limit FPS
+        TargetDeltaTime = 1000.0f / static_cast<double>(TargetFPS); // 1 FPS's target time (ms)
+    }
 
     LARGE_INTEGER Frequency;
     QueryPerformanceFrequency(&Frequency);
@@ -153,23 +162,26 @@ void UEngine::Run()
         // ui Update
         ui.Update();
 
-        // UI입력을 우선으로 처리
+        // UI입력을 우선으로 처리하므로, 여기에서 업데이트
         APlayerInput::Get().UpdateInput();
         APlayerController::Get().ProcessPlayerInput(DeltaTime);
 
         Renderer->SwapBuffer();
 
         // FPS 제한
-        double ElapsedTime;
-        do
+        if (bShouldLimitFPS)
         {
-            Sleep(0);
+            double ElapsedTime;
+            do
+            {
+                Sleep(0);
 
-            LARGE_INTEGER CurrentTime;
-            QueryPerformanceCounter(&CurrentTime);
+                LARGE_INTEGER CurrentTime;
+                QueryPerformanceCounter(&CurrentTime);
 
-            ElapsedTime = static_cast<double>(CurrentTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
-        } while (ElapsedTime < TargetDeltaTime);
+                ElapsedTime = static_cast<double>(CurrentTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
+            } while (ElapsedTime < TargetDeltaTime);
+        }
     }
 }
 

@@ -155,7 +155,7 @@ void URenderer::ReleaseConstantBuffer()
 
 void URenderer::SwapBuffer()
 {
-    HRESULT hr = SwapChain->Present(1, 0); // SyncInterval: VSync Enable
+    HRESULT hr = SwapChain->Present(0, 0); // SyncInterval: VSync Enable
 	bSwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
 }
 

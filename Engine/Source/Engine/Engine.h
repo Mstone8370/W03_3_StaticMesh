@@ -23,6 +23,8 @@ enum class EScreenMode : uint8
 class UEngine : public TSingleton<UEngine>
 {
 public:
+    UEngine();
+    
     // 각종 윈도우 관련 메시지(이벤트)를 처리하는 함수
     static LRESULT CALLBACK WndProc(HWND hWnd, uint32 uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -108,7 +110,12 @@ public:
     bool GetShowPrimitives() const { return bShowPrimitives; }
     void SetShowPrimitives(bool InShowPrimitives) { bShowPrimitives = InShowPrimitives; }
 
+    int32 GetTargetFPS() const { return TargetFPS; }
+    void SetTargetFPS(int32 InTargetFPS) { TargetFPS = InTargetFPS; }
+    
 private:
+    int32 TargetFPS;
+    
     class UWorld* World;
     
     ////////

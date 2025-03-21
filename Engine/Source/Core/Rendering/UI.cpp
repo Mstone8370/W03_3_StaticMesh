@@ -364,7 +364,7 @@ void UI::RenderCameraSettings()
     float CurrentSensitivity = APlayerController::Get().GetMouseSensitivity();
     const float CameraMaxSensitivity = APlayerController::Get().GetMaxSensitivity();
     const float CameraMinSensitivity = APlayerController::Get().GetMinSensitivity();
-    if (ImGui::DragFloat("Camera Sensitivity", &CurrentSensitivity, 0.1f, CameraMinSensitivity, CameraMaxSensitivity))
+    if (ImGui::DragFloat("Camera Sensitivity", &CurrentSensitivity, 0.01f, CameraMinSensitivity, CameraMaxSensitivity))
     {
         APlayerController::Get().SetMouseSensitivity(CurrentSensitivity);
     }

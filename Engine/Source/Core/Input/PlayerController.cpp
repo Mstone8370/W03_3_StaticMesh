@@ -13,9 +13,9 @@ APlayerController::APlayerController()
     : CurrentSpeed(3.f)
     , MaxSpeed(10.f)
     , MinSpeed(1.0f)
-    , MouseSensitivity(10.f)
-    , MaxSensitivity(20.f)
-    , MinSensitivity(1.f)
+    , MouseSensitivity(0.2f)
+    , MaxSensitivity(0.5f)
+    , MinSensitivity(0.05f)
 {}
 
 APlayerController::~APlayerController()
@@ -51,10 +51,10 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
     int32 DeltaX = 0;
     int32 DeltaY = 0;
     APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
-        
+    
     FVector NewRotation = CameraTransform.GetRotation().GetEuler();
-    NewRotation.Y += MouseSensitivity * static_cast<float>(DeltaY) * DeltaTime; // Pitch
-    NewRotation.Z += MouseSensitivity * static_cast<float>(DeltaX) * DeltaTime; // Yaw
+    NewRotation.Y += MouseSensitivity * static_cast<float>(DeltaY); // Pitch
+    NewRotation.Z += MouseSensitivity * static_cast<float>(DeltaX); // Yaw
 
     NewRotation.Y = FMath::Clamp(NewRotation.Y, -Camera->MaxYDegree, Camera->MaxYDegree);
     CameraTransform.SetRotation(NewRotation);
