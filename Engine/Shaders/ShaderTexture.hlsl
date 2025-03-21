@@ -3,13 +3,12 @@ Texture2D TextureMap : register(t0);
 
 SamplerState SampleType : register(s0);
 
-cbuffer TextureBuffer : register(b5)
+cbuffer TextureInfo : register(b5)
 {
     matrix WorldViewProj;
     float2 UVOffset;
     float2 AtlasColsRows;
     int bIsText; // 0 이면 일반 텍스처, 1 이면 텍스트
-    float4 PartyMode;
 }
 
 struct VS_INPUT
@@ -45,25 +44,15 @@ PS_INPUT mainVS(VS_INPUT Input)
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
     float4 Color = TextureMap.Sample(SampleType, input.Tex);
+    Color.a = 1.f;
     
-    float Threshold = 0.5f;
-
     if (bIsText)
     {
+        float Threshold = 0.5f;
+        
         if (Color.r < Threshold && Color.g < Threshold && Color.b < Threshold)
         {
             Color.a = 0.f;
-        }
-        else
-        {
-            Color.a = 1.f;
-        }
-    }
-    else
-    {
-        if (Color.a < Threshold)
-        {
-            Color = PartyMode;
         }
     }
     

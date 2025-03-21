@@ -13,7 +13,6 @@ protected:
 	FVector Position;
 	FQuat Rotation;
 	FVector Scale;
-	int Depth;
 	
 public:
 	FTransform()

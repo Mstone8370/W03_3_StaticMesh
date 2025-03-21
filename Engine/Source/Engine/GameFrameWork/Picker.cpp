@@ -85,7 +85,7 @@ bool APicker::PickByColor()
 {
     int32 X = 0;
     int32 Y = 0;
-    APlayerInput::Get().GetMousePosition(X, Y);
+    APlayerInput::Get().GetMousePositionClient(X, Y);
 
     FVector4 color = UEngine::Get().GetRenderer()->GetPixel(X, Y);
     uint32_t UUID = DecodeUUID(color);
@@ -132,7 +132,7 @@ void APicker::HandleGizmo()
 {
     int32 X = 0;
     int32 Y = 0;
-    APlayerInput::Get().GetMousePosition(X, Y);
+    APlayerInput::Get().GetMousePositionClient(X, Y);
     
     FVector4 color = UEngine::Get().GetRenderer()->GetPixel(X, Y);
     uint32_t UUID = DecodeUUID(color);

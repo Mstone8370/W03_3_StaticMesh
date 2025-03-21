@@ -1,9 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "HAL/PlatformType.h"
 #include "ISwitchable.h"
-#include "ImGui/imgui_impl_dx11.h"
 #include "EditorWindow.h"
 #include "Container/Map.h"
 #include "Container/Pair.h"
@@ -46,7 +44,7 @@ public:
 		//return nullptr;
 	}
 
-	void OnResize(UINT32 Width, UINT32 Height)
+	void OnResize(uint32 Width, uint32 Height)
 	{
 		if (Windows.IsEmpty()) return;
 

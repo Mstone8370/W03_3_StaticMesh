@@ -6,7 +6,6 @@
 
 class UObject : public UClass
 {
-public:
 	UCLASS(UObject, UClass);
 
 private:
@@ -20,6 +19,9 @@ private:
 public:
 	UObject();
 	virtual ~UObject();
+
+	// Called before destroying the object.
+	virtual void BeginDestroy();
 
 public:
 	uint32 GetUUID() const { return UUID; }

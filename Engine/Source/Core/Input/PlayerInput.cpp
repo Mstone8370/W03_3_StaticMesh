@@ -11,10 +11,10 @@ APlayerInput::APlayerInput()
     GamePad = std::make_unique<DirectX::GamePad>();
 }
 
-void APlayerInput::SetWindowSize(uint32 InWidth, uint32 InHeight)
+void APlayerInput::SetClientSize(uint32 InClientWidth, uint32 InClientHeight)
 {
-    WindowWidth = InWidth;
-    WindowHeight = InHeight;
+    ClientWidth = InClientWidth;
+    ClientHeight = InClientHeight;
 }
 
 void APlayerInput::UpdateInput()
@@ -89,7 +89,7 @@ void APlayerInput::GetMouseDelta(int32& OutX, int32& OutY) const
     OutY = CurrentMouseState.ScreenY - PrevMouseState.ScreenY;
 }
 
-void APlayerInput::GetMousePosition(int32& OutX, int32& OutY) const
+void APlayerInput::GetMousePositionClient(int32& OutX, int32& OutY) const
 {
     OutX = CurrentMouseState.X;
     OutY = CurrentMouseState.Y;
@@ -97,8 +97,8 @@ void APlayerInput::GetMousePosition(int32& OutX, int32& OutY) const
 
 void APlayerInput::GetMousePositionNDC(float& OutX, float& OutY) const
 {
-    float HalfWidth = static_cast<float>(WindowWidth) / 2.f;
-    float HalfHeight = static_cast<float>(WindowHeight) / 2.f;
+    float HalfWidth = static_cast<float>(ClientWidth) / 2.f;
+    float HalfHeight = static_cast<float>(ClientHeight) / 2.f;
     OutX = (static_cast<float>(CurrentMouseState.X) - HalfWidth) / HalfWidth;
     OutY = (static_cast<float>(CurrentMouseState.Y) - HalfHeight) / HalfHeight * -1.f;
 }

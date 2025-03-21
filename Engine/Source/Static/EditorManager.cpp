@@ -16,7 +16,6 @@ void FEditorManager::SelectActor(AActor* NewActor)
     if (GizmoHandle == nullptr)
     {
         GizmoHandle = UEngine::Get().GetWorld()->SpawnActor<AGizmoHandle>();
-        GizmoHandle->SetDepth(1);
         GizmoHandle->SetActive(false);
     }
 

@@ -32,12 +32,6 @@ struct alignas(16) FPickingConstants
 	FVector4 UUIDColor;
 };
 
-struct alignas(16) FDepthConstants {
-	unsigned int DepthOffset;
-	int nearPlane;
-	int farPlane;
-};
-
 struct alignas(16) FTextureConstants
 {
 	FMatrix WorldViewProj;
@@ -46,7 +40,6 @@ struct alignas(16) FTextureConstants
 	float Cols;
 	float Rows;
 	int bIsText;
-	FVector4 PartyMode; // Color값인데 투명한 배경을 임의의 색상으로 해줌. 이번에만 사용하고 지워야함.
 };
 
 struct ConstantUpdateInfo

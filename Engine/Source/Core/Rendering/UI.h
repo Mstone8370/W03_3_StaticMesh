@@ -16,11 +16,11 @@ public:
 	int NumOfSpawn = 1;
 	bool bIsInitialized = false;
 	
-	void Initialize(HWND hWnd, const class URenderer& Renderer, UINT ScreenWidth, UINT ScreenHeight);
+	void Initialize(HWND hWnd, const class URenderer& Renderer, UINT InClientWidth, UINT InClientHeight);
 	void Update();
 	void Shutdown();
 
-	void OnUpdateWindowSize(UINT InScreenWidth, UINT InScreenHeight);
+	void OnClientSizeUpdated(uint32 InClientWidth, uint32 InClientHeight);
 
 public:// UIWindows
 	void RenderControlPanelWindow();
@@ -53,7 +53,7 @@ private:
 
 	ImVec2 GetRatio() const
 	{
-		return {ScreenSize.x / InitialScreenSize.x, ScreenSize.y / InitialScreenSize.y};
+		return {ClientSize.x / InitialClientSize.x, ClientSize.y / InitialClientSize.y};
 	}
 
 	float GetMin() const
@@ -86,8 +86,8 @@ private:
 	//note: imgui_demo.cpp의 ImGui::ShowDemoWindow를 위한 불리언
 	bool bShowDemoWindow = false;
 	
-	ImVec2 ScreenSize;
-	ImVec2 InitialScreenSize;
+	ImVec2 ClientSize;
+	ImVec2 InitialClientSize;
 
 	ImVec2 PreRatio;
 	ImVec2 CurRatio;

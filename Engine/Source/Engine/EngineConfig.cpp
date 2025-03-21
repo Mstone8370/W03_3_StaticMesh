@@ -54,6 +54,16 @@ void FEngineConfig::SaveAllConfig()
 	ft.Save(std::string(Path.c_char()));
 }
 
+bool FEngineConfig::IsSectionExist(const EEngineConfigSectionType InSection)
+{
+	if (EngineConfig.IsEmpty())
+	{
+		LoadEngineConfig();
+	}
+
+	return EngineConfig.Contains(InSection);
+}
+
 EEngineConfigSectionType FEngineConfig::FindSection(const EEngineConfigValueType& InValueType) const
 {
 	for (const auto& configMapping : ConfigMappings)

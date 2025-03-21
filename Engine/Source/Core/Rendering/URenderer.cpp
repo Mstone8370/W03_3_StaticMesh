@@ -155,7 +155,7 @@ void URenderer::ReleaseConstantBuffer()
 
 void URenderer::SwapBuffer()
 {
-    HRESULT hr = SwapChain->Present(1, 0); // SyncInterval: VSync Enable
+    HRESULT hr = SwapChain->Present(0, 0); // SyncInterval: VSync Enable
 	bSwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
 }
 
@@ -167,9 +167,6 @@ void URenderer::PrepareRender()
 
     DeviceContext->ClearRenderTargetView(PickingFrameBufferRTV, PickingClearColor);
     DeviceContext->ClearDepthStencilView(PickingDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    // InputAssembler의 Vertex 해석 방식을 설정
-    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     // Rasterization할 Viewport를 설정 
     DeviceContext->RSSetViewports(1, &ViewportInfo);
@@ -188,13 +185,6 @@ void URenderer::PrepareRender()
     }
 
     DeviceContext->RSSetState(*CurrentRasterizerState);
-
-    /**
-     * OutputMerger 설정
-     * 렌더링 파이프라인의 최종 단계로써, 어디에 그릴지(렌더 타겟)와 어떻게 그릴지(블렌딩)를 지정
-     */
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);    // DepthStencil 뷰 설정
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 }
 
 void URenderer::PrepareMainShader() const
@@ -347,13 +337,13 @@ void URenderer::PrepareMesh()
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderMesh")));
+    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("StaticMeshShader")));
 }
 
 void URenderer::PrepareMeshShader()
 {
-    DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("ShaderMesh")), nullptr, 0);
-    DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("ShaderMesh")), nullptr, 0);
+    DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("StaticMeshShader")), nullptr, 0);
+    DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("StaticMeshShader")), nullptr, 0);
 }
 
 void URenderer::PrepareWorldGrid()
@@ -1104,7 +1094,7 @@ void URenderer::RenderBillboard()
 	DeviceContext->Draw(6, 0);
 }
 
-void URenderer::UpdateTextureConstantBuffer(const FMatrix& World, float U, float V, float TotalCols, float TotalRows, FVector4 PartyMode)
+void URenderer::UpdateTextureConstantBuffer(const FMatrix& World, float U, float V, float TotalCols, float TotalRows)
 {
     D3D11_MAPPED_SUBRESOURCE MappedResource;
     HRESULT hr = DeviceContext->Map(TextureConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
@@ -1118,7 +1108,6 @@ void URenderer::UpdateTextureConstantBuffer(const FMatrix& World, float U, float
     BufferData->Cols = TotalCols;
     BufferData->Rows = TotalRows;
     BufferData->bIsText = 0;
-    BufferData->PartyMode = PartyMode;
 
     DeviceContext->Unmap(TextureConstantBuffer, 0);
 }
@@ -1401,8 +1390,6 @@ void URenderer::PreparePicking()
     DeviceContext->OMSetRenderTargets(1, &PickingFrameBufferRTV, PickingDepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-
-    DeviceContext->ClearRenderTargetView(PickingFrameBufferRTV, PickingClearColor);
 }
 
 void URenderer::PreparePickingShader() const
@@ -1535,15 +1522,15 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
     DeviceContext->Unmap(CbChangeOnCameraMove, 0);
 }
 
-void URenderer::UpdateProjectionMatrix(ACamera* Camera)
+void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
 {
-    float AspectRatio = UEngine::Get().GetScreenRatio();
+    float AspectRatio = UEngine::Get().GetClientRatio();
 
     float FOV = FMath::DegreesToRadians(Camera->GetFieldOfView());
     float NearClip = Camera->GetNearClip();
     float FarClip = Camera->GetFarClip();
 
-    if (Camera->ProjectionMode == ECameraProjectionMode::Perspective)
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
     {
         ProjectionMatrix = FMatrix::PerspectiveFovLH(FOV, AspectRatio, NearClip, FarClip);
     }
@@ -1551,8 +1538,8 @@ void URenderer::UpdateProjectionMatrix(ACamera* Camera)
     {
         //@TODO: Delete Magic Number '360'
         float SizeDivisor = 360.f;
-        int32 ScreenWidth = UEngine::Get().GetScreenWidth();
-        int32 ScreenHeight = UEngine::Get().GetScreenHeight();
+        int32 ScreenWidth = UEngine::Get().GetClientWidth();
+        int32 ScreenHeight = UEngine::Get().GetClientHeight();
         ProjectionMatrix = FMatrix::OrthoLH(ScreenWidth / SizeDivisor, ScreenHeight / SizeDivisor, NearClip, FarClip);
     }
 
@@ -1564,7 +1551,7 @@ void URenderer::UpdateProjectionMatrix(ACamera* Camera)
     DeviceContext->UpdateSubresource(CbChangeOnResizeAndFov, 0, NULL, &ChangesOnResizeAndFov, 0, 0);
 }
 
-void URenderer::OnUpdateWindowSize(int Width, int Height)
+void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight)
 {
     if (SwapChain)
     {
@@ -1574,11 +1561,6 @@ void URenderer::OnUpdateWindowSize(int Width, int Height)
 
         ReleaseDepthStencilBuffer();
         ReleaseFrameBuffer();
-
-        //if (Width <= 0 || Height <= 0) {
-        //    MessageBox(hWnd, TEXT("Invalid window size parameters."), TEXT("Error"), MB_ICONERROR | MB_OK);
-        //    return;
-        //}
 
         HRESULT hr = SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 		if (FAILED(hr))
@@ -1600,8 +1582,8 @@ void URenderer::OnUpdateWindowSize(int Width, int Height)
 
         ViewportInfo = {
             .TopLeftX= 0.0f, .TopLeftY= 0.0f,
-            .Width= static_cast<float>(Width),
-			.Height= static_cast<float>(Height),
+            .Width= static_cast<float>(InClientWidth),
+			.Height= static_cast<float>(InClientHeight),
             .MinDepth= 0.0f, .MaxDepth= 1.0f
         };
 

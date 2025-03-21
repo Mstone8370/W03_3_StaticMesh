@@ -11,7 +11,8 @@ public: \
         static UClass StaticClassInstance(#ClassName, ParentClass::StaticClass()); \
         return &StaticClassInstance; \
     } \
-    virtual UClass* GetClass() const { return StaticClass(); }
+    virtual UClass* GetClass() const { return StaticClass(); } \
+private:
 
 #define REGISTER_CLASS(ClassName) \
     static UClass ClassName##_StaticClass(#ClassName, nullptr); \

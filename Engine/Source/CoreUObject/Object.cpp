@@ -11,3 +11,7 @@ UObject::UObject()
 UObject::~UObject()
 {
 }
+
+void UObject::BeginDestroy()
+{
+}

@@ -19,22 +19,14 @@ public:
 	AActor();
 	virtual ~AActor() override = default;
 
-	void SetDepth(int InDepth)
-	{
-		Depth = InDepth;
-	}
-
-	int GetDepth() const
-	{
-		return Depth;
-	}
-
 public:
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaTime);
 	virtual void LateTick (float DeltaTime); // 렌더 후 호출
-	
+
+	// Called when this actor is explicitly destroyed.
 	virtual void Destroyed();
+	// TODO: EndPlay는 추후 삭제
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	TSet<UActorComponent*>& GetComponents() { return Components; }
 
@@ -45,13 +37,18 @@ public:
 
 	void SetBoundingBoxRenderable(bool bRenderable);
 
+	virtual FVector GetActorForwardVector() const { return GetActorTransform().GetForward(); }
+	virtual FVector GetActorRightVector() const { return GetActorTransform().GetRight(); }
+	virtual FVector GetActorUpVector() const { return GetActorTransform().GetUp(); }
+
+	virtual void SetActorTransform(const FTransform& InTransform);
+	
 protected:
 	virtual void InitUUIDBillboard();
 private:
 	virtual void Pick();
 	virtual void UnPick();
 
-	uint32 Depth;
 	bool bIsPicked = false;
 
 public:
@@ -60,46 +57,7 @@ public:
 public:
 	template<typename T>
 		requires std::derived_from<T, UActorComponent>
-	T* AddComponent()
-	{
-		T* ObjectInstance = FObjectFactory::ConstructObject<T>();
-		Components.Add(ObjectInstance);
-		ObjectInstance->SetOwner(this);
-
-		FString ObjectName = ObjectInstance->GetClass()->Name;
-		if (ComponentNames.Contains(ObjectName))
-		{
-			uint32 Count = 0;
-			ObjectName += "_";
-			while (Count < UINT_MAX)
-			{
-				FString NumToStr = FString(std::to_string(Count));
-				FString TempName = ObjectName;
-				TempName += NumToStr;
-				if (!ComponentNames.Contains(TempName))
-				{
-					ObjectInstance->SetName(TempName);
-					ComponentNames.Add(TempName);
-					break;
-				}
-				++Count;
-			}
-
-			if (Count == UINT_MAX)
-			{
-				// TODO: 어떤 동작을 해야할지 고민해봐야 함.
-			}
-		}
-		else
-		{
-			ObjectInstance->SetName(ObjectName);
-			ComponentNames.Add(ObjectName);
-		}
-
-		UE_LOG("Component Added: %s", *ObjectName);
-
-		return ObjectInstance;
-	}
+	T* AddComponent();
 
 	// delete
 	template<typename T>
@@ -110,10 +68,10 @@ public:
 	}
 
 	FTransform GetActorTransform() const;
-	void SetActorTransform(const FTransform& InTransform);
 	bool CanEverTick() const { return bCanEverTick; }
 	virtual const char* GetTypeName();
 
+	// Destroy this actor.
 	bool Destroy();
 
 public:
@@ -136,9 +94,51 @@ private:
 	UWorld* World = nullptr;
 	TSet<UActorComponent*> Components;
 
-	class UTextBillboard* UUIDBillboard = nullptr;
+	class UTextBillboardComponent* UUIDBillboard = nullptr;
 	bool bIsUUIDBillboard = false;
 
 	TSet<FString> ComponentNames;
 };
 
+
+template <typename T> requires std::derived_from<T, UActorComponent>
+T* AActor::AddComponent()
+{
+	T* ObjectInstance = FObjectFactory::ConstructObject<T>();
+	Components.Add(ObjectInstance);
+	ObjectInstance->SetOwner(this);
+
+	FString ObjectName = ObjectInstance->GetClass()->Name;
+	if (ComponentNames.Contains(ObjectName))
+	{
+		uint32 Count = 0;
+		ObjectName += "_";
+		while (Count < UINT_MAX)
+		{
+			FString NumToStr = FString(std::to_string(Count));
+			FString TempName = ObjectName;
+			TempName += NumToStr;
+			if (!ComponentNames.Contains(TempName))
+			{
+				ObjectInstance->SetName(TempName);
+				ComponentNames.Add(TempName);
+				break;
+			}
+			++Count;
+		}
+
+		if (Count == UINT_MAX)
+		{
+			// TODO: 어떤 동작을 해야할지 고민해봐야 함.
+		}
+	}
+	else
+	{
+		ObjectInstance->SetName(ObjectName);
+		ComponentNames.Add(ObjectName);
+	}
+
+	UE_LOG("Component Added: %s", *ObjectName);
+
+	return ObjectInstance;
+}

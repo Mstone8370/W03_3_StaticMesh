@@ -5,13 +5,13 @@
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "Editor/Windows/ConsoleWindow.h"
 #include "Static/EditorManager.h"
-#include "Components/Billboard.h"
-#include "Components/TextBillboard.h"
+#include "Components/BillboardComponent.h"
+#include "Components/TextBillboardComponent.h"
 #include "Core/Rendering/TextureLoader.h"
 #include "Camera.h"
 
 REGISTER_CLASS(AActor);
-AActor::AActor() : Depth{ 0 }
+AActor::AActor()
 {
 }
 
@@ -67,7 +67,6 @@ void AActor::Destroyed()
 	EndPlay(EEndPlayReason::Destroyed);
 }
 
-
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	for (auto& Component : Components)
@@ -104,9 +103,9 @@ void AActor::SetBoundingBoxRenderable(bool bRenderable)
 
 void AActor::InitUUIDBillboard()
 {
-	UUIDBillboard = AddComponent<UTextBillboard>();
-	UUIDBillboard->SetTexture(UEngine::Get().GetTextureInfo(L"ASCII")->ShaderResourceView, 16.f, 16.f);
-	UUIDBillboard->SetText(L"UUID:" + std::to_wstring(GetUUID()));
+	UUIDBillboard = AddComponent<UTextBillboardComponent>();
+	UUIDBillboard->SetTexture(UEngine::Get().GetTextureInfo(TEXT("ASCII"))->ShaderResourceView, 16.f, 16.f);
+	UUIDBillboard->SetText(TEXT("UUID:") + std::to_wstring(GetUUID()));
 	UUIDBillboard->SetBoundingBoxRenderable(false);
 	UUIDBillboard->BeginPlay();
 }

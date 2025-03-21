@@ -19,7 +19,6 @@
 #include "Engine/GameFrameWork/Arrow.h"
 #include "Engine/GameFrameWork/Cone.h"
 #include "Engine/GameFrameWork/Cylinder.h"
-#include "GameFrameWork/CatActor.h"
 #include "Gizmo/GizmoHandle.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui_impl_win32.h"
@@ -31,7 +30,7 @@
 
 std::shared_ptr<ConsoleWindow> UI::ConsoleWindowInstance = nullptr;
 
-void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 ScreenWidth, uint32 ScreenHeight)
+void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 InClientWidth, uint32 InClientHeight)
 {
     // Initialize ImGui
     IMGUI_CHECKVERSION();
@@ -49,11 +48,11 @@ void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 ScreenWidth, ui
     ImGui_ImplWin32_Init(hWnd);
     ImGui_ImplDX11_Init(Renderer.GetDevice(), Renderer.GetDeviceContext());
 
-    ScreenSize = ImVec2(static_cast<float>(ScreenWidth), static_cast<float>(ScreenHeight));
-    InitialScreenSize = ScreenSize;
+    ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
+    InitialClientSize = ClientSize;
     bIsInitialized = true;
     
-    io.DisplaySize = ScreenSize;
+    io.DisplaySize = ClientSize;
 
     PreRatio = GetRatio();
     CurRatio = GetRatio();
@@ -113,19 +112,19 @@ void UI::Shutdown()
     ImGui::DestroyContext();
 }
 
-void UI::OnUpdateWindowSize(UINT InScreenWidth, UINT InScreenHeight)
+void UI::OnClientSizeUpdated(uint32 InClientWidth, uint32 InClientHeight)
 {
 	// Create ImGUI Resources Again
     ImGui_ImplDX11_InvalidateDeviceObjects();
     ImGui_ImplDX11_CreateDeviceObjects();
 
 	// Resize ImGui Window
-    ScreenSize = ImVec2(static_cast<float>(InScreenWidth), static_cast<float>(InScreenHeight));
+    ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
 
     bWasWindowSizeUpdated = true;
 
     // Render Windows //
-    UEditorDesigner::Get().OnResize(InScreenWidth, InScreenHeight);
+    UEditorDesigner::Get().OnResize(InClientWidth, InClientHeight);
 }
 
 void UI::RenderControlPanelWindow()
@@ -145,7 +144,7 @@ void UI::RenderControlPanelWindow()
     ImGui::Separator();
 
     ImGui::Text("Mouse pos: (%g, %g)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
-	ImGui::Text("Screen Size: (%g, %g)", ScreenSize.x, ScreenSize.y);
+	ImGui::Text("Screen Size: (%g, %g)", ClientSize.x, ClientSize.y);
 
     ImGui::Separator();
 
@@ -209,7 +208,7 @@ void UI::RenderMemoryUsage()
 
 void UI::RenderPrimitiveSelection()
 {
-    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "Cat" };
+    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow" };
 
     ImGui::Combo("Primitive", &currentItem, items, IM_ARRAYSIZE(items));
 
@@ -237,10 +236,6 @@ void UI::RenderPrimitiveSelection()
             else if (strcmp(items[currentItem], "Arrow") == 0)
             {
                 World->SpawnActor<AArrow>();
-            }
-            else if (strcmp(items[currentItem], "Cat") == 0)
-            {
-                World->SpawnActor<ACatActor>();
             }
             //else if (strcmp(items[currentItem], "Triangle") == 0)
             //{
@@ -287,11 +282,11 @@ void UI::RenderCameraSettings()
     ACamera* Camera = FEditorManager::Get().GetCamera();
 
     bool IsOrthogonal;
-    if (Camera->ProjectionMode == ECameraProjectionMode::Orthographic)
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
     {
         IsOrthogonal = true;
     }
-    else if (Camera->ProjectionMode == ECameraProjectionMode::Perspective)
+    else if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
     {
         IsOrthogonal = false;
     }
@@ -300,14 +295,12 @@ void UI::RenderCameraSettings()
     {
         if (IsOrthogonal)
         {
-            Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+            Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
         }
         else
         {
-            Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+            Camera->SetProjectionMode(ECameraProjectionMode::Perspective);
         }
-
-        UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
     }
 
     float FOV = Camera->GetFieldOfView();
@@ -315,8 +308,6 @@ void UI::RenderCameraSettings()
     {
         FOV = FMath::Clamp(FOV, 20.f, 150.f);
         Camera->SetFieldOfView(FOV);
-
-        UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
     }
 
     float NearFar[2] = { Camera->GetNearClip(), Camera->GetFarClip() };
@@ -332,8 +323,6 @@ void UI::RenderCameraSettings()
 
         Camera->SetNear(NearFar[0]);
         Camera->SetFar(NearFar[1]);
-        
-        UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
     }
     
     FVector CameraPosition = Camera->GetActorTransform().GetPosition();
@@ -349,11 +338,8 @@ void UI::RenderCameraSettings()
     if (ImGui::DragFloat3("Camera Rotation", reinterpret_cast<float*>(&UIEulerAngle), 0.1f))
     {
         FTransform Transform = Camera->GetActorTransform();
-
-        //FVector DeltaEulerAngle = UIEulerAngle - PrevEulerAngle;
-        //Transform.Rotate(DeltaEulerAngle);
         
-        UIEulerAngle.Y = FMath::Clamp(UIEulerAngle.Y, -Camera->MaxYDegree, Camera->MaxYDegree);
+        UIEulerAngle.Y = FMath::Clamp(UIEulerAngle.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
         Transform.SetRotation(UIEulerAngle);
         Camera->SetActorTransform(Transform);
     }
@@ -369,7 +355,7 @@ void UI::RenderCameraSettings()
     float CurrentSensitivity = APlayerController::Get().GetMouseSensitivity();
     const float CameraMaxSensitivity = APlayerController::Get().GetMaxSensitivity();
     const float CameraMinSensitivity = APlayerController::Get().GetMinSensitivity();
-    if (ImGui::DragFloat("Camera Sensitivity", &CurrentSensitivity, 0.1f, CameraMinSensitivity, CameraMaxSensitivity))
+    if (ImGui::DragFloat("Camera Sensitivity", &CurrentSensitivity, 0.01f, CameraMinSensitivity, CameraMaxSensitivity))
     {
         APlayerController::Get().SetMouseSensitivity(CurrentSensitivity);
     }

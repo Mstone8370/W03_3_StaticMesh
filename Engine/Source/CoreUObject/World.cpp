@@ -13,11 +13,11 @@
 #include "Engine/GameFrameWork/Cube.h"
 #include "Engine/GameFrameWork/Cylinder.h"
 #include "Engine/GameFrameWork/Sphere.h"
-#include "Engine/GameFrameWork/CatActor.h"
 #include "Input/PlayerController.h"
 
-#include "Components/Billboard.h"
-#include "Components/TextBillboard.h"
+#include "Components/BillboardComponent.h"
+#include "Components/TextBillboardComponent.h"
+#include "GameFrameWork/Picker.h"
 
 REGISTER_CLASS(UWorld);
 void UWorld::BeginPlay()
@@ -205,7 +205,7 @@ void UWorld::RenderBillboard(URenderer& Renderer)
     // 텍스처와 샘플러 상태를 셰이더에 설정
     Renderer.PrepareBillboard();
 
-	for (UBillboard* Billboard : BillboardComponents)
+	for (UBillboardComponent* Billboard : BillboardComponents)
 	{
         if (Billboard)
         {
@@ -219,7 +219,7 @@ void UWorld::RenderText(URenderer& Renderer)
     // 텍스처와 샘플러 상태를 셰이더에 설정
     Renderer.PrepareTextBillboard();
 
-    for (UTextBillboard* TextBillboard : TextBillboardComponents)
+    for (UTextBillboardComponent* TextBillboard : TextBillboardComponents)
     {
         if (TextBillboard)
         {
@@ -282,15 +282,6 @@ bool UWorld::DestroyActor(AActor* InActor)
     // 제거 대기열에 추가
     PendingDestroyActors.Add(InActor);
 
-    // 박스 즉시 제거
-    auto Components = InActor->GetComponents();
-    for (auto Comp : Components)
-    {
-        if (Comp->GetClass()->IsA<USceneComponent>())
-        {
-			USceneComponent* SceneComp = static_cast<USceneComponent*>(Comp);
-        }
-    }
     return true;
 }
 
@@ -306,13 +297,13 @@ void UWorld::AddZIgnoreComponent(UPrimitiveComponent* InComponent)
     InComponent->SetIsOrthoGraphic(true);
 }
 
-void UWorld::LoadWorld(const char* SceneName)
+void UWorld::LoadWorld(const char* InSceneName)
 {
-    if (SceneName == nullptr || strcmp(SceneName, "") == 0){
+    if (InSceneName == nullptr || strcmp(InSceneName, "") == 0){
         return;
     }
         
-    UWorldInfo* WorldInfo = JsonSaveHelper::LoadScene(SceneName);
+    UWorldInfo* WorldInfo = JsonSaveHelper::LoadScene(InSceneName);
     if (WorldInfo == nullptr) return;
 
     ClearWorld();
@@ -354,10 +345,7 @@ void UWorld::LoadWorld(const char* SceneName)
         {
             Actor = SpawnActor<ACone>();
         }
-        else if (ObjectInfo->ObjectType == "CatActor")
-        {
-            Actor = SpawnActor<ACatActor>();
-        }
+
         if (Actor)
         {
             Actor->SetActorTransform(Transform);
@@ -383,7 +371,7 @@ UWorldInfo UWorld::GetWorldInfo() const
         WorldInfo.ObjctInfos[i] = new UObjectInfo();
         const FTransform& Transform = actor->GetActorTransform();
         WorldInfo.ObjctInfos[i]->Location = Transform.GetPosition();
-        WorldInfo.ObjctInfos[i]->Rotation = Transform.GetRotation(); // TODO: GetRotation()의 리턴 타입은 FQuat으로, FVector로 변환된다는 보장 없음.
+        WorldInfo.ObjctInfos[i]->Rotation = Transform.GetRotation().GetEuler();
         WorldInfo.ObjctInfos[i]->Scale = Transform.GetScale();
         WorldInfo.ObjctInfos[i]->ObjectType = actor->GetTypeName();
 

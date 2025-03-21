@@ -1,14 +1,14 @@
 ﻿#pragma once
-#include "Billboard.h"
+#include "BillboardComponent.h"
 
-class UAnimatedBillboard : public UBillboard
+class UAnimatedBillboardComponent : public UBillboardComponent
 {
-    UCLASS(UAnimatedBillboard, UBillboard)
-    using Super = UBillboard;
+    UCLASS(UAnimatedBillboardComponent, UBillboardComponent)
+    using Super = UBillboardComponent;
     
 public:
-    UAnimatedBillboard();
-    virtual ~UAnimatedBillboard() = default;
+    UAnimatedBillboardComponent();
+    virtual ~UAnimatedBillboardComponent() = default;
 
     virtual void BeginPlay() override;
     
@@ -18,17 +18,10 @@ public:
 
     void SetPlayRate(int32 InPlayRate) { PlayRate = InPlayRate; }
 
-    float PartyTrigger = 0.f;
-
-protected:
-    virtual	FVector4 PartyHsvToRgb(float Hue) override;
-
 private:
     int32 PlayRate; // FPS
 
     float RemainingNextFrameTime;
 
     int32 UvIndex;
-
-    float AccumulatedTime = 0.f;
 };

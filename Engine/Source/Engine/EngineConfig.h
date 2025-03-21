@@ -101,8 +101,9 @@ private:
 
 public:
 	void LoadEngineConfig();
+	
 	template<typename T>
-	void SaveEngineConfig(EEngineConfigValueType InConfig, T InValue)
+	void UpdateEngineConfig(EEngineConfigValueType InConfig, T InValue)
 	{
 		auto Section = FindSection(InConfig);
 		if (Section == EEngineConfigSectionType::ECS_None)
@@ -110,16 +111,6 @@ public:
 			return;
 		}
 		EngineConfig[Section][InConfig] = FString::SanitizeFloat(InValue);
-		
-		std::string SectionStr(SectionMappings[static_cast<int>(Section)].Key.c_char());
-		auto Section_ft = ft.GetSection(SectionStr);
-
-		if (Section_ft)
-		{
-			Section_ft->SetValue(std::string(ConfigMappings[static_cast<int>(InConfig)].Key.c_char()), InValue);
-		}
-
-		ft.Save(std::string(Path.c_char()));
 	}
 
 	template<typename T>
@@ -149,9 +140,17 @@ public:
 			{
 				return std::stoi(*ValueStr);
 			}
+			else if constexpr (std::is_same_v<T, unsigned int>)
+			{
+				return std::stoul(*ValueStr);
+			}
 			else if constexpr (std::is_same_v<T, float>)
 			{
 				return std::stof(*ValueStr);
+			}
+			else if constexpr (std::is_same_v<T, double>)
+			{
+				return std::stod(*ValueStr);
 			}
 			else if constexpr (std::is_same_v<T, FString>)
 			{
@@ -175,9 +174,14 @@ public:
 	void SaveAllConfig();
 
 private:
+	bool IsSectionExist(const EEngineConfigSectionType InSection);
+	
 	EEngineConfigSectionType FindSection(const EEngineConfigValueType& InValueType) const;
+	
 	TArray<ConfigMapping> GetConfigList(const EEngineConfigSectionType& InSectionType) const;
+	
 	FString GetPath();
+	
 private:
 	TMap<EEngineConfigSectionType, TMap<EEngineConfigValueType, FString>> EngineConfig;
 

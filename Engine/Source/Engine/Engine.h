@@ -4,9 +4,10 @@
 #include "Core/HAL/PlatformType.h"
 #include "Core/AbstractClass/Singleton.h"
 #include "Core/Rendering/UI.h"
-#include "Core/Rendering/URenderer.h"
 #include "EngineConfig.h"
+#include "Core/Rendering/URenderer.h"
 
+class ACamera;
 class UObject;
 class UWorld;
 class TextureLoader;
@@ -22,6 +23,8 @@ enum class EScreenMode : uint8
 class UEngine : public TSingleton<UEngine>
 {
 public:
+    UEngine();
+    
     // 각종 윈도우 관련 메시지(이벤트)를 처리하는 함수
     static LRESULT CALLBACK WndProc(HWND hWnd, uint32 uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -46,22 +49,23 @@ public:
      */
     void Shutdown();
 
-	class URenderer* GetRenderer() const { return Renderer.get(); }
-	float GetScreenRatio() const { return static_cast<float>(ScreenWidth) / ScreenHeight; }
-    int GetScreenWidth() const { return ScreenWidth; }
-    int GetScreenHeight() const { return ScreenHeight; }
-    int GetInitializedScreenWidth() const { return InitializedScreenWidth; }
-    int GetInitializedScreenHeight() const { return InitializedScreenHeight; }
+	URenderer* GetRenderer() const { return Renderer.get(); }
+	float GetClientRatio() const { return static_cast<float>(ClientWidth) / static_cast<float>(ClientHeight); }
+    uint32 GetClientWidth() const { return ClientWidth; }
+    uint32 GetClientHeight() const { return ClientHeight; }
 
 
 private:
-    void InitWindow(int InScreenWidth, int InScreenHeight);
+    void InitWindow(uint32 InClientWidth, uint32 InClientHeight);
     void InitRenderer();
     void InitWorld();
+    void InitEditorCameraWithEngineConfig(ACamera* InCamera);
     void InitTextureLoader();
     void ShutdownWindow();
-    void UpdateWindowSize(uint32 InScreenWidth, uint32 InScreenHeight);
+    void UpdateWindowSize(uint32 InClientWidth, uint32 InClientHeight);
 
+    void LimitFPS(const LARGE_INTEGER& StartTime, const LARGE_INTEGER& Frequency, double TargetDeltaTime) const;
+    
 public:
 	UWorld* GetWorld() const { return World; }
 
@@ -80,6 +84,7 @@ public:
 
     bool LoadTexture(const FName& Name, const FString& FileName, int32 Rows = 1, int32 Columns = 1);
     TextureInfo* GetTextureInfo(const FName& Name) const;
+    
 private:
     bool bIsExit = false;
     EScreenMode ScreenMode = EScreenMode::Windowed;
@@ -89,11 +94,11 @@ private:
     HWND WindowHandle = nullptr;
     HINSTANCE WindowInstance = nullptr;
 
-    uint32 InitializedScreenWidth = 0;
-    uint32 InitializedScreenHeight = 0;
-
-    uint32 ScreenWidth = 0;
-    uint32 ScreenHeight = 0;
+    /**
+     * 윈도우의 타이틀 바, 테두리, 메뉴 바를 제외 한 클라이언트의 크기 
+     */
+    uint32 ClientWidth = 0;
+    uint32 ClientHeight = 0;
 
 	// 텍스처 로더
     TextureLoader* TextureLoaderInstance = nullptr;
@@ -107,7 +112,12 @@ public:
     bool GetShowPrimitives() const { return bShowPrimitives; }
     void SetShowPrimitives(bool InShowPrimitives) { bShowPrimitives = InShowPrimitives; }
 
+    int32 GetTargetFPS() const { return TargetFPS; }
+    void SetTargetFPS(int32 InTargetFPS) { TargetFPS = InTargetFPS; }
+    
 private:
+    int32 TargetFPS;
+    
     class UWorld* World;
     
     ////////

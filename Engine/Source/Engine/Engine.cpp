@@ -1,8 +1,6 @@
 #include "pch.h" 
 #include "Engine.h"
 
-#include "WorldGrid.h"
-#include "Components/MeshComponent.h"
 #include "Static/EditorManager.h"
 #include "Core/Input/PlayerInput.h"
 #include "Core/Input/PlayerController.h"
@@ -12,6 +10,7 @@
 #include "GameFrameWork/Camera.h"
 #include "Gizmo/GizmoHandle.h"
 #include "Core/Rendering/TextureLoader.h"
+#include "GameFrameWork/Picker.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTK/Libs/x64/Debug/DirectXTK.lib")
@@ -19,15 +18,15 @@
 #pragma comment(lib, "DirectXTK/Libs/x64/Release/DirectXTK.lib")
 #endif
 
-class AArrow;
-class APicker;
-
 // ImGui WndProc
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+UEngine::UEngine()
+    : TargetFPS(60)
+{}
+
 LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-
     // Handle ImGui Msg
     if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
     {
@@ -59,15 +58,14 @@ LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     // End Handle Input
     
     case WM_SIZE:
-        {
-            // 다른 case에서 아래의 변수에 접근하지 못하도록 스코프 제한
+        {   // 다른 case에서 아래의 변수에 접근하지 못하도록 스코프 제한
             if (wParam == SIZE_MINIMIZED)
             {
                 return 0;
             }
-            int32 Width = LOWORD(lParam);
-            int32 Height = HIWORD(lParam);
-            UEngine::Get().UpdateWindowSize(Width, Height);
+            int32 ClientWidth = LOWORD(lParam);
+            int32 ClientHeight = HIWORD(lParam);
+            UEngine::Get().UpdateWindowSize(ClientWidth, ClientHeight);
         }
         return 0;
     }
@@ -80,47 +78,47 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 	EngineConfig = new FEngineConfig();
 	EngineConfig->LoadEngineConfig();
 
-	int width = EngineConfig->GetEngineConfigValue<int>(EEngineConfigValueType::EEC_ScreenWidth);
-	int height = EngineConfig->GetEngineConfigValue<int>(EEngineConfigValueType::EEC_ScreenHeight);
+	uint32 ConfigWidth = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenWidth);
+	uint32 ConfigHeight = EngineConfig->GetEngineConfigValue<uint32>(EEngineConfigValueType::EEC_ScreenHeight);
 
     WindowInstance = hInstance;
     WindowTitle = InWindowTitle;
     WindowClassName = InWindowClassName;
-    ScreenWidth = width <= 0 ? InScreenWidth : width;
-    ScreenHeight = height <= 0 ? InScreenHeight : height;
+    ClientWidth = ConfigWidth <= 0 ? InScreenWidth : ConfigWidth;
+    ClientHeight = ConfigHeight <= 0 ? InScreenHeight : ConfigHeight;
 
     ScreenMode = InScreenMode;
 
-    InitWindow(ScreenWidth, ScreenHeight);
-
-    EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, ScreenWidth);
-    EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, ScreenHeight);
-
-	// Get Client Rect
-	RECT ClientRect;
-	GetClientRect(WindowHandle, &ClientRect);
-	ScreenWidth = ClientRect.right - ClientRect.left;
-	ScreenHeight = ClientRect.bottom - ClientRect.top;
-
-    APlayerInput::Get().SetWindowSize(ScreenWidth, ScreenHeight);
+    InitWindow(ClientWidth, ClientHeight);
 
     InitRenderer();
 
     InitTextureLoader();
-
-    InitializedScreenWidth = ScreenWidth;
-    InitializedScreenHeight = ScreenHeight;
+    
     InitWorld();
-    ui.Initialize(WindowHandle, *Renderer, ScreenWidth, ScreenHeight);
+    
+    ui.Initialize(WindowHandle, *Renderer, ClientWidth, ClientHeight);
+
+    UpdateWindowSize(ClientWidth, ClientHeight);
     
     UE_LOG("Engine Initialized!");
+    
+#ifdef _DEBUG
+    World->LoadWorld("Default");
+#endif
+
 }
 
 void UEngine::Run()
 {
-    // Limit FPS
-    constexpr int TargetFPS = 60;
-    constexpr double TargetDeltaTime = 1000.0f / TargetFPS; // 1 FPS's target time (ms)
+    double TargetDeltaTime = -1.f;
+    
+    bool bShouldLimitFPS = TargetFPS > 0;
+    if (bShouldLimitFPS)
+    {
+        // Limit FPS
+        TargetDeltaTime = 1000.0f / static_cast<double>(TargetFPS); // 1 FPS's target time (ms)
+    }
 
     LARGE_INTEGER Frequency;
     QueryPerformanceFrequency(&Frequency);
@@ -156,7 +154,6 @@ void UEngine::Run()
 
         // Renderer Update
         Renderer->PrepareRender();
-        Renderer->PrepareMainShader();
 
         // World Update
         if (World)
@@ -169,24 +166,34 @@ void UEngine::Run()
         // ui Update
         ui.Update();
 
-        // UI입력을 우선으로 처리
+        // UI입력을 우선으로 처리하므로, 여기에서 업데이트
         APlayerInput::Get().UpdateInput();
         APlayerController::Get().ProcessPlayerInput(DeltaTime);
 
         Renderer->SwapBuffer();
 
         // FPS 제한
-        double ElapsedTime;
-        do
+        if (bShouldLimitFPS)
         {
-            Sleep(0);
-
-            LARGE_INTEGER CurrentTime;
-            QueryPerformanceCounter(&CurrentTime);
-
-            ElapsedTime = static_cast<double>(CurrentTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
-        } while (ElapsedTime < TargetDeltaTime);
+            LimitFPS(StartTime, Frequency, TargetDeltaTime);
+        }
     }
+
+    // End Run
+}
+
+void UEngine::LimitFPS(const LARGE_INTEGER& StartTime, const LARGE_INTEGER& Frequency, double TargetDeltaTime) const
+{
+    double ElapsedTime;
+    do
+    {
+        Sleep(0);
+
+        LARGE_INTEGER CurrentTime;
+        QueryPerformanceCounter(&CurrentTime);
+
+        ElapsedTime = static_cast<double>(CurrentTime.QuadPart - StartTime.QuadPart) * 1000.0 / static_cast<double>(Frequency.QuadPart);
+    } while (ElapsedTime < TargetDeltaTime);
 }
 
 
@@ -196,7 +203,7 @@ void UEngine::Shutdown()
 }
 
 
-void UEngine::InitWindow(int InScreenWidth, int InScreenHeight)
+void UEngine::InitWindow(uint32 InClientWidth, uint32 InClientHeight)
 {
 	// Register Window Class //
     WNDCLASSW wnd_class{};
@@ -205,13 +212,19 @@ void UEngine::InitWindow(int InScreenWidth, int InScreenHeight)
     wnd_class.lpszClassName = WindowClassName;
     RegisterClassW(&wnd_class);
 
+    // 파라미터로 전달 받은 Client 크기를 Window 크기로 변경 (윈도우 타이틀 바, 테두리, 메뉴 바 등을 포함한 크기)
+    RECT ClientRect = {0, 0, static_cast<int32>(InClientWidth), static_cast<int32>(InClientHeight)};
+    AdjustWindowRect(&ClientRect, WS_OVERLAPPEDWINDOW, false);
+    int WindowWidth = ClientRect.right - ClientRect.left;
+    int WindowHeight = ClientRect.bottom - ClientRect.top;
+
     // Create Window Handle //
     WindowHandle = CreateWindowExW(
         WS_EX_NOREDIRECTIONBITMAP,
         WindowClassName, WindowTitle,
         WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        ScreenWidth, ScreenHeight,
+        WindowWidth, WindowHeight,
         nullptr, nullptr, WindowInstance, nullptr
     );
 
@@ -248,42 +261,73 @@ void UEngine::InitWorld()
     if (ACamera* Camera = World->SpawnActor<ACamera>())
     {
         FEditorManager::Get().SetCamera(Camera);
-
-        // 렌더러가 먼저 초기화 되므로, 카메라가 생성되는 시점인 현재 함수에서 프로젝션 매트릭스 업데이트
-        Renderer->UpdateProjectionMatrix(Camera);
-
-        // 카메라 ini 읽어오기
-		float PosX = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraPosX, -5.f);
-		float PosY = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraPosY);
-		float PosZ = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraPosZ);
-
-		FVector CameraPos = FVector(PosX, PosY, PosZ);
-		float RotX = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotX);
-		float RotY = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotY);
-		float RotZ = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotZ);
-		float RotW = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotW, 1.f);
-
-		FQuat CameraRot = FQuat(RotX, RotY, RotZ, RotW);
-		FTransform CameraTransform = FTransform(CameraPos, CameraRot, FVector(1,1,1));
-		Camera->SetActorTransform(CameraTransform);
-
-		float CameraSpeed = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraSpeed, 1.f);
-        APlayerController::Get().SetCurrentSpeed(CameraSpeed);
-        Renderer->UpdateViewMatrix(CameraTransform);
-
-        float CameraSensitivity = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraSensitivity, 10.f);
-        APlayerController::Get().SetMouseSensitivity(CameraSensitivity);
+        
+        InitEditorCameraWithEngineConfig(Camera);
     }
-
-    //// Test
-    //AArrow* Arrow = World->SpawnActor<AArrow>();
-    //World->SpawnActor<ASphere>();
     
     World->SpawnActor<AAxis>();
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
     World->BeginPlay();
+}
+
+void UEngine::InitEditorCameraWithEngineConfig(ACamera* InCamera)
+{
+    // Default values
+    FVector CameraLocation(4.f, -3.f, 3.f);
+    FQuat CameraRotation(0.f, 0.f, 0.f, 1.f);
+    FTransform CameraTransform(CameraLocation, CameraRotation, FVector::OneVector);
+
+    float CameraSpeed = 5.f;
+    float CameraSensitivity = 10.f;
+    
+    if (EngineConfig->IsSectionExist(EEngineConfigSectionType::ECS_Camera))
+    {
+        // 카메라 ini 읽어오기
+        const float LocX = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraPosX, 4.f);
+        const float LocY = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraPosY, -3.f);
+        const float LocZ = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraPosZ, 3.f);
+
+        const float RotX = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotX);
+        const float RotY = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotY);
+        const float RotZ = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotZ);
+        const float RotW = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraRotW, 1.f);
+
+        CameraLocation = FVector(LocX, LocY, LocZ);
+        CameraRotation = FQuat(RotX, RotY, RotZ, RotW);
+        CameraTransform = FTransform(CameraLocation, CameraRotation, FVector::OneVector);
+    
+        CameraSpeed = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraSpeed, 5.f);
+        CameraSensitivity = EngineConfig->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_EditorCameraSensitivity, 10.f);
+    }
+    else
+    {
+        // config가 없는 경우 원점을 바라보게 하기 위해 여기에서 섹션이 존재하는지 확인하고 로테이션 계산
+        CameraTransform.LookAt(FVector(0.f, 0.f, 0.f));
+        CameraRotation = CameraTransform.GetRotation(); // LookAt 함수가 FTransform에만 있어서 CameraRotation을 재설정 해야함.
+    }
+    
+    InCamera->SetActorTransform(CameraTransform);
+    
+    APlayerController::Get().SetCurrentSpeed(CameraSpeed);
+    APlayerController::Get().SetMouseSensitivity(CameraSensitivity);
+
+    // 카메라 초기화 후 상수 버퍼 업데이트
+    Renderer->UpdateProjectionMatrix(InCamera);
+
+    // Update all camera config
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosX, CameraLocation.X);
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosY, CameraLocation.Y);
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosZ, CameraLocation.Z);
+
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotX, CameraRotation.X);
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotY, CameraRotation.Y);
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotZ, CameraRotation.Z);
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotW, CameraRotation.W);
+
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraSpeed, CameraSpeed);
+    EngineConfig->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraSensitivity, CameraSensitivity);
 }
 
 void UEngine::InitTextureLoader()
@@ -294,15 +338,6 @@ void UEngine::InitTextureLoader()
 	// Texture Load
     bool bLoaded = true;
     bLoaded |= LoadTexture(TEXT("ASCII"), TEXT("ASCII.png"), 16, 16);
-    bLoaded |= LoadTexture(TEXT("Cat"), TEXT("Cat.jpg"), 1, 1);
-    bLoaded |= LoadTexture(TEXT("HappyCat"), TEXT("HappyCat.png"), 11, 11);
-    bLoaded |= LoadTexture(TEXT("AppleCat"), TEXT("AppleCat.png"), 2, 2);
-    bLoaded |= LoadTexture(TEXT("DancingCat"), TEXT("DancingCat.png"), 2, 2);
-
-    const TextureInfo* TextureInfo = GetTextureInfo(TEXT("ASCII"));
-
-    int b = 0;
-    
 }
 
 void UEngine::ShutdownWindow()
@@ -314,39 +349,30 @@ void UEngine::ShutdownWindow()
     WindowInstance = nullptr;
 
     ui.Shutdown();
+    
     EngineConfig->SaveAllConfig();
 	delete EngineConfig;
 }
 
-void UEngine::UpdateWindowSize(const uint32 InScreenWidth, const uint32 InScreenHeight)
+void UEngine::UpdateWindowSize(const uint32 InClientWidth, const uint32 InClientHeight)
 {
-    ScreenWidth = InScreenWidth;
-    ScreenHeight = InScreenHeight;
-
-
+    ClientWidth = InClientWidth;
+    ClientHeight = InClientHeight;
+    
     if(Renderer)
     {
-        Renderer->OnUpdateWindowSize(InScreenWidth, InScreenHeight);
+        Renderer->OnClientSizeUpdated(InClientWidth, InClientHeight);
     }
 
     if (ui.bIsInitialized)
     {
-        ui.OnUpdateWindowSize(InScreenWidth, InScreenHeight);
+        ui.OnClientSizeUpdated(InClientWidth, InClientHeight);
     }
 
-    APlayerInput::Get().SetWindowSize(ScreenWidth, ScreenHeight);
+    APlayerInput::Get().SetClientSize(ClientWidth, ClientHeight);
 
-
-    RECT windowRect;
-
-    // 전체 윈도우 영역 가져오기
-    GetWindowRect(WindowHandle, &windowRect);
-
-    UINT TotalWidth = windowRect.right - windowRect.left;
-    UINT TotalHeignt = windowRect.bottom - windowRect.top;
-
-	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenWidth, TotalWidth);
-	EngineConfig->SaveEngineConfig<int>(EEngineConfigValueType::EEC_ScreenHeight, TotalHeignt);
+	EngineConfig->UpdateEngineConfig<uint32>(EEngineConfigValueType::EEC_ScreenWidth, ClientWidth);
+	EngineConfig->UpdateEngineConfig<uint32>(EEngineConfigValueType::EEC_ScreenHeight, ClientHeight);
 }
 
 UObject* UEngine::GetObjectByUUID(uint32 InUUID) const
