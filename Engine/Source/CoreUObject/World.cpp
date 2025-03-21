@@ -282,15 +282,6 @@ bool UWorld::DestroyActor(AActor* InActor)
     // 제거 대기열에 추가
     PendingDestroyActors.Add(InActor);
 
-    // 박스 즉시 제거
-    auto Components = InActor->GetComponents();
-    for (auto Comp : Components)
-    {
-        if (Comp->GetClass()->IsA<USceneComponent>())
-        {
-			USceneComponent* SceneComp = static_cast<USceneComponent*>(Comp);
-        }
-    }
     return true;
 }
 
@@ -306,13 +297,13 @@ void UWorld::AddZIgnoreComponent(UPrimitiveComponent* InComponent)
     InComponent->SetIsOrthoGraphic(true);
 }
 
-void UWorld::LoadWorld(const char* SceneName)
+void UWorld::LoadWorld(const char* InSceneName)
 {
-    if (SceneName == nullptr || strcmp(SceneName, "") == 0){
+    if (InSceneName == nullptr || strcmp(InSceneName, "") == 0){
         return;
     }
         
-    UWorldInfo* WorldInfo = JsonSaveHelper::LoadScene(SceneName);
+    UWorldInfo* WorldInfo = JsonSaveHelper::LoadScene(InSceneName);
     if (WorldInfo == nullptr) return;
 
     ClearWorld();

@@ -47,7 +47,7 @@ public:
 	void RenderText(URenderer& Renderer);
 
 	void ClearWorld();
-	void LoadWorld(const char* SceneName);
+	void LoadWorld(const char* InSceneName);
 	void SaveWorld();
 
 	void AddZIgnoreComponent(UPrimitiveComponent* InComponent);
