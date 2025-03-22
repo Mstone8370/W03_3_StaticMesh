@@ -9,5 +9,8 @@ class UStaticMesh : public UObject
 
 public:
 
-    void SetStaticMeshAsset(FStaticMesh* StaticMesh);
+    void SetStaticMeshAsset(FStaticMesh* InStaticMesh);
+    FString GetAssetPathFileName();
+private:
+    FStaticMesh* StaticMeshAsset;
 };
