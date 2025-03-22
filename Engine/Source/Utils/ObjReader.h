@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Container/Array.h"
+#include "Container/Map.h"
 #include "Container/String.h"
+#include "ObjManager.h"
 
 class ObjReader
 {
@@ -12,6 +14,8 @@ public:
     ~ObjReader();
 
     TArray<float> GetVertex(int32 Idx);
+
+    TArray<float> GetVertexColor(int32 Idx);
     
     TArray<float> GetNormal(int32 Idx);
     
@@ -40,10 +44,20 @@ protected:
     
     void ReadFile();
 
+    void ReadMaterialFile();
+
+    void CreateSubMesh();
+
     void Clear();
 
     TArray<TArray<float>> Vertices;
+    TArray<TArray<float>> VerticesColor;
     TArray<TArray<float>> Normals;
     TArray<TArray<float>> UVs;
     TArray<TArray<TArray<uint32>>> Faces;
+
+    FString MaterialPath;
+    TArray<FString> FaceMaterials;
+    TMap<FString, FObjMaterialInfo> MaterialInfo;
+    TArray<FSubMesh> SubMeshes;
 };
