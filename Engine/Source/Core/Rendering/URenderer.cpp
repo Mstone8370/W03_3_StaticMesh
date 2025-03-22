@@ -6,7 +6,8 @@
 #include "Core/Math/Transform.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
-
+#include "Engine/GameFrameWork/StaticMesh.h"
+#include "Static/ObjManager.h"
 
 void URenderer::Create(HWND hWindow)
 {
@@ -311,7 +312,6 @@ void URenderer::RenderBox(const FBox& Box, const FVector4& Color)
 void URenderer::RenderMesh(class UMeshComponent* MeshComp)
 {
     FName MeshName = MeshComp->GetMeshName();
-    
     FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(MeshName);
     ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
     ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
@@ -330,6 +330,7 @@ void URenderer::RenderMesh(class UMeshComponent* MeshComp)
     UpdateObjectConstantBuffer(ConstantInfo);
 
     DeviceContext->DrawIndexed(Info.VertexBufferInfo.GetSize(), 0, 0);
+
 }
 
 void URenderer::PrepareMesh()
@@ -570,7 +571,7 @@ void URenderer::CreateDeviceAndSwapChain(HWND hWindow)
 		.Height= static_cast<float>(SwapChainDesc.BufferDesc.Height),
         .MinDepth= 0.0f, .MaxDepth= 1.0f
     };
-
+        
     Device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugDevice));
     if (SUCCEEDED(Device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&infoQueue))))
     {
@@ -858,6 +859,8 @@ void URenderer::CreateBufferCache()
     BufferCache->BuildStaticMesh("Resources/GizmoTranslation.obj");
     BufferCache->BuildStaticMesh("Resources/GizmoRotation.obj");
     BufferCache->BuildStaticMesh("Resources/GizmoScale.obj");
+    BufferCache->BuildStaticMesh("Resources/x-35_obj.obj");
+    BufferCache->BuildStaticMesh("Resources/cat.obj");
 }
 
 void URenderer::CreateShaderCache()

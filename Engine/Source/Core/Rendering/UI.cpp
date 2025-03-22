@@ -25,7 +25,7 @@
 #include "ImGui/imgui_internal.h"
 #include "Input/PlayerController.h"
 #include "Input/PlayerInput.h"
-
+#include "GameFrameWork/testMesh.h"
 //@TODO: Replace with EditorWindow
 
 std::shared_ptr<ConsoleWindow> UI::ConsoleWindowInstance = nullptr;
@@ -220,6 +220,7 @@ void UI::RenderPrimitiveSelection()
         {
             if (strcmp(items[currentItem], "Sphere") == 0)
             {
+                World->SpawnActor<testMesh>();
                 World->SpawnActor<ASphere>();
             }
             else if (strcmp(items[currentItem], "Cube") == 0)
