@@ -9,20 +9,7 @@
 
 class  UStaticMesh;
 struct FStaticMeshVertex;
-struct FStaticMesh;
-struct FObjImporter;
-struct FObjInfo;
-
-class FObjManager
-{
-public:
-    static FStaticMesh* LoadObjStaticMeshAsset(const FString& PathFileName);
-
-    static UStaticMesh* LoadObjStaticMesh(const FString& PathFileName);
-
-private:
-    static TMap<FString, FStaticMesh*> ObjStaticMeshMap;
-};
+struct FSubMesh;
 
 // Cooked Data
 struct FStaticMesh
@@ -31,6 +18,8 @@ struct FStaticMesh
 
     TArray<FStaticMeshVertex> Vertices;
     TArray<uint32> Indices;
+    TArray<FSubMesh> SubMeshes;
+    TArray<FName> MaterialsName;
 };
 
 struct FObjMaterialInfo
@@ -70,9 +59,13 @@ struct FSubMesh
 {
     uint32 startIndex; // 전체 인덱스 버퍼에서 이 서브메시가 사용하는 시작 인덱스
     uint32 endIndex;   // 전체 인덱스 버퍼에서 이 서브메시가 사용하는 마지막 인덱스
-    FName materialName; // 머티리얼 이름
 };
 
+
+
+// TMap<MaterialName, Tmap<StaticMeshName, TArray<SubMesh>>> t
+// StaticMeshName은 Resources/..에 있지만 하위폴더가 존재가능하기 떄문에
+// 파일 이름이 같아도 하위 폴더가 다르면 다른걸로 취급 하도록 StaticMeshName에 값을 저장해야함.
 
 
 struct FObjImporter
@@ -80,23 +73,25 @@ struct FObjImporter
     // Obj Parsing (*.obj to FObjInfo)
     // Material Parsing (*.obj to MaterialInfo)
     // Convert the Raw data to Cooked data (FStaticMesh)
-    uint32 GetVertexNum() const { return Vertices.Num(); }
-    uint32 GetIndexNum() const { return Indices.Num(); }
+    uint32 GetVertexNum() const { return CookedVertices.Num(); }
+    uint32 GetIndexNum() const { return CookedIndices.Num(); }
 
-    TArray<FStaticMeshVertex> GetVertices() { return Vertices; }
-    TArray<uint32> GetIndices() { return Indices; }
-    
-    TArray<FStaticMeshVertex> Vertices;  
-    TArray<uint32> Indices;
+    TArray<FStaticMeshVertex> GetVertices() { return CookedVertices; }
+    TArray<uint32> GetIndices() { return CookedIndices; }
+    TArray<FSubMesh> GetSubMesh() { return SubMeshes; }
+    TMap<FName, FObjMaterialInfo>  GetMaterialList() { return MaterialList; }
+    TArray<FStaticMeshVertex> CookedVertices;
+    TArray<uint32> CookedIndices;
     
     uint32 VerticesNum;
     uint32 IndicesNum;
 
     
     TArray<FSubMesh> SubMeshes;
+    TMap<FName, FObjMaterialInfo> MaterialList;
+ 
+    FStaticMesh* BuildMeshFromObj(const FString& ObjPath);
 
-
-    bool BuildMeshFromObj(const FString& ObjPath);
     void MakeVertex(const TArray<float>& Vertex, const TArray<float>& Normal, const TArray<float>& UV,
         FStaticMeshVertex& OutVertex)
     {
@@ -127,4 +122,17 @@ struct FObjImporter
         OutTangent.Normalize();
     }
 
+};
+
+
+class FObjManager
+{
+public:
+    static FStaticMesh* LoadObjStaticMeshAsset(const FString& PathFileName);
+
+    static UStaticMesh* LoadObjStaticMesh(const FString& PathFileName);
+    static FObjImporter Importer;
+    static TMap<FName, TMap<FName, FSubMesh>> MaterialSubmeshMap;
+private:
+    static TMap<FString, FStaticMesh*> ObjStaticMeshMap;
 };

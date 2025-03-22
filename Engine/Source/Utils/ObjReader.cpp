@@ -366,8 +366,6 @@ void ObjReader::CreateSubMesh()
         Submesh.startIndex = currentStartIndex;
         Submesh.endIndex = currentStartIndex + count - 1;
 
-        Submesh.materialName = it->Key; // subMesh에 머티리얼 이름 저장
-
         SubMeshes.Add(Submesh);
         currentStartIndex += count;
     }
