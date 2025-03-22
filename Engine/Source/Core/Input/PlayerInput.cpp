@@ -2,7 +2,6 @@
 #include "PlayerInput.h"
 
 #include "Editor/Windows/ConsoleWindow.h"
-#include "Rendering/UI.h"
 
 APlayerInput::APlayerInput()
 {

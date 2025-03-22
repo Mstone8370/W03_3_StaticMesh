@@ -1,27 +1,22 @@
 #include "pch.h"
 #include "Ray.h"
 #include "GameFramework/Camera.h"
+#include "Input/PlayerInput.h"
 
-FRay FRay::GetRayByMousePoint(ACamera* InCamera)
+FRay FRay::GetRayByMousePoint(const ACamera* InCamera)
 {
     if(InCamera == nullptr)
 	{
 		return FRay();
 	}
-    // 1. 마우스 커서 위치를 NDC로 변환
-    POINT pt;
-    GetCursorPos(&pt);
-
-    ScreenToClient(UEngine::Get().GetWindowHandle(), &pt);
-    float ScreenWidth = UEngine::Get().GetClientWidth();
-    float ScreenHeight = UEngine::Get().GetClientHeight();
-
-    float NDCX = 2.0f * pt.x / ScreenWidth - 1.0f;
-    float NDCY = -2.0f * pt.y / ScreenHeight + 1.0f;
+	
+    float NdcX = 0.f;
+    float NcdY = 0.f;
+	APlayerInput::Get().GetMousePositionNDC(NdcX, NcdY); // TODO: 다중 뷰포트인 경우 NDC가 아닌 뷰포트 기준으로
 
     // 2. Projection 공간으로 변환
-    FVector4 RayOrigin = FVector4(NDCX, NDCY, 0.0f, 1.0f);
-    FVector4 RayEnd = FVector4(NDCX, NDCY, 1.0f, 1.0f);
+    FVector4 RayOrigin = FVector4(NdcX, NcdY, 0.0f, 1.0f);
+    FVector4 RayEnd = FVector4(NdcX, NcdY, 1.0f, 1.0f);
 
     // 3. View 공간으로 변환
     FMatrix InvProjMat = UEngine::Get().GetRenderer()->GetProjectionMatrix().Inverse();
