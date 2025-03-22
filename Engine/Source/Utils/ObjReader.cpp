@@ -18,46 +18,60 @@ ObjReader::~ObjReader()
     Clear();
 }
 
-TArray<float> ObjReader::GetVertex(int32 Idx)
+TArray<float> ObjReader::GetVertex(int32 Idx) const 
 {
-    if (0 <= Idx && Idx < Vertices.Num())
+    if (0 <= Idx && Idx < FObjRawData.Vertices.Num())
     {
-        return Vertices[Idx];
+        return FObjRawData.Vertices[Idx];
     }
     return {};
 }
 
-TArray<float> ObjReader::GetNormal(int32 Idx)
+TArray<float> ObjReader::GetNormal(int32 Idx) const
 {
-    if (0 <= Idx && Idx < Normals.Num())
+    if (0 <= Idx && Idx < FObjRawData.Normals.Num())
     {
-        return Normals[Idx];
+        return FObjRawData.Normals[Idx];
     }
     return {};
 }
 
-TArray<float> ObjReader::GetUV(int32 Idx)
+TArray<float> ObjReader::GetUV(int32 Idx) const
 {
-    if (0 <= Idx && Idx < UVs.Num())
+    if (0 <= Idx && Idx < FObjRawData.UVs.Num())
     {
-        return UVs[Idx];
+        return FObjRawData.UVs[Idx];
     }
     return {};
 }
 
 TArray<uint32> ObjReader::GetVertexIndices()
 {
-    TArray<uint32> Indices(Vertices.Num() * 3);
-    int Cnt = 0;
-    for (TArray<TArray<uint32>>& Face : Faces)
+    TArray<uint32> Indices(FObjRawData.Vertices.Num() * 3);
+    for (const TArray<uint32>& FaceIndices : FObjRawData.VertexIndices)
     {
-        for (int i = 0; i < 3; ++i)
+        for (uint32 index : FaceIndices)
         {
-            Indices[Cnt] = Face[i][0];
-            ++Cnt;
+            Indices.Add(index);
         }
     }
     return Indices;
+}
+
+TArray<TArray<TArray<uint32>>> ObjReader::GetFaces() const
+{
+    TArray<TArray<TArray<uint32>>> Faces;
+
+    uint32 FaceCount = FObjRawData.VertexIndices.Num();
+    for (uint32 i = 0; i < FaceCount; ++i)
+    {
+        TArray<TArray<uint32>> Face;
+        Face.Add(FObjRawData.VertexIndices[i]);
+        Face.Add(FObjRawData.UVIndices[i]);
+        Face.Add(FObjRawData.NormalIndices[i]);
+        Faces.Add(Face);
+    }
+    return Faces;
 }
 
 void ObjReader::SetFilePath(const FString& InFilePath)
@@ -71,33 +85,41 @@ void ObjReader::SetFilePath(const FString& InFilePath)
 
 void ObjReader::Clear()
 {
-    for (TArray<float>& Vertex : Vertices)
+    for (TArray<float>& Vertex : FObjRawData.Vertices)
     {
         Vertex.Empty();
     }
-    Vertices.Empty();
+    FObjRawData.Vertices.Empty();
 
-    for (TArray<float>& Normal : Normals)
+    for (TArray<float>& Normal : FObjRawData.Normals)
     {
         Normal.Empty();
     }
-    Normals.Empty();
+    FObjRawData.Normals.Empty();
 
-    for (TArray<float>& UV : UVs)
+    for (TArray<float>& UV : FObjRawData.UVs)
     {
         UV.Empty();
     }
-    UVs.Empty();
+    FObjRawData.UVs.Empty();
 
-    for (TArray<TArray<uint32>>& Face : Faces)
+    for (TArray<uint32>& VertexIndex : FObjRawData.VertexIndices)
     {
-        for (int i = 0; i < 3; ++i)
-        {
-            Face[i].Empty();
-        }
-        Face.Empty();
+        VertexIndex.Empty();
     }
-    Faces.Empty();
+    FObjRawData.VertexIndices.Empty();
+
+    for (TArray<uint32>& UVIndex : FObjRawData.UVIndices)
+    {
+        UVIndex.Empty();
+    }
+    FObjRawData.UVIndices.Empty();
+
+    for (TArray<uint32>& NormalIndex : FObjRawData.NormalIndices)
+    {
+        NormalIndex.Empty();
+    }
+    FObjRawData.NormalIndices.Empty();
 }
 
 bool ObjReader::CheckFile(const FString& InFilePath) const
@@ -149,7 +171,7 @@ void ObjReader::ReadFile()
             Vertex[0] = std::stof(Tokens[1]);  // Location X
             Vertex[1] = -std::stof(Tokens[2]); // Location Y
             Vertex[2] = std::stof(Tokens[3]);  // Location Z
-            Vertices.Add(Vertex);
+            FObjRawData.Vertices.Add(Vertex);
         }
         else if (Key == "vn")
         {
@@ -157,31 +179,58 @@ void ObjReader::ReadFile()
             Normal[0] = std::stof(Tokens[1]);  // Normal X
             Normal[1] = -std::stof(Tokens[2]); // Normal Y
             Normal[2] = std::stof(Tokens[3]);  // Normal Z
-            Normals.Add(Normal);
+            FObjRawData.Normals.Add(Normal);
         }
         else if (Key == "vt")
         {
             TArray<float> UV(2);
             UV[0] = std::stof(Tokens[1]);       // U
             UV[1] = 1.f - std::stof(Tokens[2]); // V; Obj 파일은 오른손 좌표계 기준이므로, 왼손 좌표계의 UV맵 좌표로 변경
-            UVs.Add(UV);
+            FObjRawData.UVs.Add(UV);
+        }
+        else if (Key == "usemtl")
+        {
+            if (!CurrentMaterial.IsEmpty())
+            {
+                SubMeshes.Last().EndIdx = FObjRawData.VertexIndices.Num();
+            }
+
+            CurrentMaterial = Tokens[1];
         }
         else if (Key == "f")
         {
-            TArray<TArray<uint32>> Face(3);
             for (int i = 0; i < 3; ++i)
             {
-                Face[i] = TArray<uint32>(3);
+                TArray<uint32> FaceVertexIndices(3);
+                TArray<uint32> FaceUVIndices(3);
+                TArray<uint32> FaceNormalIndices(3);
+
                 std::stringstream ss(Tokens[i + 1]);
                 std::string Val;
                 int Cnt = 0;
                 while (std::getline(ss, Val, '/'))
                 {
-                    Face[i][Cnt] = std::stoi(Val) - 1; // 인덱스는 1부터 시작하므로, 1 감소
+                    uint32 Index = std::stoi(Val) - 1; // 인덱스는 1부터 시작하므로, 1 감소
+                    switch (Cnt)
+                    {
+                        case 0:
+                            FaceVertexIndices[i] = Index;
+                            break;
+                        case 1:
+                            FaceUVIndices[i] = Index;
+                            break;
+                        case 2:
+                            FaceNormalIndices[i] = Index;
+                            break;
+                        default:
+                            break;
+                    }
                     ++Cnt;
                 }
+                FObjRawData.VertexIndices.Add(FaceVertexIndices);
+                FObjRawData.VertexIndices.Add(FaceUVIndices);
+                FObjRawData.VertexIndices.Add(FaceNormalIndices);
             }
-            Faces.Add(Face);
         }
     }
     File.close();    

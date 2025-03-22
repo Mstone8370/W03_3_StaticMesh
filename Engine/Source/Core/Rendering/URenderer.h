@@ -72,7 +72,7 @@ public:
      */
     ID3D11Buffer* CreateImmutableVertexBuffer(const FVertexSimple* Vertices, UINT ByteWidth) const;
 	// TODO: 버텍스 정보를 void* 타입으로 받으면 오버로딩 안해도 됨.
-	ID3D11Buffer* CreateImmutableVertexBuffer(const FStaticMeshVertex* Vertices, UINT ByteWidth) const;
+	ID3D11Buffer* CreateImmutableVertexBuffer(const FNormalVertex* Vertices, UINT ByteWidth) const;
 	ID3D11Buffer* CreateDynamicVertexBuffer(UINT ByteWidth);
 	ID3D11Buffer* CreateIndexBuffer(const UINT* Indices, UINT ByteWidth) const;
 

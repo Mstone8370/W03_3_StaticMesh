@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Container/Array.h"
 #include "Container/String.h"
+#include "Rendering/RendererDefine.h"
 
 class ObjReader
 {
@@ -11,23 +12,17 @@ public:
     
     ~ObjReader();
 
-    TArray<float> GetVertex(int32 Idx);
+    TArray<float> GetVertex(int32 Idx) const;
     
-    TArray<float> GetNormal(int32 Idx);
+    TArray<float> GetNormal(int32 Idx) const;
     
-    TArray<float> GetUV(int32 Idx);
-    
-    TArray<TArray<TArray<uint32>>> GetFaces() { return Faces; }
+    TArray<float> GetUV(int32 Idx) const;
 
     TArray<uint32> GetVertexIndices();
 
-    uint32 GetVertexNum() const { return Vertices.Num(); }
+    TArray<TArray<TArray<uint32>>> GetFaces() const;
 
-    uint32 GetNormalNum() const { return Normals.Num(); }
-
-    uint32 GetUVNum() const { return UVs.Num(); }
-
-    uint32 GetFaceNum() const { return Faces.Num(); }
+    uint32 GetFaceNum() const { return FObjRawData.VertexIndices.Num(); }
 
 protected:
     FString FilePath;
@@ -42,8 +37,8 @@ protected:
 
     void Clear();
 
-    TArray<TArray<float>> Vertices;
-    TArray<TArray<float>> Normals;
-    TArray<TArray<float>> UVs;
-    TArray<TArray<TArray<uint32>>> Faces;
+    FObjInfo FObjRawData;
+    TArray<FObjSubMesh> SubMeshes;
+    FString CurrentMaterial;
+    TArray<TArray<uint32>> Face;
 };

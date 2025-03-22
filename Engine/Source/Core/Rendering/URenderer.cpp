@@ -6,6 +6,7 @@
 #include "Core/Math/Transform.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
+#include "Static/ObjManager.h"
 
 
 void URenderer::Create(HWND hWindow)
@@ -316,7 +317,7 @@ void URenderer::RenderMesh(class UMeshComponent* MeshComp)
     ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
     ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
 
-    UINT MeshStride = sizeof(FStaticMeshVertex);
+    UINT MeshStride = sizeof(FNormalVertex);
     UINT Offset = 0;
     DeviceContext->IASetVertexBuffers(0, 1, &VertexBuffer, &MeshStride, &Offset);
     DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -424,7 +425,7 @@ ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FVertexSimple* Vertic
     return VertexBuffer;
 }
 
-ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FStaticMeshVertex* Vertices, UINT ByteWidth) const
+ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FNormalVertex* Vertices, UINT ByteWidth) const
 {
     D3D11_BUFFER_DESC VertexBufferDesc = {};
     VertexBufferDesc.ByteWidth = ByteWidth;
@@ -855,9 +856,10 @@ void URenderer::CreateBufferCache()
     BufferCache = std::make_unique<FBufferCache>();
 
     // Load static mesh here.
-    BufferCache->BuildStaticMesh("Resources/GizmoTranslation.obj");
-    BufferCache->BuildStaticMesh("Resources/GizmoRotation.obj");
-    BufferCache->BuildStaticMesh("Resources/GizmoScale.obj");
+    FObjManager::LoadObjStaticMesh("Assets/Alien Animal.obj");
+    //BufferCache->BuildStaticMesh("Resources/GizmoTranslation.obj");
+    //BufferCache->BuildStaticMesh("Resources/GizmoRotation.obj");
+    //BufferCache->BuildStaticMesh("Resources/GizmoScale.obj");
 }
 
 void URenderer::CreateShaderCache()

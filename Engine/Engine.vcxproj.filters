@@ -185,6 +185,9 @@
       <Filter>Source Files\Engine\GameFrameWork</Filter>
     </ClCompile>
     <ClCompile Include="Source\CoreUObject\ObjectIterator.cpp" />
+    <ClCompile Include="Source\Utils\FObjImporter.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\HAL\PlatformType.h">
@@ -443,6 +446,9 @@
       <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClInclude>
     <ClInclude Include="Source\CoreUObject\ObjectIterator.h" />
+    <ClInclude Include="Source\Utils\FObjImporter.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">

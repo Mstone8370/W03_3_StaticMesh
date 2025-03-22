@@ -22,7 +22,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="FString" Collapsed="true">
-    <Position X="26.25" Y="10.75" Width="1.5" />
+    <Position X="25.25" Y="9.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AQhkkIAAASAACIAAggIABYCAAAEIlCAACIAiAAAwAAA=</HashCode>
       <FileName>Source\Core\Container\String.h</FileName>
@@ -57,28 +57,28 @@
     </TypeIdentifier>
   </Class>
   <Class Name="FBufferCache" Collapsed="true">
-    <Position X="22.75" Y="10.75" Width="1.5" />
+    <Position X="15.5" Y="8.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AJEAAJAEAAAAAQAhAAAAAAACAAAABgAAAAAaAAAAAAQ=</HashCode>
       <FileName>Source\Core\Rendering\BufferCache.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="TextureLoader" Collapsed="true">
-    <Position X="22.75" Y="11.75" Width="1.5" />
+    <Position X="23.5" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAEAAAAAgAAAgAAAAAAAQAAAAAAgAAAAAAAIAAAABQ=</HashCode>
       <FileName>Source\Core\Rendering\TextureLoader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="UI" Collapsed="true">
-    <Position X="24.5" Y="11.75" Width="1.5" />
+    <Position X="25.25" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAQIAABgEBACAQAAAAIBAUIAAAAcAAEAAAAAJJIAI4g=</HashCode>
       <FileName>Source\Core\Rendering\UI.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="URenderer" Collapsed="true">
-    <Position X="26.25" Y="11.75" Width="1.5" />
+    <Position X="15" Y="8" Width="1.5" />
     <TypeIdentifier>
       <HashCode>k7LJMBBxMVgQx3EShNUUYhKAEOdHUUxhWHQA6VtEAks=</HashCode>
       <FileName>Source\Core\Rendering\URenderer.h</FileName>
@@ -92,21 +92,21 @@
     </TypeIdentifier>
   </Class>
   <Class Name="JsonSaveHelper" Collapsed="true">
-    <Position X="19.25" Y="10.75" Width="1.5" />
+    <Position X="20" Y="9.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAACAAAAAAAAAgAAAAAAAAAAAA=</HashCode>
       <FileName>Source\Utils\JsonSaveHelper.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MeshBuilder" Collapsed="true">
-    <Position X="15.5" Y="12.75" Width="1.5" />
+    <Position X="15.5" Y="9.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAQAEAAkAAAAAAAAAAAQAAQACACgQIEAAAAAAAAAA=</HashCode>
       <FileName>Source\Utils\MeshBuilder.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ObjReader" Collapsed="true">
-    <Position X="15.5" Y="11.75" Width="1.5" />
+    <Position X="15.5" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAQIEAEAAAQEAIAAIAAAAABAIEAkCIEIJAAABAEAA=</HashCode>
       <FileName>Source\Utils\ObjReader.h</FileName>
@@ -120,14 +120,14 @@
     </TypeIdentifier>
   </Class>
   <Class Name="FEngineConfig" Collapsed="true">
-    <Position X="17.5" Y="10.75" Width="1.5" />
+    <Position X="18.25" Y="9.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>EAAAAgBAAAAABAIAIAAAAAAAAAAiAAAAAAlAAAAAABA=</HashCode>
       <FileName>Source\Engine\EngineConfig.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="UEngineStatics" Collapsed="true">
-    <Position X="21" Y="11.75" Width="1.5" />
+    <Position X="21.75" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAA=</HashCode>
       <FileName>Source\Engine\EngineStatics.h</FileName>
@@ -197,7 +197,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="FName" Collapsed="true">
-    <Position X="21" Y="10.75" Width="1.5" />
+    <Position X="21.75" Y="9.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAABAEAEAAAYAAAAAAAQAAAAAAAgABAAA=</HashCode>
       <FileName>Source\CoreUObject\NameTypes.h</FileName>
@@ -211,7 +211,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="FObjectFactory" Collapsed="true">
-    <Position X="24.5" Y="10.75" Width="1.5" />
+    <Position X="23.5" Y="9.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAA=</HashCode>
       <FileName>Source\CoreUObject\ObjectFactory.h</FileName>
@@ -344,21 +344,21 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Debug" Collapsed="true">
-    <Position X="17.5" Y="11.75" Width="1.5" />
+    <Position X="18.25" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAIAAAAAAAAAAAAAgAAAAAAAgAAAAIBAAAAIAAAAA=</HashCode>
       <FileName>Source\Debugging\DebugConsole.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ActorTreeNode" Collapsed="true">
-    <Position X="15.5" Y="10.75" Width="1.5" />
+    <Position X="27" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AgAAABgEAQQAkAAAEAAkUEIAFAYgQA2RQUAQAAQAAAA=</HashCode>
       <FileName>Source\Editor\ActorTreeNode.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="UEditorDesigner" Collapsed="true">
-    <Position X="19.25" Y="11.75" Width="1.5" />
+    <Position X="20" Y="10.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAQAAABAAAAABAQAAAAAAAAAAAgBAAABAgAEDAQAA=</HashCode>
       <FileName>Source\Editor\EditorDesigner.h</FileName>
@@ -575,14 +575,14 @@
     </TypeIdentifier>
   </Struct>
   <Struct Name="FShaderData" Collapsed="true">
-    <Position X="52" Y="4.75" Width="1.5" />
+    <Position X="15.5" Y="12" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAEAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAgAAAAA=</HashCode>
       <FileName>Source\Core\Rendering\ShaderCache.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="FShaderCache" Collapsed="true">
-    <Position X="50.25" Y="4.75" Width="1.5" />
+    <Position X="15.5" Y="11.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAACAgAAAAAAAIEAAAAAAAAAAAAAAAARAAAAAAABCCA=</HashCode>
       <FileName>Source\Core\Rendering\ShaderCache.h</FileName>

@@ -1,13 +1,16 @@
 #pragma once
 #include "Object.h"
-
-struct FStaticMesh;
+#include "Rendering/RendererDefine.h"
 
 class UStaticMesh : public UObject
 {
     UCLASS(UStaticMesh, UObject)
 
 public:
-
-    void SetStaticMeshAsset(FStaticMesh* StaticMesh);
+    FStaticMesh* StaticMeshAsset;
+    const FString& GetAssetPathFileName()
+    {
+        return StaticMeshAsset->PathFileName;
+    }
+    void SetStaticMeshAsset(FStaticMesh* InStaticMesh);
 };

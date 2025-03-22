@@ -78,6 +78,8 @@ public:
 	template <typename Compare>
 		requires std::is_invocable_r_v<bool, Compare, const T&, const T&>
 	void Sort(const Compare& CompFn);
+
+	T& Last();
 };
 
 
@@ -272,3 +274,11 @@ void TArray<T, Allocator>::Sort(const Compare& CompFn)
 }
 
 template <typename T, typename Allocator = FDefaultAllocator<T>> class TArray;
+
+
+template<typename T, typename Allocator>
+T& TArray<T, Allocator>::Last()
+{
+	check(!PrivateVector.empty());
+	return PrivateVector.back();
+}

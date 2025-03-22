@@ -3,7 +3,7 @@
 
 #include "ObjManager.h"
 
-void UStaticMesh::SetStaticMeshAsset(FStaticMesh* StaticMesh)
+void UStaticMesh::SetStaticMeshAsset(FStaticMesh* InStaticMesh)
 {
-    // TODO:
+    StaticMeshAsset = InStaticMesh;
 }

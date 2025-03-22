@@ -72,7 +72,7 @@ bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
     
-    uint32 VertexBufferByteWidth = Builder.GetVertexNum() * sizeof(FStaticMeshVertex);
+    uint32 VertexBufferByteWidth = Builder.GetVertexNum() * sizeof(FNormalVertex);
     ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(Builder.GetVertices().GetData(), VertexBufferByteWidth);
 
     uint32 IndexBufferByteWidth = Builder.GetIndexNum() * sizeof(uint32);
