@@ -1,8 +1,11 @@
 ﻿#pragma once
-#include "Container/Array.h"
-#include "Container/Map.h"
-#include "Container/String.h"
 #include "ObjManager.h"
+
+struct FStaticMesh;
+struct FObjMaterialInfo;
+struct FSubMesh;
+//Raw Data
+struct FObjInfo;
 
 class ObjReader
 {
@@ -18,18 +21,22 @@ public:
     TArray<float> GetVertexColor(int32 Idx);
     
     TArray<float> GetNormal(int32 Idx);
-    
+     
     TArray<float> GetUV(int32 Idx);
-    
+     
     TArray<TArray<TArray<uint32>>> GetFaces() { return Faces; }
 
     TArray<uint32> GetVertexIndices();
 
-    uint32 GetVertexNum() const { return Vertices.Num(); }
+    TArray<uint32> GetUVIndices();
 
-    uint32 GetNormalNum() const { return Normals.Num(); }
+    TArray<uint32> GetNormalIndices();
 
-    uint32 GetUVNum() const { return UVs.Num(); }
+    FObjInfo GetRawData();
+    
+    TMap<FName, FObjMaterialInfo> GetMaterialList() { return RawData.MaterialList; }
+
+    TArray<FSubMesh> GetSubMeshes() { return SubMeshes; }
 
     uint32 GetFaceNum() const { return Faces.Num(); }
 
@@ -50,14 +57,11 @@ protected:
 
     void Clear();
 
-    TArray<TArray<float>> Vertices;
     TArray<TArray<float>> VerticesColor;
-    TArray<TArray<float>> Normals;
-    TArray<TArray<float>> UVs;
+    FObjInfo RawData;
     TArray<TArray<TArray<uint32>>> Faces;
 
     FString MaterialPath;
-    TArray<FString> FaceMaterials;
-    TMap<FString, FObjMaterialInfo> MaterialInfo;
     TArray<FSubMesh> SubMeshes;
+    TArray<FString> FaceMaterials;
 };

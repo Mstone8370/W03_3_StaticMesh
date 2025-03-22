@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ObjReader.h"
-
 #include <sstream>
 
 ObjReader::ObjReader()
@@ -20,9 +19,9 @@ ObjReader::~ObjReader()
 
 TArray<float> ObjReader::GetVertex(int32 Idx)
 {
-    if (0 <= Idx && Idx < Vertices.Num())
+    if (0 <= Idx && Idx < RawData.Vertices.Num())
     {
-        return Vertices[Idx];
+        return RawData.Vertices[Idx];
     }
     return {};
 }
@@ -38,25 +37,25 @@ TArray<float> ObjReader::GetVertexColor(int32 Idx)
 
 TArray<float> ObjReader::GetNormal(int32 Idx)
 {
-    if (0 <= Idx && Idx < Normals.Num())
+    if (0 <= Idx && Idx < RawData.Normals.Num())
     {
-        return Normals[Idx];
+        return RawData.Normals[Idx];
     }
     return {};
 }
 
 TArray<float> ObjReader::GetUV(int32 Idx)
 {
-    if (0 <= Idx && Idx < UVs.Num())
+    if (0 <= Idx && Idx < RawData.UVs.Num())
     {
-        return UVs[Idx];
+        return RawData.UVs[Idx];
     }
     return {};
 }
 
 TArray<uint32> ObjReader::GetVertexIndices()
 {
-    TArray<uint32> Indices(Vertices.Num() * 3);
+    TArray<uint32> Indices(Faces.Num() * 3);
     int Cnt = 0;
     for (TArray<TArray<uint32>>& Face : Faces)
     {
@@ -67,6 +66,44 @@ TArray<uint32> ObjReader::GetVertexIndices()
         }
     }
     return Indices;
+}
+TArray<uint32> ObjReader::GetUVIndices()
+{
+    TArray<uint32> Indices(Faces.Num() * 3);
+    int Cnt = 0;
+    for (TArray<TArray<uint32>>& Face : Faces)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            Indices[Cnt] = Face[i][1];  // UV 인덱스
+            ++Cnt;
+        }
+    }
+    return Indices;
+}
+
+TArray<uint32> ObjReader::GetNormalIndices()
+{
+    TArray<uint32> Indices(Faces.Num() * 3);
+    int Cnt = 0;
+    for (TArray<TArray<uint32>>& Face : Faces)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            Indices[Cnt] = Face[i][2];  // 노멀 인덱스
+            ++Cnt;
+        }
+    }
+    return Indices;
+}
+
+FObjInfo ObjReader::GetRawData()
+{
+    RawData.VertexIndexList = GetVertexIndices();
+    RawData.NormalIndexList = GetNormalIndices();
+    RawData.UVIndexList = GetUVIndices();
+
+    return RawData;
 }
 
 void ObjReader::SetFilePath(const FString& InFilePath)
@@ -80,23 +117,23 @@ void ObjReader::SetFilePath(const FString& InFilePath)
 
 void ObjReader::Clear()
 {
-    for (TArray<float>& Vertex : Vertices)
+    for (TArray<float>& Vertex : RawData.Vertices)
     {
         Vertex.Empty();
     }
-    Vertices.Empty();
+    RawData.Vertices.Empty();
 
-    for (TArray<float>& Normal : Normals)
+    for (TArray<float>& Normal : RawData.Normals)
     {
         Normal.Empty();
     }
-    Normals.Empty();
+    RawData.Normals.Empty();
 
-    for (TArray<float>& UV : UVs)
+    for (TArray<float>& UV : RawData.UVs)
     {
         UV.Empty();
     }
-    UVs.Empty();
+    RawData.UVs.Empty();
 
     for (TArray<TArray<uint32>>& Face : Faces)
     {
@@ -172,7 +209,7 @@ void ObjReader::ReadFile()
                 Color[2] = std::stof(Tokens[6]);
             }
             VerticesColor.Add(Color);
-            Vertices.Add(Vertex);
+            RawData.Vertices.Add(Vertex);
         }
         else if (Key == "vn")
         {
@@ -180,14 +217,14 @@ void ObjReader::ReadFile()
             Normal[0] = std::stof(Tokens[1]);  // Normal X
             Normal[1] = -std::stof(Tokens[2]); // Normal Y
             Normal[2] = std::stof(Tokens[3]);  // Normal Z
-            Normals.Add(Normal);
+            RawData.Normals.Add(Normal);
         }
         else if (Key == "vt")
         {
             TArray<float> UV(2);
             UV[0] = std::stof(Tokens[1]);       // U
             UV[1] = 1.f - std::stof(Tokens[2]); // V; Obj 파일은 오른손 좌표계 기준이므로, 왼손 좌표계의 UV맵 좌표로 변경
-            UVs.Add(UV);
+            RawData.UVs.Add(UV);
         }
         else if (Key == "usemtl") 
         {
@@ -220,6 +257,7 @@ void ObjReader::ReadFile()
 
 void ObjReader::ReadMaterialFile()
 {
+    if (MaterialPath.IsEmpty()) return;
 
     std::wifstream In(MaterialPath.c_char());
     if (!In) {
@@ -296,27 +334,11 @@ void ObjReader::ReadMaterialFile()
         else if (Key == TEXT("map_refl")) {
             ObjMaterialInfo.map_refl = Tokens[1];
         }
-        MaterialInfo[CurrentMaterial] = ObjMaterialInfo;
+        RawData.MaterialList[CurrentMaterial] = ObjMaterialInfo;
     }
 
 }
-std::wstring ConvertToWide(const char* str)
-{
-    // 변환에 필요한 버퍼 길이 계산
-    int len = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
-    if (len == 0)
-        return L"";
 
-    // 변환된 문자열을 저장할 wstring 생성
-    std::wstring wstr(len, L'\0');
-    MultiByteToWideChar(CP_ACP, 0, str, -1, &wstr[0], len);
-
-    // 마지막 null 문자 제거 (필요 시)
-    if (!wstr.empty() && wstr.back() == L'\0')
-        wstr.pop_back();
-
-    return wstr;
-}
 void ObjReader::CreateSubMesh()
 {
     TMap<FString, TArray<uint32>> MaterialIndexMap;
@@ -348,31 +370,5 @@ void ObjReader::CreateSubMesh()
 
         SubMeshes.Add(Submesh);
         currentStartIndex += count;
-    }
-
-    for (int i = 0; i < SubMeshes.Num(); ++i)
-    {
-        FSubMesh& sm = SubMeshes[i];
-        FObjMaterialInfo material = MaterialInfo[sm.materialName];
-        std::wstring output = L"\nSubMesh Material:" + ConvertToWide(sm.materialName.c_char()) + L":\n";
-        output += TEXT(" StartIndices ") + std::to_wstring(sm.startIndex) + L":\n";
-        output += TEXT(" EndIndices ") + std::to_wstring(sm.endIndex) + L":\n";
-        output += TEXT("Material Info:\n");
-        output += TEXT("  Ns: ") + std::to_wstring(material.Ns) + L"\n";
-        output += TEXT("  Ka: (") + std::to_wstring(material.Ka.X) + L", " + std::to_wstring(material.Ka.Y) + L", " + std::to_wstring(material.Ka.Z) + L")\n";
-        output += TEXT("  Ks: (") + std::to_wstring(material.Ks.X) + L", " + std::to_wstring(material.Ks.Y) + L", " + std::to_wstring(material.Ks.Z) + L")\n";
-        output += TEXT("  Ke: (") + std::to_wstring(material.Ke.X) + L", " + std::to_wstring(material.Ke.Y) + L", " + std::to_wstring(material.Ke.Z) + L")\n";
-        output += TEXT("  Ni: " )+ std::to_wstring(material.Ni) + L"\n";
-        output += TEXT("  d: ") + std::to_wstring(material.d) + L"\n";
-        output += TEXT("  illum: ") + std::to_wstring(material.illum) + L"\n";
-        output += TEXT("  map_Ka: ") + material.map_Ka + L"\n";
-        output += TEXT("  map_Kd: ") + material.map_Kd + L"\n";
-        output += TEXT("  map_Ks: ") + material.map_Ks + L"\n";
-        output += TEXT("  map_Ns: ") + material.map_Ns + L"\n";
-        output += TEXT("  map_d: ") + material.map_d + L"\n";
-        output += TEXT("  map_bump: ") + material.map_bump + L"\n";
-        output += TEXT("  map_refl: ") + material.map_refl + L"\n";
-
-        OutputDebugString(output.c_str());
     }
 }

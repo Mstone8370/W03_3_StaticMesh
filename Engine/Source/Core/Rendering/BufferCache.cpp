@@ -1,7 +1,7 @@
 #include "pch.h" 
 #include "BufferCache.h"
 
-#include "MeshBuilder.h"
+#include "ObjManager.h"
 #include "Engine/Engine.h"
 #include "Primitive/PrimitiveVertices.h"
 
@@ -52,8 +52,8 @@ FStaticMeshBufferInfo FBufferCache::GetStaticMeshBufferInfo(FName InName)
 
 bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 {
-    MeshBuilder Builder;
-    bool bSuccess = Builder.BuildMeshFromObj(ObjFilePath);
+    FObjImporter Importer;
+    bool bSuccess = Importer.BuildMeshFromObj(ObjFilePath);
     if (!bSuccess)
     {
         return false;
@@ -72,14 +72,14 @@ bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
     
-    uint32 VertexBufferByteWidth = Builder.GetVertexNum() * sizeof(FStaticMeshVertex);
-    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(Builder.GetVertices().GetData(), VertexBufferByteWidth);
+    uint32 VertexBufferByteWidth = Importer.GetVertexNum() * sizeof(FStaticMeshVertex);
+    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(Importer.GetVertices().GetData(), VertexBufferByteWidth);
 
-    uint32 IndexBufferByteWidth = Builder.GetIndexNum() * sizeof(uint32);
-    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(Builder.GetIndices().GetData(), IndexBufferByteWidth);
+    uint32 IndexBufferByteWidth = Importer.GetIndexNum() * sizeof(uint32);
+    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(Importer.GetIndices().GetData(), IndexBufferByteWidth);
 
-    FVertexBufferInfo VertexInfo(VertexBuffer, Builder.GetVertexNum(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
-    FIndexBufferInfo IndexInfo(IndexBuffer, Builder.GetIndexNum());
+    FVertexBufferInfo VertexInfo(VertexBuffer, Importer.GetVertexNum(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
+    FIndexBufferInfo IndexInfo(IndexBuffer, Importer.GetIndexNum());
     
     FStaticMeshBufferInfo StaticMeshInfo(VertexInfo, IndexInfo);
     StaticMeshBufferCache.Add(Key, StaticMeshInfo);
