@@ -98,6 +98,8 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
     InitTextureLoader();
     
     InitWorld();
+
+    FEditorManager::Get().Init();
     
     ui.Initialize(WindowHandle, *Renderer, ClientWidth, ClientHeight);
 
@@ -161,7 +163,8 @@ void UEngine::Run()
         if (World)
         {
             World->Tick(DeltaTime);
-            World->Render(DeltaTime);
+            // World->Render(DeltaTime);
+            FEditorManager::Get().Tick(DeltaTime);
             World->LateTick(DeltaTime);
         }
         

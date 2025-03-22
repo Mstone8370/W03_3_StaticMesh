@@ -188,8 +188,17 @@
     <ClCompile Include="Source\Core\Delegates\Delegate.cpp">
       <Filter>Source Files\Core\Delegates</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Editor\Viewport\Viewport.cpp">
-      <Filter>Source Files\Editor\Viewport</Filter>
+    <ClCompile Include="Source\Engine\Viewport.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SlateCore\SWindow.cpp">
+      <Filter>Source Files\SlateCore</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Slate\SViewport.cpp">
+      <Filter>Source Files\Slate</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SlateCore\SCompoundWidget.cpp">
+      <Filter>Source Files\SlateCore</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -452,8 +461,17 @@
     <ClInclude Include="Source\Core\Delegates\Delegate.h">
       <Filter>Header Files\Core\Delegates</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Editor\Viewport\Viewport.h">
-      <Filter>Header Files\Editor\Viewport</Filter>
+    <ClInclude Include="Source\Engine\Viewport.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SlateCore\SWindow.h">
+      <Filter>Header Files\SlateCore</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Slate\SViewport.h">
+      <Filter>Header Files\Slate</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\SlateCore\SCompoundWidget.h">
+      <Filter>Header Files\SlateCore</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -601,11 +619,17 @@
     <Filter Include="Header Files\Core\Delegates">
       <UniqueIdentifier>{f2b8e9dc-f818-42ac-9579-96552b10f418}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Editor\Viewport">
-      <UniqueIdentifier>{e7f28eac-e1fa-4854-a98f-f0130bfaf743}</UniqueIdentifier>
+    <Filter Include="Source Files\SlateCore">
+      <UniqueIdentifier>{a72482c8-d016-4fa2-93cf-e94a3b84556a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Editor\Viewport">
-      <UniqueIdentifier>{9c549285-caa4-43fd-8620-7de4d94a3492}</UniqueIdentifier>
+    <Filter Include="Header Files\SlateCore">
+      <UniqueIdentifier>{4c2c89c4-c493-4302-a292-a7877e868d56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Slate">
+      <UniqueIdentifier>{fcb384d4-feab-4a2c-9310-8226c6d365f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Slate">
+      <UniqueIdentifier>{7a2eba0c-65b7-4769-acb4-fc398e2180d3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

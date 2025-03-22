@@ -3,15 +3,29 @@
 #include "Engine/Engine.h"
 #include "CoreUObject/World.h"
 #include "Gizmo/GizmoHandle.h"
-#include "Core/Math/Vector.h"
-#include "Core/Math/Transform.h"
+
+void FEditorManager::Init()
+{
+    if (!EditorWindow)
+    {
+        EditorWindow = std::make_unique<SWindow>();
+    }
+}
+
+void FEditorManager::Tick(const float DeltaTime)
+{
+    if (EditorWindow.get())
+    {
+        EditorWindow->Paint();
+    }
+}
 
 void FEditorManager::SelectActor(AActor* NewActor)
 {
     if (NewActor == nullptr)
     {
         return;
-    };
+    }
 
     if (GizmoHandle == nullptr)
     {
