@@ -8,6 +8,7 @@
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "Editor/Viewport/Viewport.h"
 #include "World.h"
+#include "Input/PlayerController.h"
 
 void URenderer::Create(HWND hWindow)
 {
@@ -1668,6 +1669,8 @@ FMatrix URenderer::GetProjectionMatrix() const
 
 void URenderer::RenderViewports(UWorld* RenderWorld)
 {
+    APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height);
+
     //Viewport 크기 동적 계산 변수
     const float TotalWidth = ViewportInfo.Width;
     const float TotalHeight = ViewportInfo.Height;

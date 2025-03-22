@@ -30,7 +30,13 @@ public :
 	// TODO: 함수랑 변수 이름 맘에 안듬
 	bool IsUiInput() const { return bUiInput; }
 	void SetIsUiInput(bool bInUiInput) { bUiInput = bInUiInput; }
-	
+
+	//ViewPort 관련
+	float DragHandleSize = 10.f;
+	bool bDraggingHorizontal = false;
+	bool bDraggingVertical = false;
+	void HandleViewportDrag(float ViewportWidth, float ViewportHeight);
+
 protected:
 	float CurrentSpeed;
 	float MaxSpeed;
