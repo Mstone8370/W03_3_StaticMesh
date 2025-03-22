@@ -283,11 +283,11 @@ void UI::RenderCameraSettings()
     ACamera* Camera = FEditorManager::Get().GetCamera();
 
     bool IsOrthogonal;
-    if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::ECP_Orthographic)
     {
         IsOrthogonal = true;
     }
-    else if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
+    else if (Camera->GetProjectionMode() == ECameraProjectionMode::ECP_Perspective)
     {
         IsOrthogonal = false;
     }
@@ -296,11 +296,11 @@ void UI::RenderCameraSettings()
     {
         if (IsOrthogonal)
         {
-            Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
+            Camera->SetProjectionMode(ECameraProjectionMode::ECP_Orthographic);
         }
         else
         {
-            Camera->SetProjectionMode(ECameraProjectionMode::Perspective);
+            Camera->SetProjectionMode(ECameraProjectionMode::ECP_Perspective);
         }
     }
 

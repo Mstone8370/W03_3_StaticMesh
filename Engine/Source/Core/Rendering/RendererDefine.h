@@ -35,3 +35,9 @@ struct FStaticMeshVertex
 	FVector Tangent;
 	FVector2D UV;
 };
+
+enum class ECameraProjectionMode : uint8
+{
+	ECP_Perspective,
+	ECP_Orthographic
+};

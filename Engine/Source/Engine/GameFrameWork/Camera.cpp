@@ -6,7 +6,7 @@ ACamera::ACamera()
     : NearClip(0.1f)
     , FarClip(100.f)
     , FieldOfView(90.f)
-    , ProjectionMode(ECameraProjectionMode::Perspective)
+    , ProjectionMode(ECameraProjectionMode::ECP_Perspective)
     , MaxPitch(89.8f)
 {
     bIsGizmo = true;
@@ -46,7 +46,7 @@ void ACamera::SetNear(float InNearClip)
     OnCameraProjectionChanged.Broadcast(this);
 }
 
-void ACamera::SetProjectionMode(ECameraProjectionMode::Type InProjectionMode)
+void ACamera::SetProjectionMode(ECameraProjectionMode InProjectionMode)
 {
     ProjectionMode = InProjectionMode;
     OnCameraProjectionChanged.Broadcast(this);

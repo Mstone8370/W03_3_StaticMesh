@@ -30,6 +30,8 @@ public:
 	void SelectComponent(USceneComponent* SelectedComponent);
 
 	void ClearSelectedComponent();
+
+	void HandleInput(const float DeltaTime);
     
 private:
 	// 메인 에디터 윈도우

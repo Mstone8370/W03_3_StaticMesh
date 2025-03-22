@@ -1530,7 +1530,7 @@ void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
     float NearClip = Camera->GetNearClip();
     float FarClip = Camera->GetFarClip();
 
-    if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::ECP_Perspective)
     {
         ProjectionMatrix = FMatrix::PerspectiveFovLH(FOV, AspectRatio, NearClip, FarClip);
     }

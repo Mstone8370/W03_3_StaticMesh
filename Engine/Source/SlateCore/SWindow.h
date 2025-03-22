@@ -9,15 +9,15 @@ class SWindow : public SCompoundWidget
 {
 public:
     SWindow();
-    ~SWindow() = default;
+    virtual ~SWindow() override;
+
+    virtual void Init(const FRect& InRect) override;
     
-    bool IsHover(FPoint coord) const;
+    virtual bool IsHover(FPoint coord) const override;
 
     virtual void Paint() override;
 
-protected:
-    // Left Top이 (0, 0)
-    FRect Rect;
+    virtual void HandleInput(const float DeltaTime) override;
 
 private:
     std::unique_ptr<SViewport> Viewport;
@@ -29,9 +29,11 @@ class SSplitter : public SWindow
 {
 public:
     SSplitter();
-    ~SSplitter() = default;
+    virtual ~SSplitter() override = default;
 
     virtual void Paint() override;
+
+    virtual void HandleInput(const float DeltaTime) override;
     
 private:
     // TODO: 아래의 두 포인터를 어떻게 관리해야할지 생각하기

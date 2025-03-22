@@ -98,3 +98,11 @@ void FEditorManager::ClearSelectedComponent()
     if(GizmoHandle)
         GizmoHandle->SetActive(false);
 }
+
+void FEditorManager::HandleInput(const float DeltaTime)
+{
+    if (EditorWindow)
+    {
+        EditorWindow->HandleInput(DeltaTime);
+    }
+}

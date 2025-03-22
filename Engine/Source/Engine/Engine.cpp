@@ -173,6 +173,7 @@ void UEngine::Run()
 
         // UI입력을 우선으로 처리하므로, 여기에서 업데이트
         APlayerInput::Get().UpdateInput();
+        FEditorManager::Get().HandleInput(DeltaTime);
         APlayerController::Get().ProcessPlayerInput(DeltaTime);
 
         Renderer->SwapBuffer();

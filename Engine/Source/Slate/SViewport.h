@@ -6,9 +6,11 @@ class SViewport : public SCompoundWidget
 {
 public:
     SViewport();
-    ~SViewport() = default;
+    virtual ~SViewport() override;
 
     virtual void Paint() override;
+
+    virtual void HandleInput(const float DeltaTime) override;
 
 private:
     std::unique_ptr<FViewport> Viewport;
