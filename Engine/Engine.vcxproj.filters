@@ -185,6 +185,9 @@
       <Filter>Source Files\Engine\GameFrameWork</Filter>
     </ClCompile>
     <ClCompile Include="Source\CoreUObject\ObjectIterator.cpp" />
+    <ClCompile Include="Source\Core\Delegates\Delegate.cpp">
+      <Filter>Source Files\Core\Delegates</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\HAL\PlatformType.h">
@@ -443,6 +446,9 @@
       <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClInclude>
     <ClInclude Include="Source\CoreUObject\ObjectIterator.h" />
+    <ClInclude Include="Source\Core\Delegates\Delegate.h">
+      <Filter>Header Files\Core\Delegates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -582,6 +588,12 @@
     </Filter>
     <Filter Include="ThirdParty\IniParser">
       <UniqueIdentifier>{977d6273-0b4f-4970-91a6-42a84ba1a17c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Delegates">
+      <UniqueIdentifier>{62305f63-0e26-4cea-9bfd-a64a03be9d90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Delegates">
+      <UniqueIdentifier>{f2b8e9dc-f818-42ac-9579-96552b10f418}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

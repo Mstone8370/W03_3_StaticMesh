@@ -171,6 +171,7 @@
     <ClInclude Include="Source\CoreUObject\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\CoreUObject\Components\TextBillboardComponent.h" />
     <ClInclude Include="Source\CoreUObject\ObjectIterator.h" />
+    <ClInclude Include="Source\Core\Delegates\Delegate.h" />
     <ClInclude Include="Source\Core\Rendering\ShaderCache.h" />
     <ClInclude Include="Source\Core\Rendering\Constants.h" />
     <ClInclude Include="Source\CoreUObject\NameTypes.h" />
@@ -267,6 +268,7 @@
     <ClCompile Include="Source\CoreUObject\Components\StaticMeshComponent.cpp" />
     <ClCompile Include="Source\CoreUObject\Components\TextBillboardComponent.cpp" />
     <ClCompile Include="Source\CoreUObject\ObjectIterator.cpp" />
+    <ClCompile Include="Source\Core\Delegates\Delegate.cpp" />
     <ClCompile Include="Source\Core\Rendering\ShaderCache.cpp" />
     <ClCompile Include="Source\CoreUObject\Components\ActorComponent.cpp" />
     <ClCompile Include="Source\CoreUObject\Components\PrimitiveComponent.cpp" />

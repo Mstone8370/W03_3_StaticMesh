@@ -4,6 +4,7 @@
 #include "Core/Math/Transform.h"
 #include "Core/HAL/PlatformType.h"
 #include "Actor.h"
+#include "Delegates/Delegate.h"
 
 namespace ECameraProjectionMode
 {
@@ -13,6 +14,9 @@ namespace ECameraProjectionMode
         Orthographic
     };
 }
+
+DECLARE_DELEGATE_OneParam(OnCameraMovedSignature, const FTransform&)
+DECLARE_DELEGATE_OneParam(OnCameraProjectionChangedSignature, const ACamera*);
 
 class ACamera : public AActor
 {
@@ -36,6 +40,10 @@ public:
 
     FMatrix GetViewMatrix() const { return GetActorTransform().GetViewMatrix(); }
 
+    OnCameraMovedSignature OnCameraMoved;
+    OnCameraProjectionChangedSignature OnCameraProjectionChanged;
+    
+    
 private:    
     float NearClip;
     
@@ -47,6 +55,4 @@ private:
     
     // 투영 타입 - Perspective, Orthographic
     ECameraProjectionMode::Type ProjectionMode;
-
-    void OnProjectionMatrixChanged() const;
 };

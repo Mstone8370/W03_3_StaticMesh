@@ -12,6 +12,8 @@
 #include "Core/Rendering/TextureLoader.h"
 #include "GameFrameWork/Picker.h"
 
+#include "Delegates/Delegate.h"
+
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTK/Libs/x64/Debug/DirectXTK.lib")
 #else
@@ -261,6 +263,9 @@ void UEngine::InitWorld()
     if (ACamera* Camera = World->SpawnActor<ACamera>())
     {
         FEditorManager::Get().SetCamera(Camera);
+
+        Camera->OnCameraMoved.Bind(Renderer.get(), &URenderer::UpdateViewMatrix);
+        Camera->OnCameraProjectionChanged.Bind(Renderer.get(), &URenderer::UpdateProjectionMatrix);
         
         InitEditorCameraWithEngineConfig(Camera);
     }

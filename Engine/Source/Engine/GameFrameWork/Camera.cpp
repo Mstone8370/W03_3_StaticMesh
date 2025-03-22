@@ -24,44 +24,30 @@ void ACamera::SetActorTransform(const FTransform& InTransform)
 {
     AActor::SetActorTransform(InTransform);
 
-    if (URenderer* Renderer = UEngine::Get().GetRenderer())
-    {
-        /**
-         * 기존에는 외부에서 카메라의 트랜스폼을 변경할 때마다 추가적으로 렌더러의 UpdateViewMatrix를 호출해야함.
-         * 따라서 ACamera에서 호출해주면 실수로 렌더러의 UpdateViewMatrix를 호출하지 못하는 경우를 방지할 수 있을 듯.
-         */
-        Renderer->UpdateViewMatrix(InTransform);
-    }
+    // 위치 업데이트 알림
+    OnCameraMoved.Broadcast(InTransform);
 }
 
 void ACamera::SetFieldOfView(float InFov)
 {
     FieldOfView = InFov;
-    OnProjectionMatrixChanged();
+    OnCameraProjectionChanged.Broadcast(this);
 }
 
 void ACamera::SetFar(float InFarClip)
 {
     FarClip = InFarClip;
-    OnProjectionMatrixChanged();
+    OnCameraProjectionChanged.Broadcast(this);
 }
 
 void ACamera::SetNear(float InNearClip)
 {
     NearClip = InNearClip;
-    OnProjectionMatrixChanged();
+    OnCameraProjectionChanged.Broadcast(this);
 }
 
 void ACamera::SetProjectionMode(ECameraProjectionMode::Type InProjectionMode)
 {
     ProjectionMode = InProjectionMode;
-    OnProjectionMatrixChanged();
-}
-
-void ACamera::OnProjectionMatrixChanged() const
-{
-    if (URenderer* Renderer = UEngine::Get().GetRenderer())
-    {
-        Renderer->UpdateProjectionMatrix(this);
-    }
+    OnCameraProjectionChanged.Broadcast(this);
 }
