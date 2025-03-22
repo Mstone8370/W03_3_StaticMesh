@@ -91,6 +91,7 @@ public:
 
 	/** Projection 변환 Matrix를 업데이트 합니다. */
 	void UpdateProjectionMatrix(const ACamera* Camera);
+	void UpdateProjectionMatrixAspect(const ACamera* Camera,float Width,float Height);
 
 	// 클라이언트의 크기가 변경되면 호출됨.
 	void OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight);
@@ -315,6 +316,7 @@ public:
 	void InitializeViewports();
 	void RenderViewports(UWorld* RenderWorld);
 	void RenderViewport(class ACamera* ViewCamera, class UWorld* RenderWorld);
-
+	float HorizontalSplitRatio = 0.5f; // 수평 분할 비율 (0.0 ~ 1.0)
+	float VerticalSplitRatio = 0.5f;   // 수직 분할 비율 (0.0 ~ 1.0)
 #pragma endregion Viewports	
 };

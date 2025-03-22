@@ -32,6 +32,7 @@ public:// UIWindows
 	void RenderGridGap();
 	void RenderDebugRaycast();
 	void RenderSceneManagerWindow();
+	void RenderViewportTestWindow();
 
 private:
 	void PreferenceStyle();

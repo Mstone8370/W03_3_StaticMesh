@@ -1554,6 +1554,32 @@ void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
     ChangesOnResizeAndFov.NearClip = NearClip;
     DeviceContext->UpdateSubresource(CbChangeOnResizeAndFov, 0, NULL, &ChangesOnResizeAndFov, 0, 0);
 }
+void URenderer::UpdateProjectionMatrixAspect(const ACamera* Camera,float Width,float Height)
+{
+    float AspectRatio = Width / Height;
+
+    float FOV = FMath::DegreesToRadians(Camera->GetFieldOfView());
+    float NearClip = Camera->GetNearClip();
+    float FarClip = Camera->GetFarClip();
+
+    if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
+    {
+        ProjectionMatrix = FMatrix::PerspectiveFovLH(FOV, AspectRatio, NearClip, FarClip);
+    }
+    else
+    {
+        float SizeDivisor = 360.f;
+        ProjectionMatrix = FMatrix::OrthoLH(Width / SizeDivisor, Height / SizeDivisor, NearClip, FarClip);
+    }
+
+    // Update constant buffer
+    FCbChangeOnResizeAndFov Changes;
+    Changes.ProjectionMatrix = FMatrix::Transpose(ProjectionMatrix);
+    Changes.FarClip = FarClip;
+    Changes.NearClip = NearClip;
+    DeviceContext->UpdateSubresource(CbChangeOnResizeAndFov, 0, nullptr, &Changes, 0, 0);
+}
+
 
 void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight)
 {
@@ -1642,6 +1668,16 @@ FMatrix URenderer::GetProjectionMatrix() const
 
 void URenderer::RenderViewports(UWorld* RenderWorld)
 {
+    //Viewport 크기 동적 계산 변수
+    const float TotalWidth = ViewportInfo.Width;
+    const float TotalHeight = ViewportInfo.Height;
+
+    float LeftWidth = TotalWidth * HorizontalSplitRatio;
+    float RightWidth = TotalWidth - LeftWidth;
+
+    float TopHeight = TotalHeight * VerticalSplitRatio;
+    float BottomHeight = TotalHeight - TopHeight;
+    
     // 메인 카메라 기준 입력 적용
     ACamera* MainCamera = FEditorManager::Get().GetCamera();
 
@@ -1653,18 +1689,30 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
         Viewports[0].ViewCamera->SetFieldOfView(FieldOfView);
     }
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
-    for (FViewport& View : Viewports)
+    for (int i = 0; i < Viewports.Num(); ++i)
     {
+        FViewport& View = Viewports[i];
         if (View.RTV == nullptr || View.DSV == nullptr || RenderWorld == nullptr)
             continue;
         DeviceContext->RSSetViewports(1, &View.ViewportDesc);
+
+        //Viewport 크기 동적 계산
+        float X = (i % 2 == 0) ? 0.0f : LeftWidth;
+        float Y = (i / 2 == 0) ? 0.0f : TopHeight;
+        float W = (i % 2 == 0) ? LeftWidth : RightWidth;
+        float H = (i / 2 == 0) ? TopHeight : BottomHeight;
+
+        View.ViewportDesc.TopLeftX = X;
+        View.ViewportDesc.TopLeftY = Y;
+        View.ViewportDesc.Width = W;
+        View.ViewportDesc.Height = H;
         // 카메라가 지정되어 있으면 업데이트
         if (View.ViewCamera)
         {
             UpdateViewMatrix(View.ViewCamera->GetActorTransform());
-            UpdateProjectionMatrix(View.ViewCamera);
+            UpdateProjectionMatrixAspect(View.ViewCamera, W,H);
         }
-        
+        //렌더링
         RenderWorld->RenderWorldGrid(*this);
         RenderWorld->RenderMainTexture(*this);
         RenderWorld->RenderMesh(*this);

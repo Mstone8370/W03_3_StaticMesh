@@ -89,7 +89,7 @@ void UI::Update()
     RenderPropertyWindow();
     Debug::ShowConsole(bWasWindowSizeUpdated, PreRatio, CurRatio);
     RenderSceneManagerWindow();
-
+    RenderViewportTestWindow();
 
     // UI::RenderSomePanel 들에 대한 업데이트 완료 //
     bWasWindowSizeUpdated = false;
@@ -598,6 +598,15 @@ void UI::PreferenceStyle()
     // Text
     ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 0.9f);
 
+}
+void UI::RenderViewportTestWindow()
+{
+    ImGui::Begin("Viewport Splitter");
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
+    ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
+
+    ImGui::End();
 }
 
 //void UI::CreateUsingFont()
