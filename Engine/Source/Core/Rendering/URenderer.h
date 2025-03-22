@@ -9,10 +9,11 @@
 #include "Primitive/PrimitiveVertices.h"
 #include "RendererDefine.h"
 #include "Constants.h"
+#include "Editor/Viewport/Viewport.h"
 
 struct FVertexSimple;
 struct FVector4;
-
+class UWorld;
 class ACamera;
 
 class URenderer
@@ -218,7 +219,8 @@ protected:
 	ID3D11Buffer* CbChangeOnCameraMove = nullptr;                  // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
 	ID3D11Buffer* CbChangeOnResizeAndFov = nullptr;              // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
 
-	FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
+	//FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
+	FLOAT ClearColor[4] = { 0, 0, 0, 1.0f };
 	D3D11_VIEWPORT ViewportInfo = {};                       // 렌더링 영역을 정의하는 뷰포트 정보
 
 	ID3D11BlendState* GridBlendState = nullptr;
@@ -308,4 +310,18 @@ public:
 	FMatrix GetProjectionMatrix() const;
 	
 #pragma endregion picking
+#pragma region Viewports
+	TArray<FViewport> Viewports;
+	void InitializeViewports();
+	void RenderViewports(UWorld* RenderWorld);
+	void RenderViewport(class ACamera* ViewCamera, class UWorld* RenderWorld);
+	/*
+	void PrepareFullscreenQuadShader();
+	void SetViewportScissor(const FVector2D& Pos, const FVector2D& Size);
+	void BindFullscreenQuadTexture(ID3D11ShaderResourceView* SRV);
+	void DrawFullscreenQuad();
+	void CreateFullscreenQuadVertexBuffer();
+*/
+
+#pragma endregion Viewports	
 };

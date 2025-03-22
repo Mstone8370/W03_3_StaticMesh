@@ -93,11 +93,12 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 
     InitWindow(ClientWidth, ClientHeight);
 
+    
     InitRenderer();
+    InitWorld();
 
     InitTextureLoader();
     
-    InitWorld();
     
     ui.Initialize(WindowHandle, *Renderer, ClientWidth, ClientHeight);
 
@@ -161,7 +162,9 @@ void UEngine::Run()
         if (World)
         {
             World->Tick(DeltaTime);
-            World->Render(DeltaTime);
+            //World->Render(DeltaTime);
+            Renderer->RenderViewports(World);
+
             World->LateTick(DeltaTime);
         }
         
@@ -274,6 +277,8 @@ void UEngine::InitWorld()
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
+    //FEditorManager::Get().InitializeDefaultViewportCameras(World);
+    Renderer->InitializeViewports();
     World->BeginPlay();
 }
 

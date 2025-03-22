@@ -74,11 +74,13 @@ void UWorld::Render(float DeltaTime)
         return;
     }
 
-
+    ACamera* Camera = FEditorManager::Get().GetCamera();
+    Renderer->RenderViewport(Camera, this);
     /**
      * Axis는 Grid에 가려지면 안되므로 Grid 먼저 렌더.
      * Axis는 아래의 RenderMainTexture 함수에서 렌더됨.
      */
+    /*
     RenderWorldGrid(*Renderer);
         
     if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
@@ -93,7 +95,7 @@ void UWorld::Render(float DeltaTime)
 	RenderBoundingBoxes(*Renderer);
     RenderDebugLines(*Renderer, DeltaTime);
 
-    // DisplayPickingTexture(*Renderer);
+    // DisplayPickingTexture(*Renderer);*/
 }
 
 void UWorld::RenderPickingTexture(URenderer& Renderer)

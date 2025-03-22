@@ -6,7 +6,8 @@
 #include "Core/Math/Transform.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
-
+#include "Editor/Viewport/Viewport.h"
+#include "World.h"
 
 void URenderer::Create(HWND hWindow)
 {
@@ -27,6 +28,9 @@ void URenderer::Create(HWND hWindow)
 
     AdjustDebugLineVertexBuffer(DebugLineNumStep);
     InitMatrix();
+    
+    //InitializeViewports();
+
 }
 
 void URenderer::Release()
@@ -1510,7 +1514,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
 {
     // Update Constant Buffer
     D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
-    DeviceContext->Map(CbChangeOnCameraMove, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
+     DeviceContext->Map(CbChangeOnCameraMove, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
     // 매핑된 메모리를 캐스팅
     ViewMatrix = CameraTransform.GetViewMatrix();
     if (FCbChangeOnCameraMove* Constants = static_cast<FCbChangeOnCameraMove*>(ConstantBufferMSR.pData))
@@ -1636,3 +1640,182 @@ FMatrix URenderer::GetProjectionMatrix() const
 {
     return ProjectionMatrix;
 }
+void URenderer::RenderViewports(UWorld* RenderWorld)
+{
+    //CreateFullscreenQuadVertexBuffer();
+    for (FViewport& View : Viewports)
+    {
+        if (View.RTV == nullptr || View.DSV == nullptr || RenderWorld == nullptr)
+            continue;
+
+        // 렌더 타겟 및 뷰포트 설정
+        DeviceContext->OMSetRenderTargets(1, &View.RTV, View.DSV);
+        DeviceContext->RSSetViewports(1, &View.ViewportDesc);
+
+        // 카메라가 지정되어 있으면 업데이트
+        if (View.ViewCamera)
+        {
+            UpdateViewMatrix(View.ViewCamera->GetActorTransform());
+            UpdateProjectionMatrix(View.ViewCamera);
+        }
+        RenderWorld->RenderWorldGrid(*this); // ✔ 이 줄이 핵심!
+
+        RenderWorld->RenderMainTexture(*this); // or Render(RenderWorld);
+        RenderWorld->RenderMesh(*this);
+        RenderWorld->RenderDebugLines(*this, 0.f);
+        if (View.ShaderResourceView)
+        {
+            View.ShaderResourceView->Release();
+            View.ShaderResourceView = nullptr;
+        }
+        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+        SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        SRVDesc.Texture2D.MostDetailedMip = 0;
+        SRVDesc.Texture2D.MipLevels = 1;
+
+        //HRESULT hr = Device->CreateShaderResourceView(View.RenderTarget, &SRVDesc, &View.ShaderResourceView);
+        //if (FAILED(hr))
+        //{
+        //    View.ShaderResourceView = nullptr;
+        //}
+    }
+    // 2. 메인 RTV로 설정하고 Fullscreen Quad로 뷰포트 결과 출력
+    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    DeviceContext->RSSetViewports(1, &ViewportInfo);
+
+    /*PrepareFullscreenQuadShader();
+
+    for (FViewport& View : Viewports)
+    {
+        if (!View.ShaderResourceView) continue;
+
+        SetViewportScissor(View.Position, View.Size);
+        BindFullscreenQuadTexture(View.ShaderResourceView);
+        DrawFullscreenQuad();
+    }*/
+}
+
+void URenderer::RenderViewport(ACamera* ViewCamera, UWorld* RenderWorld)
+{
+    if (!ViewCamera || !RenderWorld) return;
+
+    // 뷰 행렬, 프로젝션 행렬 업데이트
+    UpdateViewMatrix(ViewCamera->GetActorTransform());
+    UpdateProjectionMatrix(ViewCamera);
+
+    // 기본 렌더링 단계 수행
+    PrepareRender();
+
+    RenderWorld->RenderWorldGrid(*this);
+
+    PreparePicking();
+    PreparePickingShader();
+    RenderWorld->RenderPickingTexture(*this);
+
+    PrepareMain();
+    PrepareMainShader();
+    RenderWorld->RenderMainTexture(*this);
+
+    RenderWorld->RenderBillboard(*this);
+    RenderWorld->RenderText(*this);
+
+    RenderWorld->RenderMesh(*this);
+    RenderWorld->RenderBoundingBoxes(*this);
+
+    RenderWorld->RenderDebugLines(*this, 0.f); // 나중에 DeltaTime 전달하도록 수정
+}
+void URenderer::InitializeViewports()
+{
+    Viewports.Empty();
+
+    const float TotalWidth = ViewportInfo.Width;
+    const float TotalHeight = ViewportInfo.Height;
+
+    const float HalfWidth = TotalWidth / 2.0f;
+    const float HalfHeight = TotalHeight / 2.0f;
+    // 뷰포트 4개 생성
+    for (int Row = 0; Row < 2; ++Row)
+    {
+        for (int Col = 0; Col < 2; ++Col)
+        {
+            int Index = Row * 2 + Col;
+            EEditorViewportType ViewType = static_cast<EEditorViewportType>(Index);
+
+            
+            FViewport NewViewport;
+            NewViewport.Position = FVector2D(Col * HalfWidth, Row * HalfHeight);
+            NewViewport.Size = FVector2D(HalfWidth, HalfHeight);
+
+            NewViewport.ViewportDesc.TopLeftX = NewViewport.Position.X;
+            NewViewport.ViewportDesc.TopLeftY = NewViewport.Position.Y;
+            NewViewport.ViewportDesc.Width = HalfWidth;
+            NewViewport.ViewportDesc.Height = HalfHeight;
+            NewViewport.ViewportDesc.MinDepth = 0.0f;
+            NewViewport.ViewportDesc.MaxDepth = 1.0f;
+
+            NewViewport.Initialize(Device, HalfWidth, HalfHeight);
+
+            NewViewport.ViewCamera = FEditorManager::Get().GetViewportCamera(ViewType);
+
+            Viewports.Add(NewViewport);
+        }
+    }
+}
+/*
+void URenderer::PrepareFullscreenQuadShader()
+{
+    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("FullscreenQuad")));
+    DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("FullscreenQuad")), nullptr, 0);
+    DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("FullscreenQuad")), nullptr, 0);
+}
+void URenderer::SetViewportScissor(const FVector2D& Pos, const FVector2D& Size)
+{
+    D3D11_VIEWPORT vp = {};
+    vp.TopLeftX = Pos.X;
+    vp.TopLeftY = Pos.Y;
+    vp.Width = Size.X;
+    vp.Height = Size.Y;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+
+    DeviceContext->RSSetViewports(1, &vp);
+}
+void URenderer::BindFullscreenQuadTexture(ID3D11ShaderResourceView* SRV)
+{
+    DeviceContext->PSSetShaderResources(0, 1, &SRV);
+    DeviceContext->PSSetSamplers(0, 1, &SamplerState);
+}
+void URenderer::DrawFullscreenQuad()
+{
+    UINT stride = sizeof(FVertexUV);
+    UINT offset = 0;
+    DeviceContext->IASetVertexBuffers(0, 1, &TextureVertexBuffer, &stride, &offset);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    DeviceContext->Draw(6, 0); // Quad: 2 triangles = 6 vertices
+}
+void URenderer::CreateFullscreenQuadVertexBuffer()
+{
+    if (TextureVertexBuffer) return;
+
+    FVertexUV Quad[6] = {
+        { -1.f,  1.f, 0.f,0.f, 0.f}, // Left-Top
+        {  1.f,  1.f, 0.f, 1.f, 0.f }, // Right-Top
+        { -1.f, -1.f, 0.f, 0.f, 1.f }, // Left-Bottom
+
+        { -1.f, -1.f, 0.f, 0.f, 1.f }, // Left-Bottom
+        {  1.f,  1.f, 0.f, 1.f, 0.f }, // Right-Top
+        {  1.f, -1.f, 0.f, 1.f, 1.f }, // Right-Bottom
+    };
+
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.Usage = D3D11_USAGE_DEFAULT;
+    Desc.ByteWidth = sizeof(FVertexUV) * 6;
+    Desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA InitData = {};
+    InitData.pSysMem = Quad;
+
+    Device->CreateBuffer(&Desc, &InitData, &TextureVertexBuffer);
+}
+*/
