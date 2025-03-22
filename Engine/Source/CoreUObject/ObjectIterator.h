@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine.h"
 #include "CoreUObject/Object.h"
+
 template<typename T>
 class TObjectIterator
 {
@@ -41,9 +42,8 @@ public:
     }
 
 private:
-
-    decltype(std::declval<TMap<uint32, std::shared_ptr<UObject>>>().begin()) Current;
-    decltype(std::declval<TMap<uint32, std::shared_ptr<UObject>>>().end()) End;
+    TMap<uint32, std::shared_ptr<UObject>>::Iterator Current;
+    TMap<uint32, std::shared_ptr<UObject>>::Iterator End;
 
     bool Advance()
     {

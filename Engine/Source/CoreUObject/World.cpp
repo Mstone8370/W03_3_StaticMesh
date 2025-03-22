@@ -44,18 +44,6 @@ void UWorld::Tick(float DeltaTime)
             Actor->Tick(DeltaTime);
         }
     }
-    for (TObjectIterator<USphereComp> it; it; ++it) {
-        USphereComp* sp =(*it);
-        UCubeComp* cb = dynamic_cast<UCubeComp*>(*it);
-        if (sp && sp->bCanBeRendered) {
-            UE_LOG("hello sphere!");
-        }
-        if (cb && cb->bCanBeRendered) {
-            UE_LOG("hello cube!");
-        }
-    }
-
-
 }
 
 void UWorld::LateTick(float DeltaTime)
