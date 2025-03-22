@@ -52,13 +52,9 @@ FStaticMeshBufferInfo FBufferCache::GetStaticMeshBufferInfo(FName InName)
 
 bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 {
-    FObjImporter Importer;
-    bool bSuccess = Importer.BuildMeshFromObj(ObjFilePath);
-    if (!bSuccess)
-    {
-        return false;
-    }
-
+    
+    if (!FObjManager::LoadObjStaticMesh(ObjFilePath)) return false;
+   
     // Begin 파일 경로에서 파일 이름만 획득
     FString filePath = *ObjFilePath;
     
@@ -72,19 +68,19 @@ bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
     
-    uint32 VertexBufferByteWidth = Importer.GetVertexNum() * sizeof(FStaticMeshVertex);
-    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(Importer.GetVertices().GetData(), VertexBufferByteWidth);
+    uint32 VertexBufferByteWidth = FObjManager::Importer.GetVertexNum() * sizeof(FStaticMeshVertex);
+    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(FObjManager::Importer.GetVertices().GetData(), VertexBufferByteWidth);
 
-    uint32 IndexBufferByteWidth = Importer.GetIndexNum() * sizeof(uint32);
-    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(Importer.GetIndices().GetData(), IndexBufferByteWidth);
+    uint32 IndexBufferByteWidth = FObjManager::Importer.GetIndexNum() * sizeof(uint32);
+    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(FObjManager::Importer.GetIndices().GetData(), IndexBufferByteWidth);
 
-    FVertexBufferInfo VertexInfo(VertexBuffer, Importer.GetVertexNum(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
-    FIndexBufferInfo IndexInfo(IndexBuffer, Importer.GetIndexNum());
+    FVertexBufferInfo VertexInfo(VertexBuffer, FObjManager::Importer.GetVertexNum(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
+    FIndexBufferInfo IndexInfo(IndexBuffer, FObjManager::Importer.GetIndexNum());
     
     FStaticMeshBufferInfo StaticMeshInfo(VertexInfo, IndexInfo);
     StaticMeshBufferCache.Add(Key, StaticMeshInfo);
 
-    return bSuccess;
+    return true;
 }
 
 FVertexBufferInfo FBufferCache::CreateVertexBufferInfo(EPrimitiveType Type)
