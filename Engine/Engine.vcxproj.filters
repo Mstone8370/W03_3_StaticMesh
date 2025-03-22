@@ -603,7 +603,6 @@
     <None Include="Shaders\StaticMeshShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\ShaderMain.hlsl">
