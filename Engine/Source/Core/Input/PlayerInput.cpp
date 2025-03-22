@@ -31,13 +31,13 @@ void APlayerInput::UpdateInput()
     CurrentMouseState.RightDown = MouseState.rightButton;
     CurrentMouseState.MiddleDown = MouseState.middleButton;
     CurrentMouseState.Wheel = MouseState.scrollWheelValue;
-    CurrentMouseState.X = MouseState.x; // 윈도우에 상대적
-    CurrentMouseState.Y = MouseState.y; // 윈도우에 상대적
+    CurrentMouseState.ClientPosition.X = MouseState.x; // 윈도우에 상대적
+    CurrentMouseState.ClientPosition.Y = MouseState.y; // 윈도우에 상대적
 
     POINT p;
     GetCursorPos(&p);
-    CurrentMouseState.ScreenX = p.x;
-    CurrentMouseState.ScreenY = p.y;
+    CurrentMouseState.ScreenPosition.X = p.x;
+    CurrentMouseState.ScreenPosition.Y = p.y;
 }
 
 bool APlayerInput::IsKeyPressed(DirectX::Keyboard::Keys InKey) const
@@ -82,24 +82,23 @@ bool APlayerInput::IsMouseDown(bool isRight) const
     return CurrentMouseState.LeftDown;
 }
 
-void APlayerInput::GetMouseDelta(int32& OutX, int32& OutY) const
+FPoint APlayerInput::GetMouseDelta() const
 {
-    OutX = CurrentMouseState.ScreenX - PrevMouseState.ScreenX;
-    OutY = CurrentMouseState.ScreenY - PrevMouseState.ScreenY;
+    return {CurrentMouseState.ScreenPosition.X - PrevMouseState.ScreenPosition.X,
+        CurrentMouseState.ScreenPosition.Y - PrevMouseState.ScreenPosition.Y};
 }
 
-void APlayerInput::GetMousePositionClient(int32& OutX, int32& OutY) const
+FPoint APlayerInput::GetMousePositionClient() const
 {
-    OutX = CurrentMouseState.X;
-    OutY = CurrentMouseState.Y;
+    return {CurrentMouseState.ClientPosition.X, CurrentMouseState.ClientPosition.Y};
 }
 
 void APlayerInput::GetMousePositionNDC(float& OutX, float& OutY) const
 {
     float HalfWidth = static_cast<float>(ClientWidth) / 2.f;
     float HalfHeight = static_cast<float>(ClientHeight) / 2.f;
-    OutX = (static_cast<float>(CurrentMouseState.X) - HalfWidth) / HalfWidth;
-    OutY = (static_cast<float>(CurrentMouseState.Y) - HalfHeight) / HalfHeight * -1.f;
+    OutX = (static_cast<float>(CurrentMouseState.ClientPosition.X) - HalfWidth) / HalfWidth;
+    OutY = (static_cast<float>(CurrentMouseState.ClientPosition.Y) - HalfHeight) / HalfHeight * -1.f;
 }
 
 int32 APlayerInput::GetMouseWheel() const
@@ -122,13 +121,11 @@ void APlayerInput::CacheCursorPosition()
      *   윈도우 바깥에 커서가 고정되니 포지션 델타값이 업데이트 되지 않아서 값이 유지되고, 시점에 지속적으로 회전하는 문제 발생.
      *   따라서 커서가 윈도우를 벗어나지 않았던 이전 시점의 위치를 캐싱함으로써 위와 같은 문제 방지.
      */
-    CachedMouseX = PrevMouseState.ScreenX;
-    CachedMouseY = PrevMouseState.ScreenY;
+    CachedScreenPosition = PrevMouseState.ScreenPosition;
 }
 
 void APlayerInput::FixMouseCursor()
 {
-    CurrentMouseState.ScreenX = PrevMouseState.ScreenX;
-    CurrentMouseState.ScreenY = PrevMouseState.ScreenY;
-    SetCursorPos(CachedMouseX, CachedMouseY);
+    CurrentMouseState.ScreenPosition = PrevMouseState.ScreenPosition;
+    SetCursorPos(CachedScreenPosition.X, CachedScreenPosition.Y);
 }

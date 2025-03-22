@@ -82,11 +82,9 @@ const char* APicker::GetTypeName()
 
 bool APicker::PickByColor()
 {
-    int32 X = 0;
-    int32 Y = 0;
-    APlayerInput::Get().GetMousePositionClient(X, Y);
+    FPoint CursorPosition = APlayerInput::Get().GetMousePositionClient();
 
-    FVector4 color = UEngine::Get().GetRenderer()->GetPixel(X, Y);
+    FVector4 color = UEngine::Get().GetRenderer()->GetPixel(CursorPosition.X, CursorPosition.Y);
     uint32_t UUID = DecodeUUID(color);
 
     USceneComponent* PickedComponent = UEngine::Get().GetObjectByUUID<USceneComponent>(UUID);
@@ -129,11 +127,9 @@ bool APicker::PickByRay()
 
 void APicker::HandleGizmo()
 {
-    int32 X = 0;
-    int32 Y = 0;
-    APlayerInput::Get().GetMousePositionClient(X, Y);
+    FPoint CursorPosition = APlayerInput::Get().GetMousePositionClient();
     
-    FVector4 color = UEngine::Get().GetRenderer()->GetPixel(X, Y);
+    FVector4 color = UEngine::Get().GetRenderer()->GetPixel(CursorPosition.X, CursorPosition.Y);
     uint32_t UUID = DecodeUUID(color);
 
     UActorComponent* PickedComponent = UEngine::Get().GetObjectByUUID<UActorComponent>(UUID);

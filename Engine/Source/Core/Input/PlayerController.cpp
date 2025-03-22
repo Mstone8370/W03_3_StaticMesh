@@ -48,13 +48,11 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
     FTransform CameraTransform = Camera->GetActorTransform();
 
     // Look
-    int32 DeltaX = 0;
-    int32 DeltaY = 0;
-    APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
+    FPoint Delta = APlayerInput::Get().GetMouseDelta();
     
     FVector NewRotation = CameraTransform.GetRotation().GetEuler();
-    NewRotation.Y += MouseSensitivity * static_cast<float>(DeltaY); // Pitch
-    NewRotation.Z += MouseSensitivity * static_cast<float>(DeltaX); // Yaw
+    NewRotation.Y += MouseSensitivity * static_cast<float>(Delta.Y); // Pitch
+    NewRotation.Z += MouseSensitivity * static_cast<float>(Delta.X); // Yaw
 
     NewRotation.Y = FMath::Clamp(NewRotation.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
     CameraTransform.SetRotation(NewRotation);

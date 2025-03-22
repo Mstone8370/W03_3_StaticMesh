@@ -7,6 +7,12 @@
 #include "DirectXTK/Mouse.h"
 #include "DirectXTK/GamePad.h"
 
+struct FPoint
+{
+	int32 X;
+	int32 Y;
+};
+
 class APlayerInput : public TSingleton<APlayerInput>
 {
 public:
@@ -33,10 +39,10 @@ public:
 	
 	bool IsMouseDown(bool isRight) const;
 
-	void GetMouseDelta(int32& OutX, int32& OutY) const;
+	FPoint GetMouseDelta() const;
 
 	// 클라이언트에 상대적인 마우스 위치 값
-	void GetMousePositionClient(int32& OutX, int32& OutY) const;
+	FPoint GetMousePositionClient() const;
 
 	void GetMousePositionNDC(float& OutX, float& OutY) const;
 
@@ -73,8 +79,7 @@ private:
 		
 		int32 Wheel = 0; // 누적되는 값
 		
-		int32 X = 0;
-		int32 Y = 0;
+		FPoint ClientPosition;
 
 		/**
 		 * 윈도우 메시지를 통한 자동 업데이트 대신 원하는 시점에 위치 정보를 업데이트하기 위해 별도로 저장.
@@ -84,13 +89,11 @@ private:
 		 * 따라서, 원하는 시점에만 위치를 업데이트할 수 있는 GetCursorPos를 별도로 사용 및
 		 * 해당 값을 통해 스크린 위치에서의 커서 위치를 고정할 수 있음.
 		 */
-		int32 ScreenX = 0; 
-		int32 ScreenY = 0;
+		FPoint ScreenPosition;
 	};
 
 	MouseState PrevMouseState;
 	MouseState CurrentMouseState;
 
-	int32 CachedMouseX = 0;
-	int32 CachedMouseY = 0;
+	FPoint CachedScreenPosition;
 };
