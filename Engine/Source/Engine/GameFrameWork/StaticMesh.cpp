@@ -1,9 +1,13 @@
 #include "pch.h"
 #include "StaticMesh.h"
-
 #include "ObjManager.h"
 
-void UStaticMesh::SetStaticMeshAsset(FStaticMesh* StaticMesh)
+const FString& UStaticMesh::GetAssetPathFileName()
 {
-    // TODO:
+    return StaticMeshAsset->PathFileName;
+}
+
+void UStaticMesh::SetStaticMeshAsset(FStaticMesh* InStaticMesh)
+{
+    StaticMeshAsset = InStaticMesh;
 }

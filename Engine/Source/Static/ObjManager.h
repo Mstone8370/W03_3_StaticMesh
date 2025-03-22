@@ -6,12 +6,13 @@
 #include "CoreUObject/NameTypes.h"
 #include "Core/Math/Vector.h"
 
-
+class UStaticMesh;
+struct FNormalVertex;
 class  UStaticMesh;
 struct FStaticMeshVertex;
 struct FStaticMesh;
 struct FObjImporter;
-struct FObjInfo;
+
 
 class FObjManager
 {
@@ -24,12 +25,22 @@ private:
     static TMap<FString, FStaticMesh*> ObjStaticMeshMap;
 };
 
+// Raw Data
+struct FObjInfo
+{
+    TArray<TArray<float>> Vertices;
+    TArray<TArray<float>> VerticesColor;
+    TArray<TArray<float>> Normals;
+    TArray<TArray<float>> UVs;
+    TArray<TArray<TArray<uint32>>> Faces;
+};
+
 // Cooked Data
 struct FStaticMesh
 {
     std::string PathFileName;
 
-    TArray<FStaticMeshVertex> Vertices;
+    TArray<FNormalVertex> Vertices;
     TArray<uint32> Indices;
 };
 
@@ -72,8 +83,6 @@ struct FSubMesh
     uint32 endIndex;   // 전체 인덱스 버퍼에서 이 서브메시가 사용하는 마지막 인덱스
     FName materialName; // 머티리얼 이름
 };
-
-
 
 struct FObjImporter
 {

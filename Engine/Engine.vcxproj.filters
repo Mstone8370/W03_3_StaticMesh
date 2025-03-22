@@ -188,6 +188,9 @@
     <ClCompile Include="Source\Core\Delegates\Delegate.cpp">
       <Filter>Source Files\Core\Delegates</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Engine\GameFrameWork\AStaticMesh.cpp">
+      <Filter>Source Files\Engine\GameFrameWork</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\HAL\PlatformType.h">
@@ -449,6 +452,9 @@
     <ClInclude Include="Source\Core\Delegates\Delegate.h">
       <Filter>Header Files\Core\Delegates</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Engine\GameFrameWork\AStaticMesh.h">
+      <Filter>Header Files\Engine\GameFrameWork</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -603,6 +609,7 @@
     <None Include="Shaders\StaticMeshShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\ShaderMain.hlsl">

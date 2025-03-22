@@ -177,6 +177,7 @@
     <ClInclude Include="Source\CoreUObject\NameTypes.h" />
     <ClInclude Include="Source\CoreUObject\Name.h" />
     <ClInclude Include="Source\Editor\ActorTreeNode.h" />
+    <ClInclude Include="Source\Engine\GameFrameWork\AStaticMesh.h" />
     <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h" />
     <ClInclude Include="Source\Static\ObjManager.h" />
     <ClInclude Include="Source\ThirdParty\IniParser\iniparser.hpp" />
@@ -254,6 +255,7 @@
     <ClInclude Include="Source\Utils\ObjReader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="Shaders\StaticMeshShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -299,6 +301,7 @@
     <ClCompile Include="Source\Engine\EngineStatics.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Actor.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Arrow.cpp" />
+    <ClCompile Include="Source\Engine\GameFrameWork\AStaticMesh.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Camera.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Cone.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Cube.cpp" />
