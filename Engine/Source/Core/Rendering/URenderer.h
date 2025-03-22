@@ -315,13 +315,6 @@ public:
 	void InitializeViewports();
 	void RenderViewports(UWorld* RenderWorld);
 	void RenderViewport(class ACamera* ViewCamera, class UWorld* RenderWorld);
-	/*
-	void PrepareFullscreenQuadShader();
-	void SetViewportScissor(const FVector2D& Pos, const FVector2D& Size);
-	void BindFullscreenQuadTexture(ID3D11ShaderResourceView* SRV);
-	void DrawFullscreenQuad();
-	void CreateFullscreenQuadVertexBuffer();
-*/
 
 #pragma endregion Viewports	
 };
