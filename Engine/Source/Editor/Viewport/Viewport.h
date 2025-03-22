@@ -17,8 +17,8 @@ struct FViewport
 {
     FString Name;
 
-    FVector2D Position;  // 뷰포트의 화면 내 위치
-    FVector2D Size;      // 뷰포트의 크기
+    FVector2D Position; // 뷰포트의 화면 내 위치
+    FVector2D Size; // 뷰포트의 크기
 
     D3D11_VIEWPORT ViewportDesc = {};
 
@@ -31,6 +31,6 @@ struct FViewport
     ACamera* ViewCamera = nullptr;
     ID3D11ShaderResourceView* ShaderResourceView = nullptr;
 
-    void Initialize(ID3D11Device* Device, float InWidth, float InHeight);
+    void Initialize(ID3D11Device* Device, float InWidth, float InHeight, const FVector2D& InTopLeft);
     void Release();
 };

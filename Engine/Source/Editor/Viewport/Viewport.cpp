@@ -2,7 +2,7 @@
 #include "Viewport.h"
 #include <d3d11.h>
 
-void FViewport::Initialize(ID3D11Device* Device, float InWidth, float InHeight)
+void FViewport::Initialize(ID3D11Device* Device, float InWidth, float InHeight, const FVector2D& InTopLeft)
 {
     // Render Target 생성
     D3D11_TEXTURE2D_DESC RTDesc = {};
@@ -27,13 +27,14 @@ void FViewport::Initialize(ID3D11Device* Device, float InWidth, float InHeight)
     Device->CreateDepthStencilView(DepthStencil, nullptr, &DSV);
 
     // Viewport 설정
-    ViewportDesc.TopLeftX = 0.0f;
-    ViewportDesc.TopLeftY = 0.0f;
+    ViewportDesc.TopLeftX = InTopLeft.X;
+    ViewportDesc.TopLeftY = InTopLeft.Y;
     ViewportDesc.Width = InWidth;
     ViewportDesc.Height = InHeight;
     ViewportDesc.MinDepth = 0.0f;
     ViewportDesc.MaxDepth = 1.0f;
 }
+
 
 void FViewport::Release()
 {

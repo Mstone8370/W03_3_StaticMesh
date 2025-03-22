@@ -1642,54 +1642,23 @@ FMatrix URenderer::GetProjectionMatrix() const
 
 void URenderer::RenderViewports(UWorld* RenderWorld)
 {
-    const float TotalWidth = ViewportInfo.Width;
-    const float TotalHeight = ViewportInfo.Height;
-
-    const float HalfWidth = TotalWidth / 2.0f;
-    const float HalfHeight = TotalHeight / 2.0f;
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
-
-
-    for (int32 i = 0; i < Viewports.Num(); ++i)
+    for (FViewport& View : Viewports)
     {
-        FViewport& View = Viewports[i];
         if (View.RTV == nullptr || View.DSV == nullptr || RenderWorld == nullptr)
             continue;
-
-        int Row = i / 2;
-        int Col = i % 2;
-        // 렌더 타겟 및 뷰포트 설정
-        //DeviceContext->OMSetRenderTargets(1, &View.RTV, View.DSV);
-        D3D11_VIEWPORT ViewDesc = {};
-        ViewDesc.TopLeftX = Col * HalfWidth;
-        ViewDesc.TopLeftY = Row * HalfHeight;
-        ViewDesc.Width = HalfWidth;
-        ViewDesc.Height = HalfHeight;
-        ViewDesc.MinDepth = 0.0f;
-        ViewDesc.MaxDepth = 1.0f;
-        DeviceContext->RSSetViewports(1, &ViewDesc);
-
+        DeviceContext->RSSetViewports(1, &View.ViewportDesc);
         // 카메라가 지정되어 있으면 업데이트
         if (View.ViewCamera)
         {
-            UpdateViewMatrix(View.ViewCamera->GetActorTransform());
-            UpdateProjectionMatrix(View.ViewCamera);
+            //UpdateViewMatrix(View.ViewCamera->GetActorTransform());
+            //UpdateProjectionMatrix(View.ViewCamera);
         }
-        RenderWorld->RenderWorldGrid(*this); // ✔ 이 줄이 핵심!
-
-        RenderWorld->RenderMainTexture(*this); // or Render(RenderWorld);
+        
+        RenderWorld->RenderWorldGrid(*this);
+        RenderWorld->RenderMainTexture(*this);
         RenderWorld->RenderMesh(*this);
         RenderWorld->RenderDebugLines(*this, 0.f);
-        if (View.ShaderResourceView)
-        {
-            View.ShaderResourceView->Release();
-            View.ShaderResourceView = nullptr;
-        }
-        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-        SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        SRVDesc.Texture2D.MostDetailedMip = 0;
-        SRVDesc.Texture2D.MipLevels = 1;
     }
 }
 
@@ -1698,28 +1667,19 @@ void URenderer::RenderViewport(ACamera* ViewCamera, UWorld* RenderWorld)
     if (!ViewCamera || !RenderWorld) return;
 
     // 뷰 행렬, 프로젝션 행렬 업데이트
-    UpdateViewMatrix(ViewCamera->GetActorTransform());
-    UpdateProjectionMatrix(ViewCamera);
+    //UpdateViewMatrix(ViewCamera->GetActorTransform());
+    //UpdateProjectionMatrix(ViewCamera);
 
     // 기본 렌더링 단계 수행
     PrepareRender();
 
     RenderWorld->RenderWorldGrid(*this);
-
-    PreparePicking();
-    PreparePickingShader();
     RenderWorld->RenderPickingTexture(*this);
-
-    PrepareMain();
-    PrepareMainShader();
     RenderWorld->RenderMainTexture(*this);
-
     RenderWorld->RenderBillboard(*this);
     RenderWorld->RenderText(*this);
-
     RenderWorld->RenderMesh(*this);
     RenderWorld->RenderBoundingBoxes(*this);
-
     RenderWorld->RenderDebugLines(*this, 0.f); // 나중에 DeltaTime 전달하도록 수정
 }
 
@@ -1727,12 +1687,9 @@ void URenderer::InitializeViewports()
 {
     Viewports.Empty();
 
-    const float TotalWidth = ViewportInfo.Width;
-    const float TotalHeight = ViewportInfo.Height;
+    const float HalfWidth = ViewportInfo.Width / 2.0f;
+    const float HalfHeight = ViewportInfo.Height / 2.0f;
 
-    const float HalfWidth = TotalWidth / 2.0f;
-    const float HalfHeight = TotalHeight / 2.0f;
-    // 뷰포트 4개 생성
     for (int Row = 0; Row < 2; ++Row)
     {
         for (int Col = 0; Col < 2; ++Col)
@@ -1740,20 +1697,13 @@ void URenderer::InitializeViewports()
             int Index = Row * 2 + Col;
             EEditorViewportType ViewType = static_cast<EEditorViewportType>(Index);
 
+            FVector2D Position = FVector2D(Col * HalfWidth, Row * HalfHeight);
+            FVector2D Size = FVector2D(HalfWidth, HalfHeight);
 
             FViewport NewViewport;
-            NewViewport.Position = FVector2D(Col * HalfWidth, Row * HalfHeight);
-            NewViewport.Size = FVector2D(HalfWidth, HalfHeight);
-
-            NewViewport.ViewportDesc.TopLeftX = NewViewport.Position.X;
-            NewViewport.ViewportDesc.TopLeftY = NewViewport.Position.Y;
-            NewViewport.ViewportDesc.Width = HalfWidth;
-            NewViewport.ViewportDesc.Height = HalfHeight;
-            NewViewport.ViewportDesc.MinDepth = 0.0f;
-            NewViewport.ViewportDesc.MaxDepth = 1.0f;
-
-            NewViewport.Initialize(Device, HalfWidth, HalfHeight);
-
+            NewViewport.Position = Position;
+            NewViewport.Size = Size;
+            NewViewport.Initialize(Device, Size.X, Size.Y, Position);
             NewViewport.ViewCamera = FEditorManager::Get().GetViewportCamera(ViewType);
 
             Viewports.Add(NewViewport);
