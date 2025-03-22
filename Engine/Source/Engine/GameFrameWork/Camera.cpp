@@ -24,11 +24,8 @@ void ACamera::SetActorTransform(const FTransform& InTransform)
 {
     AActor::SetActorTransform(InTransform);
 
-    if (URenderer* Renderer = UEngine::Get().GetRenderer())
-    {
-        // 위치 업데이트 알림
-        OnCameraMoved.Broadcast(InTransform);
-    }
+    // 위치 업데이트 알림
+    OnCameraMoved.Broadcast(InTransform);
 }
 
 void ACamera::SetFieldOfView(float InFov)
