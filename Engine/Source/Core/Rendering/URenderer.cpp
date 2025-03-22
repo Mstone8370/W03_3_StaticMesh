@@ -110,7 +110,7 @@ void URenderer::CreateConstantBuffer()
     hr = Device->CreateBuffer(&TextureConstantBufferDesc, nullptr, &TextureConstantBuffer);
     if (FAILED(hr))
         return;
-    
+
     /**
      * 여기에서 상수 버퍼를 쉐이더에 바인딩.
      * 현재는 각각 다른 레지스터에 바인딩 하므로 겹치지 않고 구분됨.
@@ -356,42 +356,39 @@ void URenderer::RenderMesh(UMeshComp* Comp)
     // 정점 데이터 준비
     const std::vector<FNormalVertex>& Vertices = MeshAsset->Vertices;
     const std::vector<uint32_t>& Indices = MeshAsset->Indices;
+    
     if (Vertices.empty() || Indices.empty()) return;
 
     // 정점 버퍼 생성 (IMMUTABLE 타입으로 1회만 생성되게 수정 가능)
-    ID3D11Buffer* VertexBuffer = CreateImmutableVertexBuffer(
-        reinterpret_cast<const FStaticMeshVertex*>(Vertices.data()),
-        static_cast<UINT>(Vertices.size() * sizeof(FStaticMeshVertex))
-    );
 
-    ID3D11Buffer* IndexBuffer = CreateIndexBuffer(
-        Indices.data(),
-        static_cast<UINT>(Indices.size() * sizeof(uint32_t))
-    );
+    ID3D11Buffer* VertexBuffer = MeshAsset->VertexBuffer;
 
+    ID3D11Buffer* IndexBuffer = MeshAsset->IndexBuffer;
     if (!VertexBuffer || !IndexBuffer) return;
+
 
     // 버퍼 바인딩 및 렌더링
     UINT Offset = 0;
     UINT Stride = sizeof(FStaticMeshVertex);
+    Stride = sizeof(FNormalVertex);
     DeviceContext->IASetVertexBuffers(0, 1, &VertexBuffer, &Stride, &Offset);
-    DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    //DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     ConstantUpdateInfo ConstantInfo = {
         Comp->GetWorldTransform().GetMatrix(),
-        Comp->GetCustomColor(),
+        //Comp->GetCustomColor(),
+        FVector4(0,0,0,1),
         true, // vertex color 사용 여부
     };
     UpdateObjectConstantBuffer(ConstantInfo);
-
-    DeviceContext->DrawIndexed(static_cast<UINT>(Indices.size()), 0, 0);
+    DeviceContext->Draw(Vertices.size(),0);
+    //DeviceContext->DrawIndexed(static_cast<UINT>(Indices.size()), 0, 0);
 
     // 생성된 버퍼 해제 (BufferCache가 없다면 직접 해제 필요)
-    ReleaseVertexBuffer(VertexBuffer);
-    ReleaseVertexBuffer(IndexBuffer);
+    //ReleaseVertexBuffer(VertexBuffer);
+   // ReleaseVertexBuffer(IndexBuffer);
 }
-
 void URenderer::PrepareMesh()
 {
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
@@ -399,7 +396,15 @@ void URenderer::PrepareMesh()
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderMesh")));
 }
-
+/*
+void URenderer::PrepareStaticMesh()
+{
+    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
+    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderStaticMesh")));
+}
+*/
 void URenderer::PrepareMeshShader()
 {
     DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("ShaderMesh")), nullptr, 0);
@@ -438,11 +443,11 @@ void URenderer::PrepareMeshComp()
     // Topology는 TriangleList로 고정
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // 쉐이더 및 InputLayout 설정
+    // 쉐이더 및 InputLayout 설정, 원래  ShaderStaticMesh
     ID3D11VertexShader* MeshVS = ShaderCache->GetVertexShader(TEXT("ShaderStaticMesh"));
     ID3D11PixelShader*  MeshPS = ShaderCache->GetPixelShader(TEXT("ShaderStaticMesh"));
     ID3D11InputLayout*  MeshLayout = ShaderCache->GetInputLayout(TEXT("ShaderStaticMesh"));
-
+    
     DeviceContext->VSSetShader(MeshVS, nullptr, 0);
     DeviceContext->PSSetShader(MeshPS, nullptr, 0);
     DeviceContext->IASetInputLayout(MeshLayout);
@@ -524,7 +529,48 @@ ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FStaticMeshVertex* Ve
     }
     return VertexBuffer;
 }
+ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FNormalVertex* Vertices, UINT VertexCount) const
+{/*
+    D3D11_BUFFER_DESC VertexBufferDesc = {};
+    VertexBufferDesc.ByteWidth = sizeof(FNormalVertex) * VertexCount;
+    VertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    VertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    VertexBufferDesc.CPUAccessFlags = 0;
+    VertexBufferDesc.MiscFlags = 0;
+    VertexBufferDesc.StructureByteStride = sizeof(FNormalVertex);
 
+    D3D11_SUBRESOURCE_DATA VertexBufferSRD = {};
+    VertexBufferSRD.pSysMem = Vertices;
+
+    ID3D11Buffer* VertexBuffer = nullptr;
+    HRESULT Result = Device->CreateBuffer(&VertexBufferDesc, &VertexBufferSRD, &VertexBuffer);
+    if (FAILED(Result))
+    {
+        UE_LOG("Failed to create vertex buffer: HRESULT %ld", Result);
+        return nullptr;
+    }
+    return VertexBuffer;*/
+
+    D3D11_BUFFER_DESC VertexBufferDesc = {};
+    VertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(FNormalVertex) * VertexCount);
+    VertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    VertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    VertexBufferDesc.CPUAccessFlags = 0;
+    VertexBufferDesc.MiscFlags = 0;
+    VertexBufferDesc.StructureByteStride = sizeof(FNormalVertex);
+
+    D3D11_SUBRESOURCE_DATA VertexBufferSRD = {};
+    VertexBufferSRD.pSysMem = Vertices;
+
+    ID3D11Buffer* VertexBuffer = nullptr;
+    HRESULT Result = Device->CreateBuffer(&VertexBufferDesc, &VertexBufferSRD, &VertexBuffer);
+    if (FAILED(Result))
+    {
+        UE_LOG("Failed to create vertex buffer (No Index): HRESULT %ld", Result);
+        return nullptr;
+    }
+    return VertexBuffer;
+}
 ID3D11Buffer* URenderer::CreateDynamicVertexBuffer(UINT ByteWidth)
 {
 	D3D11_BUFFER_DESC VertexBufferDesc = {};

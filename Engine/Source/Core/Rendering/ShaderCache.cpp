@@ -163,7 +163,7 @@ void FShaderCache::CreateShaders(const TArray<FString>& ShaderNames)
 		ID3D11InputLayout* InputLayout = nullptr;
 		if (VertexShaderBlob)
 		{
-			CreateInputLayout(VertexShaderBlob, &InputLayout);
+ 			CreateInputLayout(VertexShaderBlob, &InputLayout);
 			ShaderData.InputLayout.Attach(InputLayout);
 		}
 

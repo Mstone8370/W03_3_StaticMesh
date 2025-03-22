@@ -136,6 +136,7 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         {
             continue;
         }
+        if (RenderComponent->IsA<UStaticMeshComp>())continue;
         RenderComponent->Render(&Renderer);
     }
 
