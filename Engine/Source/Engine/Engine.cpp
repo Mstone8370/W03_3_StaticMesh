@@ -277,7 +277,7 @@ void UEngine::InitWorld()
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
-    //FEditorManager::Get().InitializeDefaultViewportCameras(World);
+    FEditorManager::Get().InitializeDefaultViewportCameras(World);
     Renderer->InitializeViewports();
     World->BeginPlay();
 }

@@ -1642,6 +1642,16 @@ FMatrix URenderer::GetProjectionMatrix() const
 
 void URenderer::RenderViewports(UWorld* RenderWorld)
 {
+    // 메인 카메라 기준 입력 적용
+    ACamera* MainCamera = FEditorManager::Get().GetCamera();
+
+    if (MainCamera)
+    {
+        const FTransform& MainTransform = MainCamera->GetActorTransform();
+        const float FieldOfView = MainCamera->GetFieldOfView();
+        Viewports[0].ViewCamera->SetActorTransform(MainTransform);
+        Viewports[0].ViewCamera->SetFieldOfView(FieldOfView);
+    }
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     for (FViewport& View : Viewports)
     {
@@ -1651,8 +1661,8 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
         // 카메라가 지정되어 있으면 업데이트
         if (View.ViewCamera)
         {
-            //UpdateViewMatrix(View.ViewCamera->GetActorTransform());
-            //UpdateProjectionMatrix(View.ViewCamera);
+            UpdateViewMatrix(View.ViewCamera->GetActorTransform());
+            UpdateProjectionMatrix(View.ViewCamera);
         }
         
         RenderWorld->RenderWorldGrid(*this);
@@ -1660,6 +1670,8 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
         RenderWorld->RenderMesh(*this);
         RenderWorld->RenderDebugLines(*this, 0.f);
     }
+    UpdateViewMatrix(FEditorManager::Get().GetCamera()->GetActorTransform());
+    UpdateProjectionMatrix(FEditorManager::Get().GetCamera());
 }
 
 void URenderer::RenderViewport(ACamera* ViewCamera, UWorld* RenderWorld)
