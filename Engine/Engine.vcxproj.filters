@@ -188,6 +188,9 @@
     <ClCompile Include="Source\Core\Delegates\Delegate.cpp">
       <Filter>Source Files\Core\Delegates</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Editor\Viewport\Viewport.cpp">
+      <Filter>Source Files\Editor\Viewport</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\HAL\PlatformType.h">
@@ -449,6 +452,9 @@
     <ClInclude Include="Source\Core\Delegates\Delegate.h">
       <Filter>Header Files\Core\Delegates</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Editor\Viewport\Viewport.h">
+      <Filter>Header Files\Editor\Viewport</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -594,6 +600,12 @@
     </Filter>
     <Filter Include="Header Files\Core\Delegates">
       <UniqueIdentifier>{f2b8e9dc-f818-42ac-9579-96552b10f418}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor\Viewport">
+      <UniqueIdentifier>{e7f28eac-e1fa-4854-a98f-f0130bfaf743}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Editor\Viewport">
+      <UniqueIdentifier>{9c549285-caa4-43fd-8620-7de4d94a3492}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
