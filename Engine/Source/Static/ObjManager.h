@@ -73,26 +73,10 @@ struct FObjImporter
     // Obj Parsing (*.obj to FObjInfo)
     // Material Parsing (*.obj to MaterialInfo)
     // Convert the Raw data to Cooked data (FStaticMesh)
-    uint32 GetVertexNum() const { return CookedVertices.Num(); }
-    uint32 GetIndexNum() const { return CookedIndices.Num(); }
 
-    TArray<FStaticMeshVertex> GetVertices() { return CookedVertices; }
-    TArray<uint32> GetIndices() { return CookedIndices; }
-    TArray<FSubMesh> GetSubMesh() { return SubMeshes; }
-    TMap<FName, FObjMaterialInfo>  GetMaterialList() { return MaterialList; }
-    TArray<FStaticMeshVertex> CookedVertices;
-    TArray<uint32> CookedIndices;
-    
-    uint32 VerticesNum;
-    uint32 IndicesNum;
+    static FStaticMesh* BuildMeshFromObj(const FString& ObjPath);
 
-    
-    TArray<FSubMesh> SubMeshes;
-    TMap<FName, FObjMaterialInfo> MaterialList;
- 
-    FStaticMesh* BuildMeshFromObj(const FString& ObjPath);
-
-    void MakeVertex(const TArray<float>& Vertex, const TArray<float>& Normal, const TArray<float>& UV,
+    static void MakeVertex(const TArray<float>& Vertex, const TArray<float>& Normal, const TArray<float>& UV,
         FStaticMeshVertex& OutVertex)
     {
         OutVertex = {};
@@ -100,7 +84,7 @@ struct FObjImporter
         OutVertex.Normal = { Normal[0], Normal[1], Normal[2] };
         OutVertex.UV = { UV[0], UV[1] };
     }
-    void CalculateTangent(const FStaticMeshVertex& Vertex0, const FStaticMeshVertex& Vertex1,
+    static void CalculateTangent(const FStaticMeshVertex& Vertex0, const FStaticMeshVertex& Vertex1,
         const FStaticMeshVertex& Vertex2, FVector& OutTangent)
     {
         float s1 = Vertex1.UV.X - Vertex0.UV.X;
@@ -121,6 +105,20 @@ struct FObjImporter
         OutTangent = FVector(Tx, Ty, Tz);
         OutTangent.Normalize();
     }
+    static void UpdateMaterialSubmeshMap(const FString& ObjPath, const TArray<FName>& MaterialsName, const TArray<FSubMesh>& SubMeshes);
+ 
+    // MeshKey를 정규화하는 유틸리티 함수
+    static FName GetNormalizedMeshKey(const FString& ObjPath)
+    {
+        // 파일 경로에서 마지막 '/' 또는 '\' 위치를 찾음
+        size_t pos = ObjPath.FindLastOf(TEXT("/\\"));
+        // 마지막 구분자 이후의 문자열(파일 이름)을 추출 (구분자가 없으면 전체 문자열 사용)
+        FString fileName = (pos == std::string::npos) ? ObjPath : ObjPath.Substr(pos + 1);
+        // 파일 이름에서 마지막 '.' 위치를 찾아 확장자 제거 (점이 없으면 그대로 사용)
+        size_t dotPos = fileName.FindLastOf(TEXT("."));
+        fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
+        return FName(*fileName);
+    }
 
 };
 
@@ -128,11 +126,11 @@ struct FObjImporter
 class FObjManager
 {
 public:
+    static TMap<FName, TMap<FName, TArray<FSubMesh>>> MaterialSubmeshMap;
     static FStaticMesh* LoadObjStaticMeshAsset(const FString& PathFileName);
-
     static UStaticMesh* LoadObjStaticMesh(const FString& PathFileName);
     static FObjImporter Importer;
-    static TMap<FName, TMap<FName, FSubMesh>> MaterialSubmeshMap;
+  
 private:
     static TMap<FString, FStaticMesh*> ObjStaticMeshMap;
 };
