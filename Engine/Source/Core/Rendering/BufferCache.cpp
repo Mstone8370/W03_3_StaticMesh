@@ -3,6 +3,7 @@
 
 #include "ObjManager.h"
 #include "Engine/Engine.h"
+#include "GameFrameWork/StaticMesh.h"
 #include "Primitive/PrimitiveVertices.h"
 
 
@@ -49,39 +50,44 @@ FStaticMeshBufferInfo FBufferCache::GetStaticMeshBufferInfo(FName InName)
     }
     return {};
 }
-
 bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 {
-    
-    if (!FObjManager::LoadObjStaticMesh(ObjFilePath)) return false;
-   
-    // Begin 파일 경로에서 파일 이름만 획득
+    // FObjManager::LoadObjStaticMesh 함수가 FStaticMesh 객체를 생성하여 반환함
+    UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(ObjFilePath);
+    if (!StaticMesh) return false;
+
+    // 파일 경로에서 파일 이름만 추출
     FString filePath = *ObjFilePath;
-    
+
     size_t pos = filePath.FindLastOf(TEXT("/\\"));
     FString fileName = (pos == std::string::npos) ? filePath : filePath.Substr(pos + 1);
-    
+
     size_t dotPos = fileName.FindLastOf(TEXT("."));
     fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
-    // End 파일 경로에서 파일 이름만 획득
+
     FName Key(fileName);
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
-    
-    uint32 VertexBufferByteWidth = FObjManager::Importer.GetVertexNum() * sizeof(FStaticMeshVertex);
-    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(FObjManager::Importer.GetVertices().GetData(), VertexBufferByteWidth);
 
-    uint32 IndexBufferByteWidth = FObjManager::Importer.GetIndexNum() * sizeof(uint32);
-    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(FObjManager::Importer.GetIndices().GetData(), IndexBufferByteWidth);
+    FStaticMesh* StaticMeshAsset = StaticMesh->GetStaticMeshAsset();
+    if (!StaticMeshAsset) return false;
 
-    FVertexBufferInfo VertexInfo(VertexBuffer, FObjManager::Importer.GetVertexNum(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
-    FIndexBufferInfo IndexInfo(IndexBuffer, FObjManager::Importer.GetIndexNum());
-    
+    // FStaticMesh 객체 내부에 저장된 데이터를 사용
+    uint32 VertexBufferByteWidth = StaticMeshAsset->Vertices.Num() * sizeof(FStaticMeshVertex);
+    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(StaticMeshAsset->Vertices.GetData(), VertexBufferByteWidth);
+
+    uint32 IndexBufferByteWidth = StaticMeshAsset->Indices.Num() * sizeof(uint32);
+    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(StaticMeshAsset->Indices.GetData(), IndexBufferByteWidth);
+
+    FVertexBufferInfo VertexInfo(VertexBuffer, StaticMeshAsset->Vertices.Num(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
+    FIndexBufferInfo IndexInfo(IndexBuffer, StaticMeshAsset->Indices.Num());
+
     FStaticMeshBufferInfo StaticMeshInfo(VertexInfo, IndexInfo);
     StaticMeshBufferCache.Add(Key, StaticMeshInfo);
 
     return true;
 }
+
 
 FVertexBufferInfo FBufferCache::CreateVertexBufferInfo(EPrimitiveType Type)
 {
