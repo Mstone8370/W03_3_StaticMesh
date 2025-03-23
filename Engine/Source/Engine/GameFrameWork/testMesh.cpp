@@ -20,10 +20,6 @@ testMesh::testMesh()
     MeshComponent = AddComponent<UStaticMeshComponent>();
     MeshComponent->SetupAttachment(RootComponent);
     
-    MeshComponent->SetMeshName("x-35_obj"); // Mesh 이름 (키)
-    UE_LOG(MeshComponent->GetMeshName().ToString().c_char());
-
-    // OBJ 파일로부터 UStaticMesh 생성 및 연결 (경로 예시)
     UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/x-35_obj.obj"));
     MeshComponent->SetStaticMesh(StaticMesh);
     MeshComponent->SetCanBeRendered(true);

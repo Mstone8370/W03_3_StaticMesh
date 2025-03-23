@@ -121,6 +121,7 @@ void URenderer::CreateConstantBuffer()
     DeviceContext->VSSetConstantBuffers(2, 1, &CbChangeOnResizeAndFov);
     DeviceContext->VSSetConstantBuffers(5, 1, &TextureConstantBuffer);
 
+    DeviceContext->PSSetConstantBuffers(0, 1, &CbChangeEveryObject);
     DeviceContext->PSSetConstantBuffers(1, 1, &CbChangeOnCameraMove);
     DeviceContext->PSSetConstantBuffers(2, 1, &CbChangeOnResizeAndFov);
     DeviceContext->PSSetConstantBuffers(3, 1, &ConstantPickingBuffer);
@@ -334,21 +335,20 @@ void URenderer::RenderBox(const FBox& Box, const FVector4& Color)
 //}
 
 
-FName GetNormalizedMeshKey(const FString& ObjPath)
-{
-    size_t pos = ObjPath.FindLastOf(TEXT("/\\"));
-    FString fileName = (pos == std::string::npos) ? ObjPath : ObjPath.Substr(pos + 1);
-    size_t dotPos = fileName.FindLastOf(TEXT("."));
-    fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
-    return FName(*fileName);
-}
-
  //URenderer::RenderMesh test
 void URenderer::RenderMesh(UMeshComponent* MeshComp)
 {
     UStaticMeshComponent* StaticMeshComp = static_cast<UStaticMeshComponent*>(MeshComp);
-    FName MeshName = MeshComp->GetMeshName();
-    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(MeshName);
+  
+    // UStaticMeshComponent에서 UStaticMesh를 가져옴
+    UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh();
+    if (!StaticMesh) return;
+    FStaticMesh* MeshAsset = StaticMesh->GetStaticMeshAsset();
+    if (!MeshAsset) return;
+
+    FName meshKey = FObjImporter::GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
+
+    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(meshKey);
 
     ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
     ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
@@ -358,15 +358,6 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
     DeviceContext->IASetVertexBuffers(0, 1, &VertexBuffer, &MeshStride, &Offset);
     DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // UStaticMeshComponent에서 UStaticMesh를 가져옴
-    UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh();
-    if (!StaticMesh) return;
-    FStaticMesh* MeshAsset = StaticMesh->GetStaticMeshAsset();
-    if (!MeshAsset) return;
-
-    FName meshKey = GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
-
 
     ConstantUpdateInfo ConstantInfo = {
      MeshComp->GetWorldTransform().GetMatrix(),

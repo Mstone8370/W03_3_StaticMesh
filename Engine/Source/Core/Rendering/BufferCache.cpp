@@ -5,7 +5,7 @@
 #include "Engine/Engine.h"
 #include "GameFrameWork/StaticMesh.h"
 #include "Primitive/PrimitiveVertices.h"
-
+#include "Static/ObjManager.h"
 
 FBufferCache::FBufferCache()
 {
@@ -59,13 +59,8 @@ bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
     // 파일 경로에서 파일 이름만 추출
     FString filePath = *ObjFilePath;
 
-    size_t pos = filePath.FindLastOf(TEXT("/\\"));
-    FString fileName = (pos == std::string::npos) ? filePath : filePath.Substr(pos + 1);
+    FName Key = FObjImporter::GetNormalizedMeshKey(filePath);
 
-    size_t dotPos = fileName.FindLastOf(TEXT("."));
-    fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
-
-    FName Key(fileName);
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
 
