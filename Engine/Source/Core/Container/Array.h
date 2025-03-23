@@ -66,6 +66,8 @@ public:
 	SizeType Find(const T& Item);
 	bool Find(const T& Item, SizeType& Index);
 
+	bool Contains(const T& Item) const;
+
 	/** Size */
 	SizeType Num() const;
 
@@ -238,7 +240,11 @@ bool TArray<T, Allocator>::Find(const T& Item, SizeType& Index)
 	Index = Find(Item);
 	return (Index != -1);
 }
-
+template <typename T, typename Allocator>
+bool TArray<T, Allocator>::Contains(const T& Item) const
+{
+	return std::find(PrivateVector.begin(), PrivateVector.end(), Item) != PrivateVector.end();
+}
 template <typename T, typename Allocator>
 typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Num() const
 {
