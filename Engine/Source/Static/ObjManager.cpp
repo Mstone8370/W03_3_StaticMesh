@@ -72,21 +72,24 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
         uint32 nIdx2 = RawData.NormalIndexList[i + 2];
 
         TArray<float> Pos0 = RawData.Vertices[vIdx0];
+        TArray<float> Col0 = RawData.Colors[vIdx0];
         TArray<float> UV0 = RawData.UVs[uvIdx0];
         TArray<float> Norm0 = RawData.Normals[nIdx0];
 
         TArray<float> Pos1 = RawData.Vertices[vIdx1];
+        TArray<float> Col1 = RawData.Colors[vIdx1];
         TArray<float> UV1 = RawData.UVs[uvIdx1];
         TArray<float> Norm1 = RawData.Normals[nIdx1];
 
         TArray<float> Pos2 = RawData.Vertices[vIdx2];
+        TArray<float> Col2 = RawData.Colors[vIdx2];
         TArray<float> UV2 = RawData.UVs[uvIdx2];
         TArray<float> Norm2 = RawData.Normals[nIdx2];
 
         FStaticMeshVertex Vertex0, Vertex1, Vertex2;
-        MakeVertex(Pos0, Norm0, UV0, Vertex0);
-        MakeVertex(Pos1, Norm1, UV1, Vertex1);
-        MakeVertex(Pos2, Norm2, UV2, Vertex2);
+        MakeVertex(Pos0,Col0, Norm0, UV0, Vertex0);
+        MakeVertex(Pos1,Col1, Norm1, UV1, Vertex2);
+        MakeVertex(Pos2,Col2, Norm2, UV2, Vertex1);
 
         CalculateTangent(Vertex0, Vertex1, Vertex2, Vertex0.Tangent);
         CalculateTangent(Vertex1, Vertex2, Vertex0, Vertex1.Tangent);

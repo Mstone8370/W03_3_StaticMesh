@@ -27,6 +27,7 @@ testMesh::testMesh()
     UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/x-35_obj.obj"));
     MeshComponent->SetStaticMesh(StaticMesh);
     MeshComponent->SetCanBeRendered(true);
+    MeshComponent->SetUseVertexColor(true);
     // 렌더 컴포넌트로 등록 (예: 월드에 추가)
     UEngine::Get().GetWorld()->AddRenderComponent(MeshComponent);
 }
@@ -37,12 +38,8 @@ void testMesh::BeginPlay()
     UStaticMesh* Mesh = MeshComponent->GetStaticMesh();
     if (Mesh)
     {
-        FStaticMesh* MeshAsset = Mesh->GetStaticMeshAsset();
-        if (MeshAsset)
-        {
-            FString ObjPath = MeshAsset->PathFileName;
-            UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
-        }
+        FString ObjPath = Mesh->GetAssetPathFileName();
+        UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
     }
 }
 

@@ -26,15 +26,6 @@ TArray<float> ObjReader::GetVertex(int32 Idx)
     return {};
 }
 
-TArray<float> ObjReader::GetVertexColor(int32 Idx)
-{
-    if (0 <= Idx && Idx < VerticesColor.Num())
-    {
-        return VerticesColor[Idx];
-    }
-    return {};
-}
-
 TArray<float> ObjReader::GetNormal(int32 Idx)
 {
     if (0 <= Idx && Idx < RawData.Normals.Num())
@@ -102,7 +93,7 @@ FObjInfo ObjReader::GetRawData()
     RawData.VertexIndexList = GetVertexIndices();
     RawData.NormalIndexList = GetNormalIndices();
     RawData.UVIndexList = GetUVIndices();
-
+   
     return RawData;
 }
 
@@ -208,7 +199,7 @@ void ObjReader::ReadFile()
                 Color[1] = std::stof(Tokens[5]);
                 Color[2] = std::stof(Tokens[6]);
             }
-            VerticesColor.Add(Color);
+            RawData.Colors.Add(Color);
             RawData.Vertices.Add(Vertex);
         }
         else if (Key == "vn")

@@ -65,8 +65,7 @@ void AGizmoHandle::InitTranslationGizmo()
     UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationY);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationZ);
 
-    FStaticMesh* MeshAsset = SM_Translation->GetStaticMeshAsset();
-    FString ObjPath = MeshAsset->PathFileName;
+    FString ObjPath = SM_Translation->GetAssetPathFileName();
     UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
 
 }
@@ -107,8 +106,8 @@ void AGizmoHandle::InitRotationGizmo()
     UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationZ);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationX);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationY);
-    FStaticMesh* MeshAsset = SM_Rotation->GetStaticMeshAsset();
-    FString ObjPath = MeshAsset->PathFileName;
+   
+    FString ObjPath = SM_Rotation->GetAssetPathFileName();
     UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
 }
 
@@ -148,8 +147,8 @@ void AGizmoHandle::InitScaleGizmo()
     UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleZ);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleX);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleY);
-    FStaticMesh* MeshAsset = SM_Scale->GetStaticMeshAsset();
-    FString ObjPath = MeshAsset->PathFileName;
+  
+    FString ObjPath = SM_Scale->GetAssetPathFileName();
     UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
 }
 

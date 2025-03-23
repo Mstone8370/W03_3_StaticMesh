@@ -33,6 +33,7 @@ cbuffer UUIDColor : register(b3)
 struct VS_INPUT
 {
     float3 Position : POSITION;
+    float4 Color : COLOR;
     float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
     float2 UV : TEXCOORD;
@@ -54,8 +55,7 @@ PS_INPUT mainVS(VS_INPUT input)
     output.Position = mul(output.Position, WorldMatrix);
     output.Position = mul(output.Position, ViewMatrix);
     output.Position = mul(output.Position, ProjectionMatrix);
-
-    output.Color = CustomColor;
+    output.Color = bUseVertexColor == 1 ? input.Color : CustomColor;
     return output;
 }
 

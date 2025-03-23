@@ -18,8 +18,6 @@ public:
 
     TArray<float> GetVertex(int32 Idx);
 
-    TArray<float> GetVertexColor(int32 Idx);
-    
     TArray<float> GetNormal(int32 Idx);
      
     TArray<float> GetUV(int32 Idx);

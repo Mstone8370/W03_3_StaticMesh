@@ -31,6 +31,7 @@ enum class EIndexBufferType : uint8
 struct FStaticMeshVertex
 {
 	FVector Position;
+	FVector4 Color;
 	FVector Normal;
 	FVector Tangent;
 	FVector2D UV;

@@ -371,7 +371,7 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
     ConstantUpdateInfo ConstantInfo = {
      MeshComp->GetWorldTransform().GetMatrix(),
      MeshComp->GetCustomColor(),
-     true,
+     MeshComp->IsUseVertexColor(),
     };
     UpdateObjectConstantBuffer(ConstantInfo);
     

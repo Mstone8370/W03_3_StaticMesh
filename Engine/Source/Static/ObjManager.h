@@ -45,6 +45,7 @@ struct FObjMaterialInfo
 struct FObjInfo
 {
     TArray<TArray<float>> Vertices;
+    TArray<TArray<float>> Colors;
     TArray<TArray<float>> UVs;
     TArray<TArray<float>> Normals;
     TArray<uint32> VertexIndexList;
@@ -76,11 +77,12 @@ struct FObjImporter
 
     static FStaticMesh* BuildMeshFromObj(const FString& ObjPath);
 
-    static void MakeVertex(const TArray<float>& Vertex, const TArray<float>& Normal, const TArray<float>& UV,
+    static void MakeVertex(const TArray<float>& Vertex, const TArray<float>& Color, const TArray<float>& Normal, const TArray<float>& UV,
         FStaticMeshVertex& OutVertex)
     {
         OutVertex = {};
         OutVertex.Position = { Vertex[0], Vertex[1], Vertex[2] };
+        OutVertex.Color = { Color[0], Color[1], Color[2], 1};
         OutVertex.Normal = { Normal[0], Normal[1], Normal[2] };
         OutVertex.UV = { UV[0], UV[1] };
     }
