@@ -309,10 +309,47 @@ void URenderer::RenderBox(const FBox& Box, const FVector4& Color)
     DeviceContext->DrawIndexed(IndexBufferInfo.GetSize(), 0, 0);
 }
 
-void URenderer::RenderMesh(class UMeshComponent* MeshComp)
+//void URenderer::RenderMesh(class UMeshComponent* MeshComp)
+//{
+//    FName MeshName = MeshComp->GetMeshName();
+//    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(MeshName);
+//    ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
+//    ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
+//
+//    UINT MeshStride = sizeof(FStaticMeshVertex);
+//    UINT Offset = 0;
+//    DeviceContext->IASetVertexBuffers(0, 1, &VertexBuffer, &MeshStride, &Offset);
+//    DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+//    DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+//
+//    ConstantUpdateInfo ConstantInfo = {
+//        MeshComp->GetWorldTransform().GetMatrix(),
+//        MeshComp->GetCustomColor(),
+//        true,
+//    };
+//    UpdateObjectConstantBuffer(ConstantInfo);
+//
+//    DeviceContext->DrawIndexed(Info.VertexBufferInfo.GetSize(), 0, 0);
+//
+//}
+
+
+FName GetNormalizedMeshKey(const FString& ObjPath)
 {
+    size_t pos = ObjPath.FindLastOf(TEXT("/\\"));
+    FString fileName = (pos == std::string::npos) ? ObjPath : ObjPath.Substr(pos + 1);
+    size_t dotPos = fileName.FindLastOf(TEXT("."));
+    fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
+    return FName(*fileName);
+}
+
+ //URenderer::RenderMesh test
+void URenderer::RenderMesh(UMeshComponent* MeshComp)
+{
+    UStaticMeshComponent* StaticMeshComp = static_cast<UStaticMeshComponent*>(MeshComp);
     FName MeshName = MeshComp->GetMeshName();
     FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(MeshName);
+
     ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
     ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
 
@@ -322,15 +359,40 @@ void URenderer::RenderMesh(class UMeshComponent* MeshComp)
     DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+    // UStaticMeshComponent에서 UStaticMesh를 가져옴
+    UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh();
+    if (!StaticMesh) return;
+    FStaticMesh* MeshAsset = StaticMesh->GetStaticMeshAsset();
+    if (!MeshAsset) return;
+
+    FName meshKey = GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
+
+
     ConstantUpdateInfo ConstantInfo = {
-        MeshComp->GetWorldTransform().GetMatrix(),
-        MeshComp->GetCustomColor(),
-        true,
+     MeshComp->GetWorldTransform().GetMatrix(),
+     MeshComp->GetCustomColor(),
+     true,
     };
     UpdateObjectConstantBuffer(ConstantInfo);
+    
+    for (const FName& materialName : MeshAsset->MaterialsName)
+    {
+        // FObjManager::MaterialSubmeshMap에서 materialName에 해당하는 서브맵을 찾음
+        if (FObjManager::MaterialSubmeshMap.Contains(materialName))
+        {
+            TMap<FName, TArray<FSubMesh>>& meshMap = FObjManager::MaterialSubmeshMap[materialName];
+            // 현재 MeshKey에 해당하는 서브메쉬 정보를 확인
+            if (meshMap.Contains(meshKey))
+            {
+                TArray<FSubMesh> subMeshes = meshMap[meshKey];
+                for (const FSubMesh& subMesh : subMeshes) {
 
-    DeviceContext->DrawIndexed(Info.VertexBufferInfo.GetSize(), 0, 0);
-
+                    UINT count = subMesh.endIndex - subMesh.startIndex + 1;
+                    DeviceContext->DrawIndexed(count, subMesh.startIndex, 0);
+                }
+            }
+        }
+    }
 }
 
 void URenderer::PrepareMesh()
@@ -854,13 +916,6 @@ void URenderer::ReleaseRasterizerState()
 void URenderer::CreateBufferCache()
 {
     BufferCache = std::make_unique<FBufferCache>();
-
-    // Load static mesh here.
-    BufferCache->BuildStaticMesh("Resources/GizmoTranslation.obj");
-    BufferCache->BuildStaticMesh("Resources/GizmoRotation.obj");
-    BufferCache->BuildStaticMesh("Resources/GizmoScale.obj");
-    BufferCache->BuildStaticMesh("Resources/x-35_obj.obj");
-    BufferCache->BuildStaticMesh("Resources/cat.obj");
 }
 
 void URenderer::CreateShaderCache()
@@ -1219,6 +1274,11 @@ void URenderer::PrepareTextBillboard()
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
     DeviceContext->OMSetBlendState(TextureBlendState, nullptr, 0xffffffff);
+}
+
+FBufferCache* URenderer::GetBufferCache()
+{
+    return BufferCache.get();
 }
 
 void URenderer::AdjustDebugLineVertexBuffer(uint32 LineNum)

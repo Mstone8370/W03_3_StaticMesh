@@ -14,6 +14,7 @@ struct FVertexSimple;
 struct FVector4;
 
 class ACamera;
+class FBufferCache;
 
 class URenderer
 {
@@ -132,6 +133,7 @@ public:
 
 	void PrepareTextBillboard();
 
+	FBufferCache* GetBufferCache();
 protected:
 	/** Direct3D Device 및 SwapChain을 생성합니다. */
 	void CreateDeviceAndSwapChain(HWND hWindow);
@@ -232,7 +234,7 @@ protected:
 	ID3D11DepthStencilState* GizmoDepthStencilState = nullptr; // 기즈모용 스텐실 스테이트. Z버퍼 테스트 하지않고 항상 앞에렌더
 	
 	// Buffer Cache
-	std::unique_ptr<class FBufferCache> BufferCache;
+	std::unique_ptr<FBufferCache> BufferCache;
 	ID3D11Buffer* DynamicVertexBuffer = nullptr;
 
 	// Shader Cache
