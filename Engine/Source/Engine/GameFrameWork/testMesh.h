@@ -1,6 +1,6 @@
 #pragma once
 #include "Actor.h"
-
+#include "Components/StaticMeshComponent.h"
 
 class testMesh : public AActor
 {
@@ -12,4 +12,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual const char* GetTypeName() override;
+private:
+	UStaticMeshComponent* MeshComponent;
 };

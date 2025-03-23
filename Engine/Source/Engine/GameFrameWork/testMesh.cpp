@@ -1,31 +1,49 @@
 #include "pch.h"
 #include "testMesh.h"
-#include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "CoreUObject/World.h"
-#include "Core/Input/PlayerInput.h"
-#include "Static/EditorManager.h"
-#include "Components/StaticMeshComponent.h"
+#include "Core/Rendering/URenderer.h"
+#include "Static/ObjManager.h"
+#include "Core/Rendering/BufferCache.h"
 
-testMesh::testMesh() {
-	bCanEverTick = true;
-	bUseBoundingBox = true;
-	bRenderBoundingBox = false;
-	USceneComponent* Root = AddComponent<USceneComponent>();
-	RootComponent = Root;
+testMesh::testMesh()
+{
+    bCanEverTick = true;
+    bUseBoundingBox = true;
+    bRenderBoundingBox = false;
 
-	UStaticMeshComponent* mesh = AddComponent<UStaticMeshComponent>();
-	mesh->SetupAttachment(RootComponent);
-	mesh->SetMeshName("cat");
-	mesh->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));
-	mesh->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), {1,1,1}));
-	mesh->SetCanBeRendered(true);
+    // 루트 컴포넌트 생성
+    USceneComponent* Root = AddComponent<USceneComponent>();
+    RootComponent = Root;
 
-	UEngine::Get().GetWorld()->AddRenderComponent(mesh);
+    // UStaticMeshComponent 생성 및 설정
+    MeshComponent = AddComponent<UStaticMeshComponent>();
+    MeshComponent->SetupAttachment(RootComponent);
+    
+    MeshComponent->SetMeshName("x-35_obj"); // Mesh 이름 (키)
+    UE_LOG(MeshComponent->GetMeshName().ToString().c_char());
+
+    // OBJ 파일로부터 UStaticMesh 생성 및 연결 (경로 예시)
+    UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/x-35_obj.obj"));
+    MeshComponent->SetStaticMesh(StaticMesh);
+    MeshComponent->SetCanBeRendered(true);
+    // 렌더 컴포넌트로 등록 (예: 월드에 추가)
+    UEngine::Get().GetWorld()->AddRenderComponent(MeshComponent);
 }
+
 void testMesh::BeginPlay()
 {
-	
+    // 액터 시작 시, 버퍼 캐시에 UStaticMesh의 버퍼를 등록
+    UStaticMesh* Mesh = MeshComponent->GetStaticMesh();
+    if (Mesh)
+    {
+        FStaticMesh* MeshAsset = Mesh->GetStaticMeshAsset();
+        if (MeshAsset)
+        {
+            FString ObjPath = MeshAsset->PathFileName;
+            UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
+        }
+    }
 }
 
 void testMesh::Tick(float DeltaTime)
@@ -34,5 +52,5 @@ void testMesh::Tick(float DeltaTime)
 
 const char* testMesh::GetTypeName()
 {
-	return "testMesh";
+    return "testMesh";
 }
