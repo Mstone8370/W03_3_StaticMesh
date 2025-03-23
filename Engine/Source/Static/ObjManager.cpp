@@ -26,12 +26,12 @@ FStaticMesh* FObjManager::LoadObjStaticMeshAsset(const FString& PathFileName)
 
 UStaticMesh* FObjManager::LoadObjStaticMesh(const FString& PathFileName)
 {
-    // TODO: TObjectIterator로 순환하여 이미 존재하는 경우 바로 리턴
     for (TObjectIterator<UStaticMesh> It; It; ++It)
     {
         UStaticMesh* StaticMesh = *It;
-        if (StaticMesh->GetAssetPathFileName() == PathFileName)
+        if (StaticMesh->GetAssetPathFileName() == PathFileName) {
             return *It;
+        }
     }
 
     FStaticMesh* StaticMeshAsset = LoadObjStaticMeshAsset(PathFileName);
