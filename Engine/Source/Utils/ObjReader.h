@@ -38,6 +38,8 @@ public:
 
     TArray<FSubMesh> GetSubMeshes() { return SubMeshes; }
 
+    TArray<FName> GetMaterialsName() { return MaterialsName; }
+
     uint32 GetFaceNum() const { return Faces.Num(); }
 
 protected:
@@ -63,5 +65,6 @@ protected:
 
     FString MaterialPath;
     TArray<FSubMesh> SubMeshes;
-    TArray<FString> FaceMaterials;
+    TArray<FName> FaceMaterials;
+    TArray<FName> MaterialsName;
 };

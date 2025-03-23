@@ -341,9 +341,9 @@ void ObjReader::ReadMaterialFile()
 
 void ObjReader::CreateSubMesh()
 {
-    TMap<FString, TArray<uint32>> MaterialIndexMap;
+    TMap<FName, TArray<uint32>> MaterialIndexMap;
     for (int i = 0; i < Faces.Num(); ++i) {
-        const FString& MatName = FaceMaterials[i];
+        const FName& MatName = FaceMaterials[i];
         TArray<uint32>* pIndices = MaterialIndexMap.Find(MatName);
         if (pIndices == nullptr)
         {
@@ -356,11 +356,20 @@ void ObjReader::CreateSubMesh()
             pIndices->Add(face[j][0]);
         }
     }
+
+    for (int i = 0; i < FaceMaterials.Num(); ++i)
+    {
+        if (!MaterialsName.Contains(FaceMaterials[i]))
+        {
+            MaterialsName.Add(FaceMaterials[i]);
+        }
+    }
+
     int32 currentStartIndex = 0;
     for (auto it = MaterialIndexMap.begin(); it != MaterialIndexMap.end(); ++it)
     {
         FSubMesh Submesh;
-        TArray<uint32>& indices = it->Value; // 해당 머티리얼의 인덱스 배열
+        TArray<uint32>& indices = it->Value;
         int32 count = indices.Num();
      
         Submesh.startIndex = currentStartIndex;
