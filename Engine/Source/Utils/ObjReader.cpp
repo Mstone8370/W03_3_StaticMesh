@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "ObjReader.h"
 #include <sstream>
+#include <filesystem>
 
 ObjReader::ObjReader()
 {
@@ -182,9 +183,12 @@ void ObjReader::ReadFile()
         }
         if (Tokens.IsEmpty()) return;
         const std::string& Key = Tokens[0];
-        if (Key == "mtllib") 
+        if (Key == "mtllib")
         {
-            MaterialPath = "Resources/" + Tokens[1];
+            std::filesystem::path basePath(*FilePath);
+            basePath = basePath.parent_path();
+            // Tokens[1]에 포함된 하위 폴더도 함께 고려하여 전체 경로 생성
+            MaterialPath = (basePath / Tokens[1]).generic_string();
         }
         else if (Key == "v")
         {
