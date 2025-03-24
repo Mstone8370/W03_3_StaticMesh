@@ -26,61 +26,16 @@ struct PS_INPUT
     float4 Pos : SV_POSITION;
     float2 UV  : TEXCOORD0;
 };
-
-
-    /*
 PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
-
-    // input.Pos 은 [-1, 1], input.UV는 [0, 1]
-    //float2 offset = (ViewportPosition / ScreenSize) * 2.0f;
-    // Y축 뒤집기 포함하면:
-    //offset.y *= -1.0f;
-    output.Pos = float4(input.Pos.xy, 0.0f, 1.0f);
-    output.UV  = input.UV;
-    return output;
-}
-*/
-/*
-PS_INPUT mainVS(VS_INPUT input)
-{
-    PS_INPUT output;
-
     float2 UV = input.UV;
-
     // 1. UV → 픽셀 위치 (Viewport 내부 기준)
     float2 PixelPos = UV * ViewportSize;
-
     // 2. Viewport 내부 위치를 전체 화면 기준으로 이동
     PixelPos += ViewportPosition;
-
     // 3. 픽셀 위치 → Clip Space 변환
     float2 ClipPos = PixelPos / ScreenSize * 2.0f - 1.0f;
-
-    // 4. DirectX 좌표계 보정 (Y축 뒤집기)
-    ClipPos.y *= -1.0f;
-
-    output.Pos = float4(ClipPos, 0.0f, 1.0f);
-    output.UV = UV;
-    return output;
-}
-*/
-PS_INPUT mainVS(VS_INPUT input)
-{
-    PS_INPUT output;
-
-    float2 UV = input.UV;
-
-    // 1. UV → 픽셀 위치 (Viewport 내부 기준)
-    float2 PixelPos = UV * ViewportSize;
-
-    // 2. Viewport 내부 위치를 전체 화면 기준으로 이동
-    PixelPos += ViewportPosition;
-
-    // 3. 픽셀 위치 → Clip Space 변환
-    float2 ClipPos = PixelPos / ScreenSize * 2.0f - 1.0f;
-
     // 4. DirectX 좌표계 보정 (Y축 뒤집기)
     ClipPos.y *= -1.0f;
 

@@ -1627,6 +1627,7 @@ void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InC
     {
         UpdateProjectionMatrix(Camera);
     }
+    ResizeViewports();
 }
 
 void URenderer::GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FVector& OutMax)
@@ -1679,18 +1680,15 @@ void URenderer::UpdateViewports(UWorld* RenderWorld)
     }
     //Viewports[0].ViewCamera=FEditorManager::Get().GetCamera();
 
-    ResizeViewports();
+    if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
+        ResizeViewports();
     RenderViewports(RenderWorld);
 }
 
 void URenderer::ResizeViewports()
 {
-    if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
-    {
-        ComputeViewportRects();
-        RecreateAllViewportRTVs();
-    }
-    
+    ComputeViewportRects();
+    RecreateAllViewportRTVs();
 }
 void URenderer::RenderViewports(UWorld* RenderWorld)
 {
