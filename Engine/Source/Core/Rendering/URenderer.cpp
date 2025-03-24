@@ -1670,14 +1670,14 @@ FMatrix URenderer::GetProjectionMatrix() const
 
 void URenderer::UpdateViewports(UWorld* RenderWorld)
 {
-    
+    /*
     if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
     {
         const FTransform& MainTransform = MainCamera->GetActorTransform();
         const float FieldOfView = MainCamera->GetFieldOfView();
         Viewports[0].ViewCamera->SetActorTransform(MainTransform);
         Viewports[0].ViewCamera->SetFieldOfView(FieldOfView);
-    }
+    }*/
     //Viewports[0].ViewCamera=FEditorManager::Get().GetCamera();
 
     if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))

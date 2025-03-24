@@ -36,6 +36,7 @@ public :
 	bool bDraggingHorizontal = false;
 	bool bDraggingVertical = false;
 	bool HandleViewportDrag(float ViewportWidth, float ViewportHeight);
+	int32 GetClickedViewportIndex();
 
 protected:
 	float CurrentSpeed;

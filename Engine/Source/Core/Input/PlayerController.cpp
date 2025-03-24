@@ -24,88 +24,84 @@ APlayerController::~APlayerController()
 
 void APlayerController::HandleCameraMovement(float DeltaTime)
 {
-    if (bUiCaptured)
-    {
-        return;
-    }
-    
-    if (!APlayerInput::Get().IsMouseDown(true))
-    {
-        if (APlayerInput::Get().IsMouseReleased(true))
-        {
-            /**
-             * ShowCursor 함수는 참조 카운트를 하므로, 정확한 횟수만큼 Show 및 Hide 하지 않으면
-             * 의도대로 작동하지 않는 문제가 발생함으로 매우 주의해야 함.
-             */
-            ShowCursor(true);
-        }
-        return;
-    }
-    
-    FVector NewVelocity(0, 0, 0);
+	if (bUiCaptured || !APlayerInput::Get().IsMouseDown(true))
+	{
+		if (APlayerInput::Get().IsMouseReleased(true))
+		{
+			ShowCursor(true);
+		}
+		return;
+	}
 
-    ACamera* Camera = FEditorManager::Get().GetCamera();
-    FTransform CameraTransform = Camera->GetActorTransform();
+	int32 ViewportIndex = GetClickedViewportIndex();
+	if (ViewportIndex == -1)
+		return;
 
-    // Look
-    int32 DeltaX = 0;
-    int32 DeltaY = 0;
-    APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
-    
-    FVector NewRotation = CameraTransform.GetRotation().GetEuler();
-    NewRotation.Y += MouseSensitivity * static_cast<float>(DeltaY); // Pitch
-    NewRotation.Z += MouseSensitivity * static_cast<float>(DeltaX); // Yaw
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	if (ViewportIndex >= Renderer->Viewports.Num())
+		return;
 
-    NewRotation.Y = FMath::Clamp(NewRotation.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
-    CameraTransform.SetRotation(NewRotation);
+	ACamera* Camera = Renderer->Viewports[ViewportIndex].ViewCamera;
+	if (!Camera)
+		return;
 
-    if (APlayerInput::Get().IsMousePressed(true))
-    {
-        // Press 이벤트 발생시 커서 위치를 캐싱하여 해당 위치로 커서를 고정시킴.
-        APlayerInput::Get().CacheCursorPosition();
-        ShowCursor(false);
-    }
-    APlayerInput::Get().FixMouseCursor();
-    
-    // Move
-    int32 MouseWheel = APlayerInput::Get().GetMouseWheelDelta();
-    CurrentSpeed += static_cast<float>(MouseWheel) * 0.005f;
-    CurrentSpeed = FMath::Clamp(CurrentSpeed, MinSpeed, MaxSpeed);
+	FTransform CameraTransform = Camera->GetActorTransform();
+	const bool bIsPerspective = Camera->GetProjectionMode() == ECameraProjectionMode::Perspective;
 
-    if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
-    {
-        NewVelocity -= Camera->GetActorRightVector();
-    }
-    if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
-    {
-        NewVelocity += Camera->GetActorRightVector();
-    }
-    if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
-    {
-        NewVelocity += Camera->GetActorForwardVector();
-    }
-    if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
-        {
-        NewVelocity -= Camera->GetActorForwardVector();
-    }
-    if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::Q))
-    {
-        NewVelocity -= {0.0f, 0.0f, 1.0f};
-    }
-    if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::E))
-    {
-        NewVelocity += {0.0f, 0.0f, 1.0f};
-    }
-    if (NewVelocity.Length() > 0.001f)
-    {
-        NewVelocity = NewVelocity.GetSafeNormal();
-    }
+	// 회전 처리
+	int32 DeltaX = 0, DeltaY = 0;
+	APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
+	if (bIsPerspective)
+	{
+		// 회전 처리 (Yaw, Pitch)
+		FVector Euler = CameraTransform.GetRotation().GetEuler();
+		Euler.Y += MouseSensitivity * static_cast<float>(DeltaY); // Pitch
+		Euler.Z += MouseSensitivity * static_cast<float>(DeltaX); // Yaw
+		Euler.Y = FMath::Clamp(Euler.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
+		CameraTransform.SetRotation(Euler);
+	}
+	else
+	{
+		// Ortho 모드에서는 카메라를 XY 평면 기준으로 이동 (패닝)
+		FVector Right = Camera->GetActorRightVector();
+		FVector Up = Camera->GetActorUpVector();
 
-    CameraTransform.Translate(NewVelocity * DeltaTime * CurrentSpeed);
-    Camera->SetActorTransform(CameraTransform);
-    
-    SaveCameraProperties(Camera);
+		FVector Offset = (-Right * static_cast<float>(DeltaX) + Up * static_cast<float>(DeltaY)) * 0.01f;
+		CameraTransform.Translate(Offset);
+	}
+
+	// 커서 고정
+	if (APlayerInput::Get().IsMousePressed(true))
+	{
+		APlayerInput::Get().CacheCursorPosition();
+		ShowCursor(false);
+	}
+	APlayerInput::Get().FixMouseCursor();
+
+	// 이동 처리 (WASDQE)
+	FVector NewVelocity = FVector::Zero();
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
+		NewVelocity -= Camera->GetActorRightVector();
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
+		NewVelocity += Camera->GetActorRightVector();
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
+		NewVelocity += bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
+		NewVelocity -= bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::Q))
+		NewVelocity -= FVector(0, 0, 1);
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::E))
+		NewVelocity += FVector(0, 0, 1);
+
+	if (NewVelocity.Length() > 0.001f)
+		NewVelocity = NewVelocity.GetSafeNormal();
+
+	CameraTransform.Translate(NewVelocity * DeltaTime * CurrentSpeed);
+	Camera->SetActorTransform(CameraTransform);
+
+	SaveCameraProperties(Camera);
 }
+
 
 void APlayerController::SaveCameraProperties(ACamera* Camera)
 {
@@ -196,4 +192,33 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
         result = true;
     }
     return result;
+}
+int32 APlayerController::GetClickedViewportIndex()
+{
+    int32 MouseX, MouseY;
+    APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
+
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    if (!Renderer) return -1;
+
+    const TArray<FViewport>& Viewports = Renderer->Viewports;
+
+    for (int32 i = 0; i < Viewports.Num(); ++i)
+    {
+        const FViewport& View = Viewports[i];
+		
+        float Left = View.Position.X;
+        float Top = View.Position.Y;
+        float Right = Left + View.Size.X;
+        float Bottom = Top + View.Size.Y;
+
+        // 마우스가 이 뷰포트 영역 안에 있는가?
+        if (MouseX >= Left && MouseX < Right &&
+            MouseY >= Top && MouseY < Bottom)
+        {
+            return i;
+        }
+    }
+
+    return -1; // 어떤 뷰포트도 클릭되지 않음
 }
