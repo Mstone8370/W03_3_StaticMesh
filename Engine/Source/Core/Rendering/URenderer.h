@@ -358,7 +358,6 @@ public:
         FVector2D Padding = FVector2D::ZeroVector;
     };
     void CreateFullscreenQuadVertexBuffer();
-
     void CreateScreenConstantBuffer();
     void UpdateScreenConstantBuffer(float Width, float Height);
 

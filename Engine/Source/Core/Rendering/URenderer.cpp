@@ -1666,8 +1666,11 @@ FMatrix URenderer::GetProjectionMatrix() const
 {
     return ProjectionMatrix;
 }
+
+
 void URenderer::UpdateViewports(UWorld* RenderWorld)
 {
+    
     if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
     {
         const FTransform& MainTransform = MainCamera->GetActorTransform();
@@ -1675,6 +1678,7 @@ void URenderer::UpdateViewports(UWorld* RenderWorld)
         Viewports[0].ViewCamera->SetActorTransform(MainTransform);
         Viewports[0].ViewCamera->SetFieldOfView(FieldOfView);
     }
+    //Viewports[0].ViewCamera=FEditorManager::Get().GetCamera();
 
     ResizeViewports();
     RenderViewports(RenderWorld);
@@ -1804,7 +1808,7 @@ void URenderer::UpdateCompositeConstantBuffer(const FVector2D& Size, const FVect
         DeviceContext->Unmap(CompositeConstantBuffer, 0);
     }
 
-    DeviceContext->VSSetConstantBuffers(0, 1, &CompositeConstantBuffer); // b0
+    DeviceContext->VSSetConstantBuffers(6, 1, &CompositeConstantBuffer); // b0
 }
 void URenderer::CompositeViewportsToBackBuffer()
 {
@@ -1863,7 +1867,7 @@ void URenderer::UpdateScreenConstantBuffer(float Width, float Height)
         DeviceContext->Unmap(ScreenConstantBuffer, 0);
     }
 
-    DeviceContext->VSSetConstantBuffers(3, 1, &ScreenConstantBuffer); // b3
+    DeviceContext->VSSetConstantBuffers(7, 1, &ScreenConstantBuffer); // b3
 }
 void URenderer::CreateFullscreenQuadVertexBuffer()
 {

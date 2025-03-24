@@ -1,12 +1,12 @@
 // ShaderComposite.hlsl
 
-cbuffer CbCompositeInfo : register(b0)
+cbuffer CbCompositeInfo : register(b6)
 {
     float2 ViewportSize;       // 뷰포트 크기 (in pixels)
     float2 ViewportPosition;   // 뷰포트 좌상단 위치 (in pixels)
 };
 
-cbuffer CbScreenInfo : register(b3)
+cbuffer CbScreenInfo : register(b7)
 {
     float2 ScreenSize;         // 전체 FrameBuffer 크기 (in pixels)
     float2 Padding;            // 16바이트 정렬용
