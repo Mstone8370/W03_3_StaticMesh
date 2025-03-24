@@ -61,6 +61,7 @@ bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 
     FName Key = FObjImporter::GetNormalizedMeshKey(filePath);
 
+    if (StaticMeshBufferCache.Contains(Key)) return true; 
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
 
