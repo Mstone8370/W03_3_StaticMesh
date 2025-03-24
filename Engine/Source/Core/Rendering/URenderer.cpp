@@ -639,7 +639,6 @@ void URenderer::CreateFrameBuffer()
     D3D11_RENDER_TARGET_VIEW_DESC FrameBufferRTVDesc = {};
     FrameBufferRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; // 색상 포맷
     FrameBufferRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
-
     result = Device->CreateRenderTargetView(FrameBuffer, &FrameBufferRTVDesc, &FrameBufferRTV);
     if (FAILED(result))
     {
@@ -1771,6 +1770,7 @@ void URenderer::InitializeViewports()
             FVector2D Size = FVector2D(HalfWidth, HalfHeight);
 
             FViewport NewViewport;
+            //NewViewport.Initialize(Device, Size.X, Size.Y, Position);
             NewViewport.Initialize(Device, Size.X, Size.Y, Position);
             NewViewport.Position = Position;
             NewViewport.Size = Size;
@@ -1781,6 +1781,7 @@ void URenderer::InitializeViewports()
     }
     ComputeViewportRects();
     RecreateAllViewportRTVs();
+    
 }
 
 void URenderer::CreateCompositeConstantBuffer()
@@ -1824,6 +1825,7 @@ void URenderer::CompositeViewportsToBackBuffer()
     DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("ShaderComposite")), nullptr, 0);
     DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("ShaderComposite")), nullptr, 0);
     DeviceContext->PSSetSamplers(0, 1, &SamplerState);
+    DeviceContext->RSSetViewports(1, &ViewportInfo);
 
     UINT stride = sizeof(FVertexUV);
     UINT offset = 0;
@@ -1836,12 +1838,12 @@ void URenderer::CompositeViewportsToBackBuffer()
         DeviceContext->PSSetShaderResources(0, 1, &View.ShaderResourceView);
 
         D3D11_VIEWPORT VP = View.ViewportDesc;
-        DeviceContext->RSSetViewports(1, &VP);
+        //DeviceContext->RSSetViewports(1, &VP);
 
         UpdateCompositeConstantBuffer(
             FVector2D(VP.Width, VP.Height),
             //FVector2D(0, 0)
-            FVector2D(VP.TopLeftX, VP.TopLeftY)
+            FVector2D(View.Position.X, View.Position.Y)
         );
 
         DeviceContext->Draw(6, 0); // 풀스크린 쿼드
@@ -1867,7 +1869,7 @@ void URenderer::UpdateScreenConstantBuffer(float Width, float Height)
         DeviceContext->Unmap(ScreenConstantBuffer, 0);
     }
 
-    DeviceContext->VSSetConstantBuffers(7, 1, &ScreenConstantBuffer); // b3
+    DeviceContext->VSSetConstantBuffers(7, 1, &ScreenConstantBuffer); // b7
 }
 void URenderer::CreateFullscreenQuadVertexBuffer()
 {
@@ -1909,10 +1911,13 @@ void URenderer::ComputeViewportRects()
         float W = bLeft ? LeftWidth : RightWidth;
         float H = bTop  ? TopHeight : BottomHeight;
 
-        View.ViewportDesc.TopLeftX = X;
-        View.ViewportDesc.TopLeftY = Y;
+        View.Position.X = X;
+        View.Position.Y = Y;
         View.ViewportDesc.Width = FMath::Max(W, 0.0f);
         View.ViewportDesc.Height = FMath::Max(H, 0.0f);
+        View.Size.X=View.ViewportDesc.Width;
+        View.Size.Y=View.ViewportDesc.Height;
+        
     }
 }
 void URenderer::RecreateAllViewportRTVs()
@@ -1920,7 +1925,8 @@ void URenderer::RecreateAllViewportRTVs()
     for (FViewport& View : Viewports)
     {
         View.Release();
-        View.Initialize(Device, View.ViewportDesc.Width, View.ViewportDesc.Height,
-                        FVector2D(View.ViewportDesc.TopLeftX, View.ViewportDesc.TopLeftY));
+        
+        View.Initialize(Device, View.Size.X, View.Size.Y, View.Position);
+        //View.Initialize(Device, View.ViewportDesc.Width, View.ViewportDesc.Height,FVector2D(View.Position.X, View.Position.Y));
     }
 }

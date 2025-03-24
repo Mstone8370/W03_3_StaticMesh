@@ -26,30 +26,43 @@ struct PS_INPUT
     float4 Pos : SV_POSITION;
     float2 UV  : TEXCOORD0;
 };
+
+
+    /*
+PS_INPUT mainVS(VS_INPUT input)
+{
+    PS_INPUT output;
+
+    // input.Pos 은 [-1, 1], input.UV는 [0, 1]
+    //float2 offset = (ViewportPosition / ScreenSize) * 2.0f;
+    // Y축 뒤집기 포함하면:
+    //offset.y *= -1.0f;
+    output.Pos = float4(input.Pos.xy, 0.0f, 1.0f);
+    output.UV  = input.UV;
+    return output;
+}
+*/
 /*
 PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
-    float2 Scale = float2(2.9f, 2.9f);
-    // Viewport의 중앙을 기준으로 확대
-    float2 VP_Center = ViewportPosition + ViewportSize * 0.5f;
-    float2 HalfSize = ViewportSize * 0.5f * Scale;
-    // 픽셀 기준 좌상단, 우하단 좌표
-    //float2 ViewportMin = ViewportPosition;
-    //float2 ViewportMax = ViewportPosition + ViewportSize * Scale;
-    float2 ViewportMin = VP_Center - HalfSize;
-    float2 ViewportMax = VP_Center + HalfSize;
-    // UV (0~1) 기준으로 Viewport 내 픽셀 위치 보간
-    float2 PixelPos = lerp(ViewportMin, ViewportMax, input.UV);
 
-    // 픽셀 위치를 clip-space로 변환
+    float2 UV = input.UV;
+
+    // 1. UV → 픽셀 위치 (Viewport 내부 기준)
+    float2 PixelPos = UV * ViewportSize;
+
+    // 2. Viewport 내부 위치를 전체 화면 기준으로 이동
+    PixelPos += ViewportPosition;
+
+    // 3. 픽셀 위치 → Clip Space 변환
     float2 ClipPos = PixelPos / ScreenSize * 2.0f - 1.0f;
 
-    // Flip Y-axis (DirectX 좌표계 보정)
+    // 4. DirectX 좌표계 보정 (Y축 뒤집기)
     ClipPos.y *= -1.0f;
 
     output.Pos = float4(ClipPos, 0.0f, 1.0f);
-    output.UV = input.UV;
+    output.UV = UV;
     return output;
 }
 */
@@ -57,13 +70,34 @@ PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
 
-    // input.Pos 은 [-1, 1], input.UV는 [0, 1]
-    output.Pos = float4(input.Pos.xy, 0.0f, 1.0f);
-    output.UV  = input.UV;
+    float2 UV = input.UV;
+
+    // 1. UV → 픽셀 위치 (Viewport 내부 기준)
+    float2 PixelPos = UV * ViewportSize;
+
+    // 2. Viewport 내부 위치를 전체 화면 기준으로 이동
+    PixelPos += ViewportPosition;
+
+    // 3. 픽셀 위치 → Clip Space 변환
+    float2 ClipPos = PixelPos / ScreenSize * 2.0f - 1.0f;
+
+    // 4. DirectX 좌표계 보정 (Y축 뒤집기)
+    ClipPos.y *= -1.0f;
+
+    output.Pos = float4(ClipPos, 0.0f, 1.0f);
+    output.UV = UV; // 주의: 절대 보정하지 말 것
     return output;
 }
+
+float4 mainPS(PS_INPUT input) : SV_TARGET
+{
+    return CompositeTexture.Sample(TextureSampler, input.UV);
+}
+
+/*
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
     //return float4(0,0,1,1);
     return CompositeTexture.Sample(TextureSampler, input.UV);
 }
+*/

@@ -37,8 +37,12 @@ void FViewport::Initialize(ID3D11Device* Device, float InWidth, float InHeight, 
     Device->CreateDepthStencilView(DepthStencil, nullptr, &DSV);
 
     // Viewport 설정
-    ViewportDesc.TopLeftX = InTopLeft.X;
-    ViewportDesc.TopLeftY = InTopLeft.Y;
+    Position.X = InTopLeft.X;
+    Position.Y = InTopLeft.Y;
+    ViewportDesc.TopLeftX = 0;
+    ViewportDesc.TopLeftY = 0;
+    //ViewportDesc.TopLeftX = InTopLeft.X;
+    //ViewportDesc.TopLeftY = InTopLeft.Y;
     ViewportDesc.Width = InWidth;
     ViewportDesc.Height = InHeight;
     ViewportDesc.MinDepth = 0.0f;
