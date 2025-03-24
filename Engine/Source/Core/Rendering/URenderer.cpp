@@ -124,17 +124,37 @@ void URenderer::Create(HWND hWindow)
     
     // CreateDeviceAndSwapChain(hWindow);
     // CreateFrameBuffer();
-    CreateRasterizerState();
+    hr = CreateRasterizerState();
+    if (FAILED(hr))
+        return;
     CreateBufferCache();
+    if (FAILED(hr))
+        return;
     CreateShaderCache();
-    CreateDepthStencilBuffer();
-    CreateDepthStencilState();
-    CreateBlendState();
-    CreatePickingFrameBuffer();
+    if (FAILED(hr))
+        return;
+    hr = CreateDepthStencilBuffer();
+    if (FAILED(hr))
+        return;
+    hr = CreateDepthStencilState();
+    if (FAILED(hr))
+        return;
+    hr = CreateBlendState();
+    if (FAILED(hr))
+        return;
+    hr = CreatePickingFrameBuffer();
+    if (FAILED(hr))
+        return;
 
-    CreateTextureBuffer();
-    CreateTextureSamplerState();
-    CreateTextureBlendState();
+    hr = CreateTextureBuffer();
+    if (FAILED(hr))
+        return;
+    hr = CreateTextureSamplerState();
+    if (FAILED(hr))
+        return;
+    hr = CreateTextureBlendState();
+    if (FAILED(hr))
+        return;
 
     AdjustDebugLineVertexBuffer(DebugLineNumStep);
     InitMatrix();
@@ -956,8 +976,10 @@ void URenderer::CreateFrameBuffer()
 	}
 }
 
-void URenderer::CreateDepthStencilBuffer()
+HRESULT URenderer::CreateDepthStencilBuffer()
 {
+    HRESULT hr = S_OK;
+    
     D3D11_TEXTURE2D_DESC DepthBufferDesc = {};
     DepthBufferDesc.Width = static_cast<UINT>(ViewportInfo.Width);
     DepthBufferDesc.Height = static_cast<UINT>(ViewportInfo.Height);
@@ -971,13 +993,13 @@ void URenderer::CreateDepthStencilBuffer()
     DepthBufferDesc.CPUAccessFlags = 0;
     DepthBufferDesc.MiscFlags = 0;
 
-    HRESULT result = Device->CreateTexture2D(&DepthBufferDesc, nullptr, &DepthStencilBuffer);
-	if (FAILED(result))
+    hr = Device->CreateTexture2D(&DepthBufferDesc, nullptr, &DepthStencilBuffer);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil Buffer! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil Buffer! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
 
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
@@ -985,13 +1007,13 @@ void URenderer::CreateDepthStencilBuffer()
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     dsvDesc.Texture2D.MipSlice = 0;
 
-    result = Device->CreateDepthStencilView(DepthStencilBuffer, &dsvDesc, &DepthStencilView);
-	if (FAILED(result))
+    hr = Device->CreateDepthStencilView(DepthStencilBuffer, &dsvDesc, &DepthStencilView);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil View! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil View! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
 
     D3D11_TEXTURE2D_DESC PickingDepthBufferDesc = {};
@@ -1007,53 +1029,59 @@ void URenderer::CreateDepthStencilBuffer()
     PickingDepthBufferDesc.CPUAccessFlags = 0;
     PickingDepthBufferDesc.MiscFlags = 0;
 
-    result = Device->CreateTexture2D(&PickingDepthBufferDesc, nullptr, &PickingDepthStencilBuffer);
-    if (FAILED(result))
+    hr = Device->CreateTexture2D(&PickingDepthBufferDesc, nullptr, &PickingDepthStencilBuffer);
+    if (FAILED(hr))
     {
         wchar_t errorMsg[256];
-        swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil Buffer! HRESULT: 0x%08X"), result);
+        swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil Buffer! HRESULT: 0x%08X"), hr);
         MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-        return;
+        return hr;
     }
 
-    result = Device->CreateDepthStencilView(PickingDepthStencilBuffer, &dsvDesc, &PickingDepthStencilView);
-    if (FAILED(result))
+    hr = Device->CreateDepthStencilView(PickingDepthStencilBuffer, &dsvDesc, &PickingDepthStencilView);
+    if (FAILED(hr))
     {
         wchar_t errorMsg[256];
-        swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil View! HRESULT: 0x%08X"), result);
+        swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil View! HRESULT: 0x%08X"), hr);
         MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-        return;
+        return hr;
     }
+
+    return S_OK;
 }
 
-void URenderer::CreateDepthStencilState()
+HRESULT URenderer::CreateDepthStencilState()
 {
+    HRESULT hr = S_OK;
+    
     D3D11_DEPTH_STENCIL_DESC DepthStencilDesc = {};
     DepthStencilDesc.DepthEnable = TRUE;
     DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     DepthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;                     // 더 작은 깊이값이 왔을 때 픽셀을 갱신함
 
-    HRESULT result = Device->CreateDepthStencilState(&DepthStencilDesc, &DepthStencilState);
-	if (FAILED(result))
+    hr = Device->CreateDepthStencilState(&DepthStencilDesc, &DepthStencilState);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil State! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Depth Stencil State! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
 
     D3D11_DEPTH_STENCIL_DESC IgnoreDepthStencilDesc = {};
     IgnoreDepthStencilDesc.DepthEnable = TRUE;
     IgnoreDepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     IgnoreDepthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-    result = Device->CreateDepthStencilState(&IgnoreDepthStencilDesc, &IgnoreDepthStencilState);
-	if (FAILED(result))
+    hr = Device->CreateDepthStencilState(&IgnoreDepthStencilDesc, &IgnoreDepthStencilState);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Ignore Depth Stencil State! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Ignore Depth Stencil State! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
+
+    return hr;
 }
 
 void URenderer::ReleaseFrameBuffer()
@@ -1116,33 +1144,37 @@ void URenderer::ReleaseDepthStencilResources()
 	ReleaseDepthStencilState();
 }
 
-void URenderer::CreateRasterizerState()
+HRESULT URenderer::CreateRasterizerState()
 {
+    HRESULT hr = S_OK;
+    
     D3D11_RASTERIZER_DESC RasterizerDesc = {};
     RasterizerDesc.FillMode = D3D11_FILL_SOLID; // 채우기 모드
     RasterizerDesc.CullMode = D3D11_CULL_BACK;  // 백 페이스 컬링
     RasterizerDesc.FrontCounterClockwise = FALSE;
 
-    HRESULT result = Device->CreateRasterizerState(&RasterizerDesc, &RasterizerState_Solid);
-	if (FAILED(result))
+    hr = Device->CreateRasterizerState(&RasterizerDesc, &RasterizerState_Solid);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Rasterizer State! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Rasterizer State! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
 
     RasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
 	RasterizerDesc.CullMode = D3D11_CULL_NONE;
 
-	result = Device->CreateRasterizerState(&RasterizerDesc, &RasterizerState_Wireframe);
-	if (FAILED(result))
+	hr = Device->CreateRasterizerState(&RasterizerDesc, &RasterizerState_Wireframe);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Wireframe Rasterizer State! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Wireframe Rasterizer State! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
+
+    return hr;
 }
 
 void URenderer::ReleaseRasterizerState()
@@ -1164,10 +1196,12 @@ void URenderer::CreateBufferCache()
 {
     BufferCache = std::make_unique<FBufferCache>();
 
+    bool bRet = true;
+
     // Load static mesh here.
-    BufferCache->BuildStaticMesh("Resources/GizmoTranslation.obj");
-    BufferCache->BuildStaticMesh("Resources/GizmoRotation.obj");
-    BufferCache->BuildStaticMesh("Resources/GizmoScale.obj");
+    bRet &= BufferCache->BuildStaticMesh("Resources/GizmoTranslation.obj");
+    bRet &= BufferCache->BuildStaticMesh("Resources/GizmoRotation.obj");
+    bRet &= BufferCache->BuildStaticMesh("Resources/GizmoScale.obj");
 }
 
 void URenderer::CreateShaderCache()
@@ -1180,8 +1214,10 @@ void URenderer::InitMatrix()
     ProjectionMatrix = FMatrix::Identity;
 }
 
-void URenderer::CreateBlendState()
+HRESULT URenderer::CreateBlendState()
 {
+    HRESULT hr = S_OK;
+    
     D3D11_BLEND_DESC BlendState;
     ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
     BlendState.RenderTarget[0].BlendEnable = TRUE;
@@ -1192,7 +1228,11 @@ void URenderer::CreateBlendState()
     BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
     BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
     BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    Device->CreateBlendState(&BlendState, &GridBlendState);
+    hr = Device->CreateBlendState(&BlendState, &GridBlendState);
+    if (FAILED(hr))
+        return hr;
+    
+    return hr;
 }
 
 void URenderer::ReleaseBlendState()
@@ -1210,8 +1250,10 @@ void URenderer::ReleaseBlendState()
     }
 }
 
-void URenderer::CreateTextureSamplerState()
+HRESULT URenderer::CreateTextureSamplerState()
 {
+    HRESULT hr = S_OK;
+    
     // 샘플러 상태 생성
     D3D11_SAMPLER_DESC SamplerDesc = {};
     SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -1223,7 +1265,13 @@ void URenderer::CreateTextureSamplerState()
     SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
-    Renderer->GetDevice()->CreateSamplerState(&SamplerDesc, &SamplerState);
+    hr = Renderer->GetDevice()->CreateSamplerState(&SamplerDesc, &SamplerState);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    return hr;
 }
 
 void URenderer::ReleaseTextureSamplerState()
@@ -1356,8 +1404,10 @@ void URenderer::RenderDebugLines(float DeltaTime)
     DeviceContext->Draw(DebugLines.Num() * 2, 0);
 }
 
-void URenderer::CreateTextureBuffer()
+HRESULT URenderer::CreateTextureBuffer()
 {
+    HRESULT hr = S_OK;
+    
 	D3D11_BUFFER_DESC TextureBufferDesc = {};
 	TextureBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     TextureBufferDesc.ByteWidth = sizeof(FVertexUV) * 6;
@@ -1366,11 +1416,19 @@ void URenderer::CreateTextureBuffer()
 	D3D11_SUBRESOURCE_DATA TextureBufferInitData = {};
 	TextureBufferInitData.pSysMem = UVQuadVertices;
 
-    Device->CreateBuffer(&TextureBufferDesc, &TextureBufferInitData, &TextureVertexBuffer);
+    hr = Device->CreateBuffer(&TextureBufferDesc, &TextureBufferInitData, &TextureVertexBuffer);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    return hr;
 }
 
-void URenderer::CreateTextureBlendState()
+HRESULT URenderer::CreateTextureBlendState()
 {
+    HRESULT hr = S_OK;
+    
 	D3D11_BLEND_DESC BlendState;
 	ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
 	BlendState.RenderTarget[0].BlendEnable = TRUE;
@@ -1381,7 +1439,13 @@ void URenderer::CreateTextureBlendState()
 	BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	Device->CreateBlendState(&BlendState, &TextureBlendState);
+	hr = Device->CreateBlendState(&BlendState, &TextureBlendState);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    return hr;
 }
 
 void URenderer::PrepareBillboard()
@@ -1615,8 +1679,10 @@ void URenderer::PrepareDebugLines()
     DeviceContext->PSSetShader(PixelShader, nullptr, 0);
 }
 
-void URenderer::CreatePickingFrameBuffer()
+HRESULT URenderer::CreatePickingFrameBuffer()
 {
+    HRESULT hr = S_OK;
+    
     D3D11_TEXTURE2D_DESC textureDesc = {};
     textureDesc.Width = ViewportInfo.Width;
     textureDesc.Height = ViewportInfo.Height;
@@ -1627,13 +1693,13 @@ void URenderer::CreatePickingFrameBuffer()
     textureDesc.Usage = D3D11_USAGE_DEFAULT;
     textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-    HRESULT result = Device->CreateTexture2D(&textureDesc, nullptr, &PickingFrameBuffer);
-	if (FAILED(result))
+    hr = Device->CreateTexture2D(&textureDesc, nullptr, &PickingFrameBuffer);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Picking Frame Buffer! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Picking Frame Buffer! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
 
     D3D11_TEXTURE2D_DESC stagingDesc = {};
@@ -1647,27 +1713,29 @@ void URenderer::CreatePickingFrameBuffer()
     stagingDesc.BindFlags = 0;
     stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
-    result = Device->CreateTexture2D(&stagingDesc, nullptr, &PickingFrameBufferStaging);
-    if (FAILED(result))
+    hr = Device->CreateTexture2D(&stagingDesc, nullptr, &PickingFrameBufferStaging);
+    if (FAILED(hr))
     {
         wchar_t errorMsg[256];
-        swprintf_s(errorMsg, TEXT("Failed to create Staging Texture! HRESULT: 0x%08X"), result);
+        swprintf_s(errorMsg, TEXT("Failed to create Staging Texture! HRESULT: 0x%08X"), hr);
         MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-        return;
+        return hr;
     }
 
     D3D11_RENDER_TARGET_VIEW_DESC PickingFrameBufferRTVDesc = {};
     PickingFrameBufferRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;      // 색상 포맷
     PickingFrameBufferRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
 
-    result = Device->CreateRenderTargetView(PickingFrameBuffer, &PickingFrameBufferRTVDesc, &PickingFrameBufferRTV);
-	if (FAILED(result))
+    hr = Device->CreateRenderTargetView(PickingFrameBuffer, &PickingFrameBufferRTVDesc, &PickingFrameBufferRTV);
+	if (FAILED(hr))
 	{
 		wchar_t errorMsg[256];
-		swprintf_s(errorMsg, TEXT("Failed to create Picking Frame Buffer RTV! HRESULT: 0x%08X"), result);
+		swprintf_s(errorMsg, TEXT("Failed to create Picking Frame Buffer RTV! HRESULT: 0x%08X"), hr);
 		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-		return;
+		return hr;
 	}
+
+    return hr;
 }
 
 void URenderer::ReleasePickingFrameBuffer()

@@ -120,9 +120,9 @@ public:
 	void RenderDebugLines(float DelatTime);
 
 	// Texture
-	void CreateTextureBuffer();
+	HRESULT CreateTextureBuffer();
 
-	void CreateTextureBlendState();
+	HRESULT CreateTextureBlendState();
 
 	void PrepareBillboard();
 
@@ -154,10 +154,10 @@ protected:
 	void CreateFrameBuffer();
 
 	/** 뎁스 스텐실 버퍼를 생성합니다. */
-	void CreateDepthStencilBuffer();
+	HRESULT CreateDepthStencilBuffer();
 
 	/** 뎁스 스텐실 상태를 생성합니다. */
-	void CreateDepthStencilState();
+	HRESULT CreateDepthStencilState();
 	
 	/** 프레임 버퍼를 해제합니다. */
 	void ReleaseFrameBuffer();
@@ -172,7 +172,7 @@ protected:
 	void ReleaseDepthStencilResources();
 	
 	/** 레스터라이즈 상태를 생성합니다. */
-	void CreateRasterizerState();
+	HRESULT CreateRasterizerState();
 
 	/** 레스터라이저 상태를 해제합니다. */
 	void ReleaseRasterizerState();
@@ -183,11 +183,11 @@ protected:
 
 	void InitMatrix();
 
-	void CreateBlendState();
+	HRESULT CreateBlendState();
 
 	void ReleaseBlendState();
 
-	void CreateTextureSamplerState();
+	HRESULT CreateTextureSamplerState();
 
 	void ReleaseTextureSamplerState();
 	/**
@@ -344,7 +344,7 @@ protected:
 
 public:
 	//피킹용 함수들	
-	void CreatePickingFrameBuffer();
+	HRESULT CreatePickingFrameBuffer();
 	void ReleasePickingFrameBuffer();
 	void PrepareZIgnore();
 	void PreparePicking();
