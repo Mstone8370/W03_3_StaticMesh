@@ -19,14 +19,15 @@ void SWindow::Init(const FRect& InRect)
     Rect = InRect;
     
     // TODO: Hard coded padding
-    Rect.Left += 200;
-    Rect.Right -= 200;
-    Rect.Top += 200;
-    Rect.Bottom -= 200;
+    
+    Rect.Left += 100;
+    Rect.Right -= 100;
+    Rect.Top += 100;
+    Rect.Bottom -= 100;
     
     if (Viewport)
     {
-        Viewport->Init(InRect);   
+        Viewport->Init(Rect);   
     }
 }
 

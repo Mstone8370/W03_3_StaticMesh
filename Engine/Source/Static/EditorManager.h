@@ -32,6 +32,8 @@ public:
 	void ClearSelectedComponent();
 
 	void HandleInput(const float DeltaTime);
+
+	void GetAllViewports(TArray<FViewport*>& OutViewports) const;
     
 private:
 	// 메인 에디터 윈도우

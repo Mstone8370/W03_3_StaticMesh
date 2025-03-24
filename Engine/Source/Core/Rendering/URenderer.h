@@ -214,7 +214,7 @@ public:
 	{
 		float X, Y, Z, U, V;
 	};
-
+	
 	FFinalVertex FinalQuad[4] = {
 		{-1.f, 1.f, 0.f, 0.f, 0.f},
 		{1.f, 1.f, 0.f, 1.f, 0.f },
@@ -222,8 +222,8 @@ public:
 		{1.f, -1.f, 0.f, 1.f, 1.f}
 	};
 
-	uint32 FinalQuadIndex[6] = { 0, 1, 2, 2, 1, 3 };
-
+	uint32 FinalQuadIndex[6] = { 0, 1, 2, 2, 1, 3 }; 
+	
 	ID3D11Buffer* FinalVertexBuffer;
 	ID3D11Buffer* FinalIndexBuffer;
 	ID3D11ShaderResourceView* FinalTexture;
@@ -239,11 +239,13 @@ public:
 	IDXGISwapChain* FinalSwapChain;
 	D3D11_VIEWPORT FinalViewport;
 
+	ID3D11Buffer* CbFinalQuadBuffer;
+
 	void PresentFinalRender();
 	
-////////
-/// Final Render
-////////
+	////////
+	/// Final Render
+	////////
 
 protected:
 	HWND hWnd = nullptr;                                    // 렌더러가 사용할 윈도우 핸들

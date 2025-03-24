@@ -53,3 +53,11 @@ struct FVertexGrid
 {
 	FVector Location;
 };
+
+struct FFinalQuad
+{
+	float ScaleX;
+	float ScaleY;
+	float OffsetX;
+	float OffsetY;
+};

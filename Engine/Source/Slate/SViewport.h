@@ -19,6 +19,6 @@ public:
     
     virtual bool IsHover(FPoint coord) const override;
 
-private:
     std::shared_ptr<FViewport> Viewport;
+private:
 };

@@ -38,7 +38,7 @@ public:
 	        
 	inline FMatrix GetViewMatrix() const
 	{
-		return FMatrix::LookAtLH(Position, Position + GetForwardVector(), GetUp());
+		return FMatrix::LookAtLH(Position, Position + GetForwardVector(), FVector::UpVector);
 	}
 	
 	inline virtual void SetPosition(const FVector& InPosition)

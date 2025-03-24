@@ -99,11 +99,13 @@ void URenderer::Create(HWND hWindow)
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     hr = Device->CreateInputLayout(layout, ARRAYSIZE(layout), VSBlob->GetBufferPointer(), VSBlob->GetBufferSize(), &FinalInputLayout);
     if (FAILED(hr))
         return;
+    VSBlob->Release();
+    PSBlob->Release();
 
     D3D11_SAMPLER_DESC FinalSamplerDesc;
     ZeroMemory(&FinalSamplerDesc, sizeof(FinalSamplerDesc));
@@ -112,15 +114,16 @@ void URenderer::Create(HWND hWindow)
     FinalSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     FinalSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     FinalSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    FinalSamplerDesc.MipLODBias = -1;
+    FinalSamplerDesc.MipLODBias = -1; 
     FinalSamplerDesc.MinLOD = 0;
     FinalSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     hr = Device->CreateSamplerState(&FinalSamplerDesc, &FinalSamplerState);
     if (FAILED(hr))
         return;
+    DeviceContext->PSSetSamplers(4, 1, &FinalSamplerState);
     
-    //CreateDeviceAndSwapChain(hWindow);
-    //CreateFrameBuffer();
+    // CreateDeviceAndSwapChain(hWindow);
+    // CreateFrameBuffer();
     CreateRasterizerState();
     CreateBufferCache();
     CreateShaderCache();
@@ -151,9 +154,37 @@ void URenderer::PresentFinalRender()
 
     DeviceContext->VSSetShader(FinalVertexShader, nullptr, 0);
     DeviceContext->PSSetShader(FinalPixelShader, nullptr, 0);
-    DeviceContext->PSSetSamplers(0, 1, &FinalSamplerState);
 
-    DeviceContext->DrawIndexed(6, 0, 0);
+    TArray<FViewport*> AllViewports;
+    FEditorManager::Get().GetAllViewports(AllViewports);
+    for (const auto& Viewport : AllViewports)
+    {
+        DeviceContext->PSSetShaderResources(4, 1, &Viewport->RenderTargetSRV);
+        
+        // 쿼드 크기 조정 (클라이언트 좌표 -> NDC 좌표)
+        int32 TopLeftX = Viewport->TopLeftX;
+        int32 TopLeftY = Viewport->TopLeftY;
+        int32 Width = Viewport->Width;
+        int32 Height = Viewport->Height;
+        float CenterX = TopLeftX + Width / 2.0f;
+        float CenterY = TopLeftY + Height / 2.0f;
+        float NdcOffsetX = (CenterX - FinalViewport.Width / 2.0f) / (FinalViewport.Width / 2.0f);
+        float NdcOffsetY = (FinalViewport.Height / 2.0f - CenterY) / (FinalViewport.Height / 2.0f);
+
+        D3D11_MAPPED_SUBRESOURCE MappedSubresource;
+        DeviceContext->Map(CbFinalQuadBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource);
+        if (FFinalQuad* Constants = static_cast<FFinalQuad*>(MappedSubresource.pData))
+        {
+            Constants->ScaleX = static_cast<float>(Width) / FinalViewport.Width;
+            Constants->ScaleY = static_cast<float>(Height) / FinalViewport.Height;
+            Constants->OffsetX = NdcOffsetX;
+            Constants->OffsetY = NdcOffsetY;
+        }
+        // UnMap해서 GPU에 값이 전달 될 수 있게 함
+        DeviceContext->Unmap(CbFinalQuadBuffer, 0);
+        
+        DeviceContext->DrawIndexed(6, 0, 0);
+    }
 
     FinalSwapChain->Present(1, 0);
 }
@@ -239,6 +270,15 @@ void URenderer::CreateConstantBuffer()
     hr = Device->CreateBuffer(&TextureConstantBufferDesc, nullptr, &TextureConstantBuffer);
     if (FAILED(hr))
         return;
+
+    D3D11_BUFFER_DESC FinalQuadBufferDesc = {};
+    FinalQuadBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    FinalQuadBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    FinalQuadBufferDesc.ByteWidth = sizeof(FFinalQuad) + 0xf & 0xfffffff0;
+    FinalQuadBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    hr = Device->CreateBuffer(&FinalQuadBufferDesc, nullptr, &CbFinalQuadBuffer);
+    if (FAILED(hr))
+        return;
     
     /**
      * 여기에서 상수 버퍼를 쉐이더에 바인딩.
@@ -249,6 +289,7 @@ void URenderer::CreateConstantBuffer()
     DeviceContext->VSSetConstantBuffers(1, 1, &CbChangeOnCameraMove);
     DeviceContext->VSSetConstantBuffers(2, 1, &CbChangeOnResizeAndFov);
     DeviceContext->VSSetConstantBuffers(5, 1, &TextureConstantBuffer);
+    DeviceContext->VSSetConstantBuffers(6, 1, &CbFinalQuadBuffer);
 
     DeviceContext->PSSetConstantBuffers(1, 1, &CbChangeOnCameraMove);
     DeviceContext->PSSetConstantBuffers(2, 1, &CbChangeOnResizeAndFov);
@@ -312,10 +353,16 @@ void URenderer::InitViewport(FViewport* InViewport)
     RenderTargetDesc.SampleDesc.Count = 1;
     RenderTargetDesc.SampleDesc.Quality = 0;
     RenderTargetDesc.Usage = D3D11_USAGE_DEFAULT;
-    RenderTargetDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+    RenderTargetDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     RenderTargetDesc.CPUAccessFlags = 0;
     RenderTargetDesc.MiscFlags = 0;
     hr = Device->CreateTexture2D(&RenderTargetDesc, nullptr, &InViewport->RenderTarget);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    hr = Device->CreateShaderResourceView(InViewport->RenderTarget, nullptr, &InViewport->RenderTargetSRV);
     if (FAILED(hr))
     {
         return;
@@ -383,7 +430,8 @@ void URenderer::ClearViewport(FViewport* InViewport)
         return;
     }
 
-    DeviceContext->ClearRenderTargetView(InViewport->RenderTargetView, ClearColor);
+    FLOAT TestColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    DeviceContext->ClearRenderTargetView(InViewport->RenderTargetView, TestColor);
     DeviceContext->ClearDepthStencilView(InViewport->DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0, 1);
 }
 
@@ -597,8 +645,6 @@ void URenderer::RenderMesh(class UMeshComponent* MeshComp)
 
 void URenderer::PrepareMesh()
 {
-    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("StaticMeshShader")));
 }
@@ -613,9 +659,9 @@ void URenderer::PrepareWorldGrid()
 {
     UINT Offset = 0;
     DeviceContext->IASetVertexBuffers(0, 1, &GridVertexBuffer, &GridStride, &Offset);
-    
+
+    DeviceContext->RSSetState(RasterizerState_Solid);
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(GridBlendState, nullptr, 0xFFFFFFFF);
     
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -647,7 +693,8 @@ void URenderer::RenderWorldGrid()
     int32 StepX = static_cast<int32>(CameraLocation.X / GridGap);
     int32 StepY = static_cast<int32>(CameraLocation.Y / GridGap);
 
-    FVector GridOffset(StepX * GridGap, StepY * GridGap, 0.f);
+    //FVector GridOffset(StepX * GridGap, StepY * GridGap, 0.f);
+    FVector GridOffset(0 * GridGap, 0 * GridGap, 0.f);
     FVector GridScale(GridGap, GridGap, 1.f);
 
     FTransform GridTransform(GridOffset, FVector::ZeroVector, GridScale);
@@ -655,7 +702,7 @@ void URenderer::RenderWorldGrid()
     ConstantUpdateInfo UpdateInfo
     {
         GridTransform.GetMatrix(),
-        FVector4(0.2f, 0.2f, 0.2f, 1.0f),
+        FVector4(0.8f, 0.8f, 0.8f, 1.0f),
         false,
     };
 
@@ -1688,7 +1735,6 @@ void URenderer::UpdateConstantPicking(FVector4 UUIDColor) const
 void URenderer::PrepareMain()
 {
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);                // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderMain")));
 }

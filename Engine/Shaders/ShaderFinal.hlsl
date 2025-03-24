@@ -1,6 +1,14 @@
 
-Texture2D inputTex : register(t0);
-SamplerState samLinear : register(s0);
+Texture2D inputTex : register(t4);
+SamplerState samLinear : register(s4);
+
+cbuffer FinalQuad : register(b6)
+{
+    float ScaleX;
+    float ScaleY;
+    float OffsetX;
+    float OffsetY;
+}
 
 struct VSInput
 {
@@ -18,12 +26,16 @@ PSInput mainVS(VSInput input)
 {
     PSInput output;
     output.pos = float4(input.pos, 1.0f);
+    output.pos.x *= ScaleX;
+    output.pos.y *= ScaleY;
+    output.pos.x += OffsetX;
+    output.pos.y += OffsetY;
+    
     output.uv = input.uv;
     return output;
 }
 
 float4 mainPS(PSInput input) : SV_TARGET
 {
-    return float4(0.5f, 0.5f, 0.5f, 1.0f);
     return inputTex.Sample(samLinear, input.uv);
 }

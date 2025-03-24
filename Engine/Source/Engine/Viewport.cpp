@@ -2,6 +2,7 @@
 #include "Viewport.h"
 
 #include "Engine.h"
+#include "World.h"
 #include "Input/PlayerInput.h"
 
 FViewportClient::FViewportClient()
@@ -26,7 +27,7 @@ void FViewportClient::Init(int32 InWidth, int32 InHeight)
     ViewMatrix = EditorCamera->Transform.GetViewMatrix();
     
     ProjectionMatrix = FMatrix::PerspectiveFovLH(
-        EditorCamera->FOV,
+        FMath::DegreesToRadians(EditorCamera->FOV),
         static_cast<float>(InWidth) / static_cast<float>(InHeight),
         EditorCamera->NearClip,
         EditorCamera->FarClip
@@ -57,7 +58,11 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
     Renderer->RenderWorldGrid();
     
     // Render Objects
+    UEngine::Get().GetWorld()->RenderMainTexture(*Renderer);
 
+    UEngine::Get().GetWorld()->RenderBillboard(*Renderer);
+    UEngine::Get().GetWorld()->RenderText(*Renderer);
+    UEngine::Get().GetWorld()->RenderMesh(*Renderer);
     // Render Bounding Box
 
     // Render Batch lines (Debug line)
@@ -88,7 +93,7 @@ void FViewportClient::HandleInput(const float DeltaTime)
              * ShowCursor 함수는 참조 카운트를 하므로, 정확한 횟수만큼 Show 및 Hide 하지 않으면
              * 의도대로 작동하지 않는 문제가 발생함으로 매우 주의해야 함.
              */
-            ShowCursor(true);
+            //ShowCursor(true);
         }
         return;
     }
@@ -111,9 +116,9 @@ void FViewportClient::HandleInput(const float DeltaTime)
     {
         // Press 이벤트 발생시 커서 위치를 캐싱하여 해당 위치로 커서를 고정시킴.
         APlayerInput::Get().CacheCursorPosition();
-        ShowCursor(false);
+        //ShowCursor(false);
     }
-    APlayerInput::Get().FixMouseCursor();
+    //APlayerInput::Get().FixMouseCursor();
     
     // Move
     int32 MouseWheel = APlayerInput::Get().GetMouseWheelDelta();
@@ -150,7 +155,7 @@ void FViewportClient::HandleInput(const float DeltaTime)
     }
 
     CameraTransform.Translate(NewVelocity * DeltaTime * EditorCamera->Speed);
-   EditorCamera->Transform = CameraTransform;
+    EditorCamera->Transform = CameraTransform;
     
     // TODO: update engine config
     

@@ -21,9 +21,9 @@ public:
 
     virtual void HandleInput(const float DeltaTime) override;
 
-private:
     std::unique_ptr<SViewport> Viewport;
     
+private:
 };
 
 // 윈도우를 반으로 나누는 기능이 있는 윈도우로, 반으로 나뉘며 둘로 나눠진 윈도우를 참조 중

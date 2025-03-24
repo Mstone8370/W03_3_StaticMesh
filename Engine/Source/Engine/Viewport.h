@@ -90,6 +90,8 @@ public:
     int32 Height;
 
     D3D11_VIEWPORT D3DViewport;
+
+    ID3D11ShaderResourceView* RenderTargetSRV;
     
     ID3D11Texture2D* RenderTarget;
     ID3D11RenderTargetView* RenderTargetView;
