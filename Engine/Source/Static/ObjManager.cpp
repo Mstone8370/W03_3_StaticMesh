@@ -9,7 +9,8 @@
 // 전역 변수들
 TMap<FString, FStaticMesh*> FObjManager::ObjStaticMeshMap;
 FObjImporter FObjManager::Importer;
-// MaterialSubmeshMap: 머티리얼 이름 -> (MeshKey -> 서브메쉬 배열)
+
+// MaterialSubmeshMap: 머티리얼 이름 -> 서브메쉬 
 TMap<FName, FSubMesh> FObjManager::MaterialSubmeshMap;
 
 FStaticMesh* FObjManager::LoadObjStaticMeshAsset(const FString& PathFileName)
@@ -118,7 +119,7 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
 
     FName MeshKey = GetNormalizedMeshKey(ObjPath);
 
-    // 각 서브메쉬에 대해 MaterialSubmeshMap 업데이트 (머티리얼 하나당 하나의 서브메쉬가 나온다.)
+    //머티리얼 하나당 하나의 서브메쉬가 나온다.
     for (int i = 0; i < MaterialsName.Num(); ++i)
     {
         const FName& MaterialName = MaterialsName[i];
