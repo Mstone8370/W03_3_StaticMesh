@@ -111,9 +111,9 @@ void FEditorManager::HandleInput(const float DeltaTime)
     }
 }
 
-void FEditorManager::GetAllViewports(TArray<FViewport*>& OutViewports) const
+void FEditorManager::GetAllViewportWidgets(TArray<SViewport*>& OutViewports) const
 {
     OutViewports.Empty();
     // TODO: 트리 순환하면서 모두 찾기. 지금은 하드코딩
-    OutViewports.Add(EditorWindow.get()->Viewport.get()->Viewport.get());
+    OutViewports.Add(EditorWindow.get()->Viewport.get());
 }

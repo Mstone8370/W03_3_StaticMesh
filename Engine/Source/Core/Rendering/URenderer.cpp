@@ -175,15 +175,21 @@ void URenderer::PresentFinalRender()
     DeviceContext->VSSetShader(FinalVertexShader, nullptr, 0);
     DeviceContext->PSSetShader(FinalPixelShader, nullptr, 0);
 
-    TArray<FViewport*> AllViewports;
-    FEditorManager::Get().GetAllViewports(AllViewports);
-    for (const auto& Viewport : AllViewports)
+    TArray<SViewport*> AllViewportWidgets;
+    FEditorManager::Get().GetAllViewportWidgets(AllViewportWidgets);
+    for (const auto& ViewportWidget : AllViewportWidgets)
     {
+        FViewport* Viewport = ViewportWidget->Viewport.get();
+        if (!Viewport)
+        {
+            continue;
+        }
+        
         DeviceContext->PSSetShaderResources(4, 1, &Viewport->RenderTargetSRV);
         
         // 쿼드 크기 조정 (클라이언트 좌표 -> NDC 좌표)
-        int32 TopLeftX = Viewport->TopLeftX;
-        int32 TopLeftY = Viewport->TopLeftY;
+        int32 TopLeftX = ViewportWidget->Rect.Left;
+        int32 TopLeftY = ViewportWidget->Rect.Top;
         int32 Width = Viewport->Width;
         int32 Height = Viewport->Height;
         float CenterX = TopLeftX + Width / 2.0f;
@@ -352,8 +358,8 @@ void URenderer::InitViewport(FViewport* InViewport)
     }
 
     InViewport->D3DViewport = {
-        .TopLeftX = static_cast<float>(InViewport->TopLeftX),
-        .TopLeftY = static_cast<float>(InViewport->TopLeftY),
+        .TopLeftX = 0.f,
+        .TopLeftY = 0.f,
         .Width = static_cast<float>(InViewport->Width),
         .Height = static_cast<float>(InViewport->Height),
         .MinDepth = 0.0f,

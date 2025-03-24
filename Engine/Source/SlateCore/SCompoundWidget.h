@@ -25,8 +25,8 @@ public:
 
     virtual void HandleInput(const float DeltaTime) {}
 
-protected:
     // Client 기준으로 Left Top이 (0, 0)
     FRect Rect;
     
+protected:
 };

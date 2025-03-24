@@ -33,7 +33,7 @@ public:
 
 	void HandleInput(const float DeltaTime);
 
-	void GetAllViewports(TArray<FViewport*>& OutViewports) const;
+	void GetAllViewportWidgets(TArray<SViewport*>& OutViewports) const;
     
 private:
 	// 메인 에디터 윈도우

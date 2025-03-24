@@ -21,9 +21,9 @@ void SViewport::Init(const FRect& InRect)
         return;
     }
 
-    int32 Width = InRect.Right - InRect.Left;
-    int32 Height = InRect.Bottom - InRect.Top;
-    Viewport->Init(Rect.Left, Rect.Top, Width, Height);   
+    int32 Width = Rect.Right - Rect.Left;
+    int32 Height = Rect.Bottom - Rect.Top;
+    Viewport->Init(0, 0, Width, Height);   
 }
 
 void SViewport::Paint()
