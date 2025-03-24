@@ -14,8 +14,10 @@ void FEditorManager::Init()
 
 void FEditorManager::Tick(const float DeltaTime)
 {
-    if (EditorWindow.get())
+    if (EditorWindow)
     {
+        EditorWindow->HandleInput(DeltaTime);
+        EditorWindow->Tick(DeltaTime);
         EditorWindow->Paint();
     }
 }

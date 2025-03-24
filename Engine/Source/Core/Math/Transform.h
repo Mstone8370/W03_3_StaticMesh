@@ -38,7 +38,7 @@ public:
 	        
 	inline FMatrix GetViewMatrix() const
 	{
-		return FMatrix::LookAtLH(Position, Position + GetForward(), GetUp());
+		return FMatrix::LookAtLH(Position, Position + GetForwardVector(), GetUp());
 	}
 	
 	inline virtual void SetPosition(const FVector& InPosition)
@@ -122,7 +122,7 @@ public:
 		};
 	}
 
-	FVector GetForward() const
+	FVector GetForwardVector() const
 	{
 		// 쿼터니언을 회전 행렬로 변환
 		FMatrix RotationMatrix = FMatrix::GetRotateMatrix(Rotation);
@@ -137,7 +137,7 @@ public:
 		return Forward.GetSafeNormal();
 	}
 
-	FVector GetRight() const
+	FVector GetRightVector() const
 	{
 		FMatrix RotationMatrix = FMatrix::GetRotateMatrix(Rotation);
 

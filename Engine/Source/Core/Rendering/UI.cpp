@@ -361,9 +361,9 @@ void UI::RenderCameraSettings()
         APlayerController::Get().SetMouseSensitivity(CurrentSensitivity);
     }
 
-    FVector Forward = Camera->GetActorTransform().GetForward();
+    FVector Forward = Camera->GetActorTransform().GetForwardVector();
     FVector Up = Camera->GetActorTransform().GetUp();
-    FVector Right = Camera->GetActorTransform().GetRight();
+    FVector Right = Camera->GetActorTransform().GetRightVector();
 
     ImGui::Text("Camera GetForward(): (%.2f %.2f %.2f)", Forward.X, Forward.Y, Forward.Z);
     ImGui::Text("Camera GetUp(): (%.2f %.2f %.2f)", Up.X, Up.Y, Up.Z);

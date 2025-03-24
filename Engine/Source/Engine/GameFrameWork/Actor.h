@@ -37,8 +37,8 @@ public:
 
 	void SetBoundingBoxRenderable(bool bRenderable);
 
-	virtual FVector GetActorForwardVector() const { return GetActorTransform().GetForward(); }
-	virtual FVector GetActorRightVector() const { return GetActorTransform().GetRight(); }
+	virtual FVector GetActorForwardVector() const { return GetActorTransform().GetForwardVector(); }
+	virtual FVector GetActorRightVector() const { return GetActorTransform().GetRightVector(); }
 	virtual FVector GetActorUpVector() const { return GetActorTransform().GetUp(); }
 
 	virtual void SetActorTransform(const FTransform& InTransform);

@@ -2,6 +2,9 @@
 #include "Viewport.h"
 #include "SlateCore/SCompoundWidget.h"
 
+/**
+ * FViewport가 담기는 위젯
+ */
 class SViewport : public SCompoundWidget
 {
 public:
@@ -13,5 +16,5 @@ public:
     virtual void HandleInput(const float DeltaTime) override;
 
 private:
-    std::unique_ptr<FViewport> Viewport;
+    std::shared_ptr<FViewport> Viewport;
 };

@@ -12,6 +12,8 @@ public:
     virtual ~SWindow() override;
 
     virtual void Init(const FRect& InRect) override;
+
+    virtual void Tick(const float DeltaTime) override;
     
     virtual bool IsHover(FPoint coord) const override;
 

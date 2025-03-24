@@ -6,6 +6,7 @@
 #include "Core/Math/Transform.h"
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
+#include "Viewport.h"
 
 
 void URenderer::Create(HWND hWindow)
@@ -151,6 +152,98 @@ void URenderer::ReleaseConstantBuffer()
         ConstantPickingBuffer->Release();
         ConstantPickingBuffer = nullptr;
     }
+}
+
+void URenderer::InitViewport(FViewport* InViewport)
+{
+    if (!InViewport)
+    {
+        return;
+    }
+
+    InViewport->D3DViewport = {
+        .TopLeftX = static_cast<float>(InViewport->TopLeftX),
+        .TopLeftY = static_cast<float>(InViewport->TopLeftY),
+        .Width = static_cast<float>(InViewport->Width),
+        .Height = static_cast<float>(InViewport->Height),
+        .MinDepth = 0.0f,
+        .MaxDepth = 1.0f
+    };
+
+    HRESULT hr = S_OK;
+
+    // Create RenderTarget Texture
+    D3D11_TEXTURE2D_DESC RenderTargetDesc;
+    ZeroMemory(&RenderTargetDesc, sizeof(RenderTargetDesc));
+    RenderTargetDesc.Width = InViewport->Width;
+    RenderTargetDesc.Height = InViewport->Height;
+    RenderTargetDesc.MipLevels = 1;
+    RenderTargetDesc.ArraySize = 1;
+    RenderTargetDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    RenderTargetDesc.SampleDesc.Count = 1;
+    RenderTargetDesc.SampleDesc.Quality = 0;
+    RenderTargetDesc.Usage = D3D11_USAGE_DEFAULT;
+    RenderTargetDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+    RenderTargetDesc.CPUAccessFlags = 0;
+    RenderTargetDesc.MiscFlags = 0;
+    hr = Device->CreateTexture2D(&RenderTargetDesc, nullptr, &InViewport->RenderTarget);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    // Create RenderTargetView
+    D3D11_RENDER_TARGET_VIEW_DESC RenderTargetViewDesc;
+    ZeroMemory(&RenderTargetViewDesc, sizeof(RenderTargetViewDesc));
+    RenderTargetViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    hr = Device->CreateRenderTargetView(InViewport->RenderTarget, &RenderTargetViewDesc, &InViewport->RenderTargetView);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    // Create DepthStencil Texture
+    D3D11_TEXTURE2D_DESC DepthStencilBufferDesc;
+    ZeroMemory(&DepthStencilBufferDesc, sizeof(DepthStencilBufferDesc));
+    DepthStencilBufferDesc.Width = InViewport->Width;
+    DepthStencilBufferDesc.Height = InViewport->Height;
+    DepthStencilBufferDesc.MipLevels = 1;
+    DepthStencilBufferDesc.ArraySize = 1;
+    DepthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    DepthStencilBufferDesc.SampleDesc.Count = 1;
+    DepthStencilBufferDesc.SampleDesc.Quality = 0;
+    DepthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    DepthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    DepthStencilBufferDesc.CPUAccessFlags = 0;
+    DepthStencilBufferDesc.MiscFlags = 0;
+    hr = Device->CreateTexture2D(&DepthStencilBufferDesc, nullptr, &InViewport->DepthStencilBuffer);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    // Create DepthStencilView
+    D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc;
+    ZeroMemory(&DepthStencilViewDesc, sizeof(DepthStencilViewDesc));
+    DepthStencilViewDesc.Format = DepthStencilBufferDesc.Format;
+    DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    hr = Device->CreateDepthStencilView(InViewport->DepthStencilBuffer, &DepthStencilViewDesc, &InViewport->DepthStencilView);
+    if (FAILED(hr))
+    {
+        return;
+    }
+}
+
+void URenderer::SetViewport(FViewport* InViewport)
+{
+    if (!InViewport)
+    {
+        return;
+    }
+
+    DeviceContext->RSSetViewports(1, &InViewport->D3DViewport);
+    DeviceContext->OMSetRenderTargets(1, &InViewport->RenderTargetView, InViewport->DepthStencilView);
 }
 
 void URenderer::SwapBuffer()

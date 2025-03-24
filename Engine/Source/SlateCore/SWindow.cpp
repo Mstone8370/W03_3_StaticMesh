@@ -19,6 +19,11 @@ void SWindow::Init(const FRect& InRect)
     SCompoundWidget::Init(InRect);
 }
 
+void SWindow::Tick(const float DeltaTime)
+{
+    SCompoundWidget::Tick(DeltaTime);
+}
+
 bool SWindow::IsHover(FPoint coord) const
 {
     return Rect.Left < coord.X && coord.X < Rect.Right && Rect.Top < coord.Y && coord.Y < Rect.Bottom;

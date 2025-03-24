@@ -10,6 +10,7 @@ struct FVector
 
 	static const FVector ZeroVector;
 	static const FVector OneVector;
+	static const FVector UpVector;
 
 public:
 	static FVector Zero() { return {0, 0, 0}; }

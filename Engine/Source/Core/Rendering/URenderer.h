@@ -10,6 +10,7 @@
 #include "RendererDefine.h"
 #include "Constants.h"
 
+class FViewport;
 struct FVertexSimple;
 struct FVector4;
 
@@ -31,6 +32,10 @@ public:
 	void CreateConstantBuffer();
 
 	void ReleaseConstantBuffer();
+
+	void InitViewport(FViewport* InViewport);
+
+	void SetViewport(FViewport* InViewport);
 
 	/** 스왑 체인의 백 버퍼와 프론트 버퍼를 교체하여 화면에 출력 */
 	void SwapBuffer();

@@ -2,7 +2,7 @@
 #include "SViewport.h"
 
 SViewport::SViewport()
-    : Viewport(std::make_unique<FViewport>())
+    : Viewport(std::make_shared<FViewport>())
 {}
 
 SViewport::~SViewport()

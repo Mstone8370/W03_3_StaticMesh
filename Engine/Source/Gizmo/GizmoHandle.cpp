@@ -316,11 +316,11 @@ void AGizmoHandle::DoTransform(FTransform& CompTransform, FVector Delta, USceneC
     {
 	case ESelectedAxis::X:
 		WorldDirection = FVector(1, 0, 0);
-        LocalDirection = CompTransform.GetForward();
+        LocalDirection = CompTransform.GetForwardVector();
 		break;
 	case ESelectedAxis::Y:
 		WorldDirection = FVector(0, 1, 0);
-        LocalDirection = CompTransform.GetRight();
+        LocalDirection = CompTransform.GetRightVector();
 		break;
 	case ESelectedAxis::Z:
 		WorldDirection = FVector(0, 0, 1);
