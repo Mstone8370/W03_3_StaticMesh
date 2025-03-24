@@ -337,7 +337,7 @@ void URenderer::RenderMesh(class UMeshComponent* MeshComp)
 void URenderer::PrepareMesh()
 {
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0); // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    //DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("StaticMeshShader")));
 }
@@ -354,7 +354,7 @@ void URenderer::PrepareWorldGrid()
     DeviceContext->IASetVertexBuffers(0, 1, &GridVertexBuffer, &GridStride, &Offset);
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    //DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(GridBlendState, nullptr, 0xFFFFFFFF);
 
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -1295,7 +1295,7 @@ void URenderer::PrepareDebugLines()
     DeviceContext->IASetVertexBuffers(0, 1, &DebugLineVertexBuffer, &Stride, &Offset);
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    //DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -1428,7 +1428,7 @@ void URenderer::UpdateConstantPicking(FVector4 UUIDColor) const
 void URenderer::PrepareMain()
 {
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0); // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
+    //DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderMain")));
 }
@@ -1668,104 +1668,91 @@ FMatrix URenderer::GetProjectionMatrix() const
 }
 void URenderer::UpdateViewports(UWorld* RenderWorld)
 {
-    //메인 카메라의 특정 수치를 서브카메라로 이동
-    ACamera* MainCamera = FEditorManager::Get().GetCamera();
-
-    if (MainCamera)
+    if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
     {
         const FTransform& MainTransform = MainCamera->GetActorTransform();
         const float FieldOfView = MainCamera->GetFieldOfView();
         Viewports[0].ViewCamera->SetActorTransform(MainTransform);
         Viewports[0].ViewCamera->SetFieldOfView(FieldOfView);
     }
+
     ResizeViewports();
     RenderViewports(RenderWorld);
-
 }
+
 void URenderer::ResizeViewports()
 {
-    //입력 받고 뷰포트 크기 조절
     if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
     {
-        //Viewport 크기 동적 계산 변수
-        const float TotalWidth = ViewportInfo.Width;
-        const float TotalHeight = ViewportInfo.Height;
-
-        float LeftWidth = TotalWidth * HorizontalSplitRatio;
-        float RightWidth = TotalWidth - LeftWidth;
-
-        float TopHeight = TotalHeight * VerticalSplitRatio;
-        float BottomHeight = TotalHeight - TopHeight;
-        for (int i = 0; i < Viewports.Num(); ++i)
-        {
-            FViewport& View = Viewports[i];
-            //Viewport 크기 동적 계산
-            float X = (i % 2 == 0) ? 0.0f : LeftWidth;
-            float Y = (i / 2 == 0) ? 0.0f : TopHeight;
-            float W = (i % 2 == 0) ? LeftWidth : RightWidth;
-            float H = (i / 2 == 0) ? TopHeight : BottomHeight;
-
-            View.ViewportDesc.TopLeftX = X;
-            View.ViewportDesc.TopLeftY = Y;
-            View.ViewportDesc.Width = W;
-            View.ViewportDesc.Height = H;
-        }
+        ComputeViewportRects();
+        RecreateAllViewportRTVs();
     }
     
 }
 void URenderer::RenderViewports(UWorld* RenderWorld)
 {
+    if (!RenderWorld) return;
 
-    // 메인 카메라 기준 입력 적용
-
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
-    for (int i = 0; i < Viewports.Num(); ++i)
+    // 1. 각 Viewport의 RTV에 렌더링
+    for (FViewport& View : Viewports)
     {
-        FViewport& View = Viewports[i];
-        if (View.RTV == nullptr || View.DSV == nullptr || RenderWorld == nullptr)
-            continue;
-
-
-        //렌더링
-        RenderViewport(View,RenderWorld);
+        RenderViewport(View, RenderWorld);
     }
-    UpdateViewMatrix(FEditorManager::Get().GetCamera()->GetActorTransform());
-    UpdateProjectionMatrix(FEditorManager::Get().GetCamera());
+    // 2. 합성 (SRV를 메인 FrameBuffer에 출력)
+    CompositeViewportsToBackBuffer();
+
+    // 3. 메인 카메라 기준으로 ViewMatrix 복구 (디버그 등)
+    if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
+    {
+        UpdateViewMatrix(MainCamera->GetActorTransform());
+        UpdateProjectionMatrix(MainCamera);
+    }
 }
 
-void URenderer::RenderViewport(const FViewport& View, UWorld* RenderWorld)
+
+void URenderer::RenderViewport(FViewport& View, UWorld* RenderWorld)
 {
-    if (!RenderWorld) return;
-    //DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
-    // 뷰 행렬, 프로젝션 행렬 업데이트
-    //UpdateViewMatrix(ViewCamera->GetActorTransform());
-    //UpdateProjectionMatrix(ViewCamera);
+    if (!RenderWorld || View.RTV == nullptr || View.DSV == nullptr)
+        return;
 
-    // 기본 렌더링 단계 수행
-    //PrepareRender();
+    // 1. 해당 뷰포트의 RTV, DSV로 설정
+    ID3D11RenderTargetView* RTV = View.RTV;
+    ID3D11DepthStencilView* DSV = View.DSV;
+    DeviceContext->OMSetRenderTargets(1, &RTV, DSV);
 
+    // 2. Clear
+    DeviceContext->ClearRenderTargetView(RTV, ViewportClearColor);
+    DeviceContext->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+    // 3. 뷰포트 설정
     DeviceContext->RSSetViewports(1, &View.ViewportDesc);
-    // 카메라가 지정되어 있으면 업데이트
+
+    // 4. 뷰포트의 카메라로 상수버퍼 업데이트
     if (View.ViewCamera)
     {
         UpdateViewMatrix(View.ViewCamera->GetActorTransform());
-        UpdateProjectionMatrixAspect(View.ViewCamera, View.ViewportDesc.Width,View.ViewportDesc.Height);
+        UpdateProjectionMatrixAspect(View.ViewCamera, View.ViewportDesc.Width, View.ViewportDesc.Height);
     }
+
+    // 5. 씬 렌더링
     RenderWorld->RenderWorldGrid(*this);
-    RenderWorld->RenderPickingTexture(*this);
     RenderWorld->RenderMainTexture(*this);
     RenderWorld->RenderBillboard(*this);
     RenderWorld->RenderText(*this);
     RenderWorld->RenderMesh(*this);
     RenderWorld->RenderBoundingBoxes(*this);
-    RenderWorld->RenderDebugLines(*this, 0.f); // 나중에 DeltaTime 전달하도록 수정
-
+    RenderWorld->RenderDebugLines(*this, 0.f);
+    //RTV가 변경되기 때문에 후순위
+    //RenderWorld->RenderPickingTexture(*this);
 }
+
 
 void URenderer::InitializeViewports()
 {
     Viewports.Empty();
-
+    CreateCompositeConstantBuffer();
+    CreateScreenConstantBuffer();
+    CreateFullscreenQuadVertexBuffer();
     const float HalfWidth = ViewportInfo.Width / 2.0f;
     const float HalfHeight = ViewportInfo.Height / 2.0f;
 
@@ -1780,12 +1767,156 @@ void URenderer::InitializeViewports()
             FVector2D Size = FVector2D(HalfWidth, HalfHeight);
 
             FViewport NewViewport;
+            NewViewport.Initialize(Device, Size.X, Size.Y, Position);
             NewViewport.Position = Position;
             NewViewport.Size = Size;
-            NewViewport.Initialize(Device, Size.X, Size.Y, Position);
             NewViewport.ViewCamera = FEditorManager::Get().GetViewportCamera(ViewType);
 
             Viewports.Add(NewViewport);
         }
+    }
+    ComputeViewportRects();
+    RecreateAllViewportRTVs();
+}
+
+void URenderer::CreateCompositeConstantBuffer()
+{
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.Usage = D3D11_USAGE_DYNAMIC;
+    Desc.ByteWidth = sizeof(FCbComposite) + 0xf & 0xfffffff0; // 16바이트 정렬
+    Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    HRESULT hr = Device->CreateBuffer(&Desc, nullptr, &CompositeConstantBuffer);
+    if (FAILED(hr))
+    {
+        UE_LOG("Failed to create CompositeConstantBuffer");
+    }
+}
+void URenderer::UpdateCompositeConstantBuffer(const FVector2D& Size, const FVector2D& Position)
+{
+    D3D11_MAPPED_SUBRESOURCE Mapped;
+    if (SUCCEEDED(DeviceContext->Map(CompositeConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
+    {
+        FCbComposite* Constants = reinterpret_cast<FCbComposite*>(Mapped.pData);
+        Constants->ViewportSize = Size;
+        Constants->ViewportPosition = Position;
+        DeviceContext->Unmap(CompositeConstantBuffer, 0);
+    }
+
+    DeviceContext->VSSetConstantBuffers(0, 1, &CompositeConstantBuffer); // b0
+}
+void URenderer::CompositeViewportsToBackBuffer()
+{
+    UpdateScreenConstantBuffer(ViewportInfo.Width, ViewportInfo.Height);
+    //DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor);
+    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, nullptr);
+    DeviceContext->OMSetDepthStencilState(nullptr, 0);
+    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderComposite")));
+
+    DeviceContext->VSSetShader(ShaderCache->GetVertexShader(TEXT("ShaderComposite")), nullptr, 0);
+    DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("ShaderComposite")), nullptr, 0);
+    DeviceContext->PSSetSamplers(0, 1, &SamplerState);
+
+    UINT stride = sizeof(FVertexUV);
+    UINT offset = 0;
+    DeviceContext->IASetVertexBuffers(0, 1, &TextureVertexBuffer, &stride, &offset);
+
+    for (const FViewport& View : Viewports)
+    {
+        if (View.ShaderResourceView == nullptr) continue;
+
+        DeviceContext->PSSetShaderResources(0, 1, &View.ShaderResourceView);
+
+        D3D11_VIEWPORT VP = View.ViewportDesc;
+        DeviceContext->RSSetViewports(1, &VP);
+
+        UpdateCompositeConstantBuffer(
+            FVector2D(VP.Width, VP.Height),
+            //FVector2D(0, 0)
+            FVector2D(VP.TopLeftX, VP.TopLeftY)
+        );
+
+        DeviceContext->Draw(6, 0); // 풀스크린 쿼드
+    }
+}
+void URenderer::CreateScreenConstantBuffer()
+{
+    D3D11_BUFFER_DESC Desc = {};
+    Desc.Usage = D3D11_USAGE_DYNAMIC;
+    Desc.ByteWidth = sizeof(FCbScreenInfo) + 0xf & 0xfffffff0;
+    Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    Device->CreateBuffer(&Desc, nullptr, &ScreenConstantBuffer);
+}
+void URenderer::UpdateScreenConstantBuffer(float Width, float Height)
+{
+    D3D11_MAPPED_SUBRESOURCE Mapped;
+    if (SUCCEEDED(DeviceContext->Map(ScreenConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped)))
+    {
+        FCbScreenInfo* Data = (FCbScreenInfo*)Mapped.pData;
+        Data->ScreenSize = FVector2D(Width, Height);
+        DeviceContext->Unmap(ScreenConstantBuffer, 0);
+    }
+
+    DeviceContext->VSSetConstantBuffers(3, 1, &ScreenConstantBuffer); // b3
+}
+void URenderer::CreateFullscreenQuadVertexBuffer()
+{
+    D3D11_BUFFER_DESC BufferDesc = {};
+    BufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    BufferDesc.ByteWidth = sizeof(QuadVertices); // 6개 정점
+    BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA InitData = {};
+    InitData.pSysMem = QuadVertices;
+
+    HRESULT hr = Device->CreateBuffer(&BufferDesc, &InitData, &TextureVertexBuffer);
+    if (FAILED(hr))
+    {
+        UE_LOG("Failed to create TextureVertexBuffer");
+    }
+}
+void URenderer::ComputeViewportRects()
+{
+    const float TotalWidth = ViewportInfo.Width;
+    const float TotalHeight = ViewportInfo.Height;
+
+    float HalfPad = ViewportPadding * 0.5f;
+
+    float LeftWidth = (TotalWidth * HorizontalSplitRatio) - HalfPad;
+    float RightWidth = (TotalWidth * (1.0f - HorizontalSplitRatio)) - HalfPad;
+    float TopHeight = (TotalHeight * VerticalSplitRatio) - HalfPad;
+    float BottomHeight = (TotalHeight * (1.0f - VerticalSplitRatio)) - HalfPad;
+
+    for (int i = 0; i < Viewports.Num(); ++i)
+    {
+        FViewport& View = Viewports[i];
+
+        const bool bLeft = (i % 2 == 0);
+        const bool bTop = (i / 2 == 0);
+
+        float X = bLeft ? 0.0f : LeftWidth + ViewportPadding;
+        float Y = bTop  ? 0.0f : TopHeight + ViewportPadding;
+        float W = bLeft ? LeftWidth : RightWidth;
+        float H = bTop  ? TopHeight : BottomHeight;
+
+        View.ViewportDesc.TopLeftX = X;
+        View.ViewportDesc.TopLeftY = Y;
+        View.ViewportDesc.Width = FMath::Max(W, 0.0f);
+        View.ViewportDesc.Height = FMath::Max(H, 0.0f);
+    }
+}
+void URenderer::RecreateAllViewportRTVs()
+{
+    for (FViewport& View : Viewports)
+    {
+        View.Release();
+        View.Initialize(Device, View.ViewportDesc.Width, View.ViewportDesc.Height,
+                        FVector2D(View.ViewportDesc.TopLeftX, View.ViewportDesc.TopLeftY));
     }
 }

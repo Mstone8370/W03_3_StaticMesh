@@ -352,6 +352,17 @@
     <ClCompile Include="Source\Utils\ObjReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\ShaderComposite.hlsl">
+      <ObjectFileOutput>C:\Users\Jungle\Documents\GitHub\W03_3_StaticMesh\Engine\Binaries\x64\Debug\%(Filename).cso</ObjectFileOutput>
+      <TrackerLogDirectory>C:\Users\Jungle\Documents\GitHub\W03_3_StaticMesh\Engine\Intermediate\Build\x64\Debug\Engine.tlog\</TrackerLogDirectory>
+      <EntryPointName>mainVS</EntryPointName>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <ShaderModel>4.0_level_9_3</ShaderModel>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <DisableOptimizations>true</DisableOptimizations>
+      <EnableDebuggingInformation>true</EnableDebuggingInformation>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\ShaderTexture.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

@@ -13,11 +13,21 @@ void FViewport::Initialize(ID3D11Device* Device, float InWidth, float InHeight, 
     RTDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     RTDesc.SampleDesc.Count = 1;
     RTDesc.Usage = D3D11_USAGE_DEFAULT;
-    RTDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+    //RTDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+    RTDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
     Device->CreateTexture2D(&RTDesc, nullptr, &RenderTarget);
     Device->CreateRenderTargetView(RenderTarget, nullptr, &RTV);
 
+    
+    //ShaderResourceView 생성 (합성에 필수)
+    D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+    SRVDesc.Format = RTDesc.Format;
+    SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    SRVDesc.Texture2D.MipLevels = 1;
+    SRVDesc.Texture2D.MostDetailedMip = 0;
+
+    Device->CreateShaderResourceView(RenderTarget, &SRVDesc, &ShaderResourceView);
     // Depth Stencil 생성
     D3D11_TEXTURE2D_DESC DSDesc = RTDesc;
     DSDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;

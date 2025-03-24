@@ -221,7 +221,7 @@ protected:
     ID3D11Buffer* CbChangeOnResizeAndFov = nullptr; // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
 
     //FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
-    FLOAT ClearColor[4] = {0, 0, 0, 1.0f};
+    FLOAT ClearColor[4] = {1, 1, 1, 1.0f};
     D3D11_VIEWPORT ViewportInfo = {}; // 렌더링 영역을 정의하는 뷰포트 정보
 
     ID3D11BlendState* GridBlendState = nullptr;
@@ -317,9 +317,51 @@ public:
     void InitializeViewports();
     void UpdateViewports(UWorld* RenderWorld);
     void ResizeViewports();
+    void ComputeViewportRects();
+    void RecreateAllViewportRTVs();
+    
     void RenderViewports(UWorld* RenderWorld);
-    void RenderViewport(const FViewport& View, UWorld* RenderWorld);
+    void RenderViewport(FViewport& View, UWorld* RenderWorld);
     float HorizontalSplitRatio = 0.5f; // 수평 분할 비율 (0.0 ~ 1.0)
     float VerticalSplitRatio = 0.5f; // 수직 분할 비율 (0.0 ~ 1.0)
+
+    //다중 RTV 관련
+    float ViewportPadding = 2.f; // in pixels
+
+    ID3D11Buffer* CompositeConstantBuffer = nullptr;
+    
+    const float ViewportClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    const float TestClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    void CreateCompositeConstantBuffer();
+    void UpdateCompositeConstantBuffer(const FVector2D& Size, const FVector2D& Position);
+    void CompositeViewportsToBackBuffer();
+    struct FVertexUV
+    {
+        float X, Y, Z;
+        float U, V;
+    };
+    FVertexUV QuadVertices[6] =
+{
+        // Triangle 1
+        {-1.f,  1.f, 0.f, 0.f, 0.f}, // Top-left
+        { 1.f,  1.f, 0.f, 1.f, 0.f}, // Top-right
+        {-1.f, -1.f, 0.f, 0.f, 1.f}, // Bottom-left
+
+        // Triangle 2
+        {-1.f, -1.f, 0.f, 0.f, 1.f}, // Bottom-left
+        { 1.f,  1.f, 0.f, 1.f, 0.f}, // Top-right
+        { 1.f, -1.f, 0.f, 1.f, 1.f}, // Bottom-right
+    };
+    struct FCbScreenInfo
+    {
+        FVector2D ScreenSize;
+        FVector2D Padding = FVector2D::ZeroVector;
+    };
+    void CreateFullscreenQuadVertexBuffer();
+
+    void CreateScreenConstantBuffer();
+    void UpdateScreenConstantBuffer(float Width, float Height);
+
+    ID3D11Buffer* ScreenConstantBuffer = nullptr;
 #pragma endregion Viewports
 };

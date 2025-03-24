@@ -53,3 +53,8 @@ struct FVertexGrid
 {
 	FVector Location;
 };
+struct FCbComposite
+{
+	FVector2D ViewportSize;
+	FVector2D ViewportPosition;
+};
