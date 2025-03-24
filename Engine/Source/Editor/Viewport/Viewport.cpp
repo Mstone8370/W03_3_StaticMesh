@@ -56,4 +56,5 @@ void FViewport::Release()
     if (RTV) { RTV->Release(); RTV = nullptr; }
     if (DepthStencil) { DepthStencil->Release(); DepthStencil = nullptr; }
     if (DSV) { DSV->Release(); DSV = nullptr; }
+    if (ShaderResourceView) { ShaderResourceView->Release(); ShaderResourceView = nullptr; }
 }

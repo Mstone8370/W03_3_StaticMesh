@@ -1699,6 +1699,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
     {
         RenderViewport(View, RenderWorld);
     }
+    RenderWorld->RenderPickingTexture(*this);
     // 2. 합성 (SRV를 메인 FrameBuffer에 출력)
     CompositeViewportsToBackBuffer();
 
@@ -1743,8 +1744,6 @@ void URenderer::RenderViewport(FViewport& View, UWorld* RenderWorld)
     RenderWorld->RenderMesh(*this);
     RenderWorld->RenderBoundingBoxes(*this);
     RenderWorld->RenderDebugLines(*this, 0.f);
-    //RTV가 변경되기 때문에 후순위
-    //RenderWorld->RenderPickingTexture(*this);
 }
 
 
