@@ -157,7 +157,7 @@ void UEngine::Run()
         if (Renderer->IsOccluded()) continue;
 
         // Renderer Update
-        Renderer->PrepareRender();
+        //Renderer->PrepareRender();
 
         // World Update
         if (World)
@@ -176,7 +176,8 @@ void UEngine::Run()
         FEditorManager::Get().HandleInput(DeltaTime);
         APlayerController::Get().ProcessPlayerInput(DeltaTime);
 
-        Renderer->SwapBuffer();
+        Renderer->PresentFinalRender();
+        //Renderer->SwapBuffer();
 
         // FPS 제한
         if (bShouldLimitFPS)

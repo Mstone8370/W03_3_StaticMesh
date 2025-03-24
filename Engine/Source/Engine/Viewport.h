@@ -32,6 +32,8 @@ public:
     FViewportClient();
     virtual ~FViewportClient() = default;
 
+    void Init(int32 InWidth, int32 InHeight);
+
     /**
      * TODO: FViewportClient는 카메라 소유
      *       렌더 담당

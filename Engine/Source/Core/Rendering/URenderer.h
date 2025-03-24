@@ -37,6 +37,12 @@ public:
 
 	void SetViewport(FViewport* InViewport);
 
+	void ClearViewport(FViewport* InViewport);
+
+	void SetViewMatrix(const FMatrix& InViewMatrix);
+
+	void SetProjectionMatrix(const FMatrix& InProjectionMatrix, float InNearClip, float InFarClip);
+
 	/** 스왑 체인의 백 버퍼와 프론트 버퍼를 교체하여 화면에 출력 */
 	void SwapBuffer();
 
@@ -199,6 +205,45 @@ private:
 	 * @param NewSize 정점 개수. 버퍼의 크기에 비례.
 	 */
 	void CreateDebugLineVertexBuffer(uint32 NewSize);
+
+public:
+	////////
+	/// Final Render
+	////////
+	struct FFinalVertex
+	{
+		float X, Y, Z, U, V;
+	};
+
+	FFinalVertex FinalQuad[4] = {
+		{-1.f, 1.f, 0.f, 0.f, 0.f},
+		{1.f, 1.f, 0.f, 1.f, 0.f },
+		{-1.f, -1.f, 0.f, 0.f, 1.f},
+		{1.f, -1.f, 0.f, 1.f, 1.f}
+	};
+
+	uint32 FinalQuadIndex[6] = { 0, 1, 2, 2, 1, 3 };
+
+	ID3D11Buffer* FinalVertexBuffer;
+	ID3D11Buffer* FinalIndexBuffer;
+	ID3D11ShaderResourceView* FinalTexture;
+
+	ID3D11VertexShader* FinalVertexShader;
+	ID3D11PixelShader* FinalPixelShader;
+	ID3D11InputLayout* FinalInputLayout;
+
+	ID3D11SamplerState* FinalSamplerState;
+
+	ID3D11Texture2D* FinalTexture2D;
+	ID3D11RenderTargetView* FinalRenderTargetView;
+	IDXGISwapChain* FinalSwapChain;
+	D3D11_VIEWPORT FinalViewport;
+
+	void PresentFinalRender();
+	
+////////
+/// Final Render
+////////
 
 protected:
 	HWND hWnd = nullptr;                                    // 렌더러가 사용할 윈도우 핸들

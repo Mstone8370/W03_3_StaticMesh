@@ -15,6 +15,7 @@ SViewport::~SViewport()
 
 void SViewport::Init(const FRect& InRect)
 {
+    Rect = InRect;
     if (!Viewport)
     {
         return;
@@ -49,4 +50,9 @@ void SViewport::HandleInput(const float DeltaTime)
     {
         Viewport->HandleInput(DeltaTime);
     }
+}
+
+bool SViewport::IsHover(FPoint coord) const
+{
+    return Rect.Left < coord.X && coord.X < Rect.Right && Rect.Top < coord.Y && coord.Y < Rect.Bottom;
 }

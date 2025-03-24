@@ -16,6 +16,8 @@ public:
     virtual void Paint() override;
 
     virtual void HandleInput(const float DeltaTime) override;
+    
+    virtual bool IsHover(FPoint coord) const override;
 
 private:
     std::shared_ptr<FViewport> Viewport;

@@ -12,8 +12,115 @@
 void URenderer::Create(HWND hWindow)
 {
     hWnd = hWindow;
-    CreateDeviceAndSwapChain(hWindow);
-    CreateFrameBuffer();
+
+    // Final Render
+    D3D_FEATURE_LEVEL FeatureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+
+    DXGI_SWAP_CHAIN_DESC FinalSwapChainDesc = {};
+    FinalSwapChainDesc.BufferDesc.Width = 0;
+    FinalSwapChainDesc.BufferDesc.Height = 0;
+    FinalSwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    FinalSwapChainDesc.SampleDesc.Count = 1;
+    FinalSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    FinalSwapChainDesc.BufferCount = 2;
+    FinalSwapChainDesc.OutputWindow = hWindow;
+    FinalSwapChainDesc.Windowed = TRUE;
+    FinalSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    HRESULT hr = D3D11CreateDeviceAndSwapChain(
+        nullptr,
+        D3D_DRIVER_TYPE_HARDWARE,
+        nullptr,
+        D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_DEBUG,
+        FeatureLevels,
+        ARRAYSIZE(FeatureLevels),
+        D3D11_SDK_VERSION,
+        &FinalSwapChainDesc,
+        &FinalSwapChain,
+        &Device,
+        nullptr,   
+        &DeviceContext
+    );
+    if (FAILED(hr))
+        return;
+
+    hr = FinalSwapChain->GetDesc(&FinalSwapChainDesc);
+    if (FAILED(hr))
+        return;
+    FinalViewport = { 0.0f, 0.0f, (float)FinalSwapChainDesc.BufferDesc.Width, (float)FinalSwapChainDesc.BufferDesc.Height, 0.0f, 1.0f };
+    ViewportInfo = FinalViewport; // TEMP
+    
+    hr = FinalSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&FinalTexture2D);
+    if (FAILED(hr))
+        return;
+    
+    D3D11_RENDER_TARGET_VIEW_DESC FinalRTVDesc;
+    ZeroMemory(&FinalRTVDesc, sizeof(FinalRTVDesc));
+    FinalRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    FinalRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    hr = Device->CreateRenderTargetView(FinalTexture2D, &FinalRTVDesc, &FinalRenderTargetView);
+    if (FAILED(hr))
+        return;
+    
+    D3D11_BUFFER_DESC FinalVertexBufferDesc;
+    ZeroMemory(&FinalVertexBufferDesc, sizeof(FinalVertexBufferDesc));
+    FinalVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    FinalVertexBufferDesc.ByteWidth = sizeof(FFinalVertex) * 4;
+    FinalVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    FinalVertexBufferDesc.CPUAccessFlags = 0;
+    D3D11_SUBRESOURCE_DATA InitData;
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = FinalQuad;
+    hr = Device->CreateBuffer(&FinalVertexBufferDesc, &InitData, &FinalVertexBuffer);
+    if (FAILED(hr))
+        return;
+
+    FinalVertexBufferDesc.ByteWidth = sizeof(uint32) * 6;
+    FinalVertexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    InitData.pSysMem = FinalQuadIndex;
+    hr = Device->CreateBuffer(&FinalVertexBufferDesc, &InitData, &FinalIndexBuffer);
+    if (FAILED(hr))
+        return;
+
+    ID3DBlob* VSBlob;
+    ID3DBlob* PSBlob;
+    hr = D3DCompileFromFile(L"Shaders/ShaderFinal.hlsl", nullptr, nullptr, "mainVS", "vs_5_0", 0, 0, &VSBlob, nullptr);
+    if (FAILED(hr))
+        return;
+    hr = Device->CreateVertexShader(VSBlob->GetBufferPointer(), VSBlob->GetBufferSize(), nullptr, &FinalVertexShader);
+    if (FAILED(hr))
+        return;
+    hr = D3DCompileFromFile(L"Shaders/ShaderFinal.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", 0, 0, &PSBlob, nullptr);
+    if (FAILED(hr))
+        return;
+    hr = Device->CreatePixelShader(PSBlob->GetBufferPointer(), PSBlob->GetBufferSize(), nullptr, &FinalPixelShader);
+    if (FAILED(hr))
+        return;
+    
+    D3D11_INPUT_ELEMENT_DESC layout[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    hr = Device->CreateInputLayout(layout, ARRAYSIZE(layout), VSBlob->GetBufferPointer(), VSBlob->GetBufferSize(), &FinalInputLayout);
+    if (FAILED(hr))
+        return;
+
+    D3D11_SAMPLER_DESC FinalSamplerDesc;
+    ZeroMemory(&FinalSamplerDesc, sizeof(FinalSamplerDesc));
+    FinalSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    FinalSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    FinalSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    FinalSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    FinalSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    FinalSamplerDesc.MipLODBias = -1;
+    FinalSamplerDesc.MinLOD = 0;
+    FinalSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    hr = Device->CreateSamplerState(&FinalSamplerDesc, &FinalSamplerState);
+    if (FAILED(hr))
+        return;
+    
+    //CreateDeviceAndSwapChain(hWindow);
+    //CreateFrameBuffer();
     CreateRasterizerState();
     CreateBufferCache();
     CreateShaderCache();
@@ -29,6 +136,28 @@ void URenderer::Create(HWND hWindow)
     AdjustDebugLineVertexBuffer(DebugLineNumStep);
     InitMatrix();
 }
+
+void URenderer::PresentFinalRender()
+{
+    DeviceContext->RSSetViewports(1, &FinalViewport);
+    DeviceContext->OMSetRenderTargets(1, &FinalRenderTargetView, nullptr);
+
+    uint32 FinalStride = sizeof(FFinalVertex);
+    uint32 Offset = 0;
+    DeviceContext->IASetInputLayout(FinalInputLayout);
+    DeviceContext->IASetVertexBuffers(0, 1, &FinalVertexBuffer, &FinalStride, &Offset);
+    DeviceContext->IASetIndexBuffer(FinalIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    DeviceContext->VSSetShader(FinalVertexShader, nullptr, 0);
+    DeviceContext->PSSetShader(FinalPixelShader, nullptr, 0);
+    DeviceContext->PSSetSamplers(0, 1, &FinalSamplerState);
+
+    DeviceContext->DrawIndexed(6, 0, 0);
+
+    FinalSwapChain->Present(1, 0);
+}
+
 
 void URenderer::Release()
 {
@@ -85,10 +214,10 @@ void URenderer::CreateConstantBuffer()
         return;
     
     D3D11_BUFFER_DESC DefaultConstantBufferDesc = {};
-    DefaultConstantBufferDesc.Usage = D3D11_USAGE_DEFAULT;                        // 특정 상황에만 CPU에서 업데이트 하기 위해
+    DefaultConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;                        // 특정 상황에만 CPU에서 업데이트 하기 위해
     DefaultConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;             // 상수 버퍼로 설정
     DefaultConstantBufferDesc.ByteWidth = sizeof(FCbChangeOnResizeAndFov) + 0xf & 0xfffffff0;  // 16byte의 배수로 올림
-    DefaultConstantBufferDesc.CPUAccessFlags = 0;                                 // CPU에서 접근 불가능
+    DefaultConstantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;                                 // CPU에서 접근 불가능
     hr = Device->CreateBuffer(&DefaultConstantBufferDesc, nullptr, &CbChangeOnResizeAndFov);
     if (FAILED(hr))
         return;
@@ -233,6 +362,7 @@ void URenderer::InitViewport(FViewport* InViewport)
     {
         return;
     }
+    return;
 }
 
 void URenderer::SetViewport(FViewport* InViewport)
@@ -244,6 +374,46 @@ void URenderer::SetViewport(FViewport* InViewport)
 
     DeviceContext->RSSetViewports(1, &InViewport->D3DViewport);
     DeviceContext->OMSetRenderTargets(1, &InViewport->RenderTargetView, InViewport->DepthStencilView);
+}
+
+void URenderer::ClearViewport(FViewport* InViewport)
+{
+    if (!InViewport)
+    {
+        return;
+    }
+
+    DeviceContext->ClearRenderTargetView(InViewport->RenderTargetView, ClearColor);
+    DeviceContext->ClearDepthStencilView(InViewport->DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0, 1);
+}
+
+void URenderer::SetViewMatrix(const FMatrix& InViewMatrix)
+{
+    // Update Constant Buffer
+    D3D11_MAPPED_SUBRESOURCE MappedSubresource;
+    DeviceContext->Map(CbChangeOnCameraMove, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource);
+    if (FCbChangeOnCameraMove* Constants = static_cast<FCbChangeOnCameraMove*>(MappedSubresource.pData))
+    {
+        Constants->ViewMatrix = FMatrix::Transpose(InViewMatrix);
+        Constants->ViewPosition = InViewMatrix.GetTranslation();
+    }
+    // UnMap해서 GPU에 값이 전달 될 수 있게 함
+    DeviceContext->Unmap(CbChangeOnCameraMove, 0);
+}
+
+void URenderer::SetProjectionMatrix(const FMatrix& InProjectionMatrix, float InNearClip, float InFarClip)
+{
+    // Update Constant Buffer
+    D3D11_MAPPED_SUBRESOURCE MappedSubresource;
+    DeviceContext->Map(CbChangeOnResizeAndFov, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource);
+    if (FCbChangeOnResizeAndFov* Constants = static_cast<FCbChangeOnResizeAndFov*>(MappedSubresource.pData))
+    {
+        Constants->ProjectionMatrix = FMatrix::Transpose(InProjectionMatrix);
+        Constants->NearClip = InNearClip;
+        Constants->FarClip = InFarClip;
+    }
+    // UnMap해서 GPU에 값이 전달 될 수 있게 함
+    DeviceContext->Unmap(CbChangeOnResizeAndFov, 0);
 }
 
 void URenderer::SwapBuffer()
@@ -1637,11 +1807,16 @@ void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
     }
 
     // Update Constant Buffer
-    FCbChangeOnResizeAndFov ChangesOnResizeAndFov;
-    ChangesOnResizeAndFov.ProjectionMatrix = FMatrix::Transpose(ProjectionMatrix);
-    ChangesOnResizeAndFov.FarClip = FarClip;
-    ChangesOnResizeAndFov.NearClip = NearClip;
-    DeviceContext->UpdateSubresource(CbChangeOnResizeAndFov, 0, NULL, &ChangesOnResizeAndFov, 0, 0);
+    D3D11_MAPPED_SUBRESOURCE MappedSubresource;
+    DeviceContext->Map(CbChangeOnResizeAndFov, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource);
+    if (FCbChangeOnResizeAndFov* Constants = static_cast<FCbChangeOnResizeAndFov*>(MappedSubresource.pData))
+    {
+        Constants->ProjectionMatrix = FMatrix::Transpose(ProjectionMatrix);
+        Constants->NearClip = NearClip;
+        Constants->FarClip = FarClip;
+    }
+    // UnMap해서 GPU에 값이 전달 될 수 있게 함
+    DeviceContext->Unmap(CbChangeOnResizeAndFov, 0);
 }
 
 void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight)

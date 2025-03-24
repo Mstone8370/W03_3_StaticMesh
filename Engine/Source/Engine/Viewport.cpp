@@ -10,7 +10,7 @@ FViewportClient::FViewportClient()
     , ProjectionMatrix(FMatrix::Identity)
 {
     EditorCamera = std::make_unique<FEditorCamera>();
-    EditorCamera->Transform = FTransform(FVector(4.f, -3.f, 3.f), FVector::ZeroVector, FVector::OneVector);;
+    EditorCamera->Transform = FTransform(FVector(-4.f, 0.f, 3.f), FVector::ZeroVector, FVector::OneVector);;
     EditorCamera->ProjectionMode = ECameraProjectionMode::ECP_Perspective;
     EditorCamera->FOV = 100.f;
     EditorCamera->ScreenSize = 100.f;
@@ -19,6 +19,18 @@ FViewportClient::FViewportClient()
     EditorCamera->Speed = 10.f;
     EditorCamera->Sensitivity = 0.2f;
     EditorCamera->MaxPitch = 89.9f;
+}
+
+void FViewportClient::Init(int32 InWidth, int32 InHeight)
+{
+    ViewMatrix = EditorCamera->Transform.GetViewMatrix();
+    
+    ProjectionMatrix = FMatrix::PerspectiveFovLH(
+        EditorCamera->FOV,
+        static_cast<float>(InWidth) / static_cast<float>(InHeight),
+        EditorCamera->NearClip,
+        EditorCamera->FarClip
+    );
 }
 
 void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
@@ -32,7 +44,27 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
     }
 
     Viewport = InViewport;
+
+    // 뷰포트 설정 후 clear
     Renderer->SetViewport(View.get());
+    Renderer->ClearViewport(View.get());
+
+    // 카메라 matrix 설정
+    Renderer->SetViewMatrix(ViewMatrix);
+    Renderer->SetProjectionMatrix(ProjectionMatrix, EditorCamera->NearClip, EditorCamera->FarClip);
+
+    // Render World grid
+    Renderer->RenderWorldGrid();
+    
+    // Render Objects
+
+    // Render Bounding Box
+
+    // Render Batch lines (Debug line)
+
+    // Render Gizmo
+
+    // Render Axis
 }
 
 void FViewportClient::OnResize(int32 InWidth, int32 InHeight)
@@ -136,13 +168,15 @@ void FViewport::Init(int32 InTopLeftX, int32 InTopLeftY, int32 InWidth, int32 In
     Width = InWidth;
     Height = InHeight;
 
-    URenderer* Renderer = UEngine::Get().GetRenderer();
-    if (!Renderer)
+    if (URenderer* Renderer = UEngine::Get().GetRenderer())
     {
-        return;
+        Renderer->InitViewport(this);
     }
 
-    Renderer->InitViewport(this);
+    if (ViewportClient)
+    {
+        ViewportClient->Init(InWidth, InHeight);
+    }
 }
 
 void FViewport::Draw()
