@@ -10,6 +10,7 @@
 #include "RendererDefine.h"
 #include "Constants.h"
 
+struct FDebugLineInfo;
 class FViewport;
 struct FVertexSimple;
 struct FVector4;
@@ -115,9 +116,7 @@ public:
 
 	bool IsOccluded();
 
-	void AddDebugLine(FVector Start, FVector End, FVector Color, float Time);
-
-	void RenderDebugLines(float DelatTime);
+	void RenderDebugLines();
 
 	// Texture
 	HRESULT CreateTextureBuffer();
@@ -142,6 +141,16 @@ public:
 	void UpdateTextConstantBuffer(const FMatrix& World);
 
 	void PrepareTextBillboard();
+	
+	/**
+	 * 필요한 선의 개수에 맞게 버퍼 크기 조정
+	 * @param LineNum 필요한 선의 개수
+	 */
+	void AdjustDebugLineVertexBuffer(uint32 LineNum);
+
+	void UpdateDebugLineBuffer(const TArray<FDebugLineInfo>& DebugLines);
+
+	void PresentFinalRender();
 
 protected:
 	/** Direct3D Device 및 SwapChain을 생성합니다. */
@@ -190,13 +199,6 @@ protected:
 	HRESULT CreateTextureSamplerState();
 
 	void ReleaseTextureSamplerState();
-	/**
-	 * 필요한 선의 개수에 맞게 버퍼 크기 조정
-	 * @param LineNum 필요한 선의 개수
-	 */
-	void AdjustDebugLineVertexBuffer(uint32 LineNum);
-	
-	void UpdateDebugLines(float DeltaTime);
 
 	void PrepareDebugLines();
 
@@ -241,7 +243,7 @@ public:
 
 	ID3D11Buffer* CbFinalQuadBuffer;
 
-	void PresentFinalRender();
+	void DrawFinalRender();
 	
 	////////
 	/// Final Render
@@ -312,17 +314,6 @@ protected:
 	ID3D11Buffer* TextVertexBuffer = nullptr;
 
 private:
-	// Debug Line
-	struct FDebugLineInfo
-	{
-		FVector Start;
-		FVector End;
-		FVector Color;
-		float Time;
-	};
-
-	TArray<FDebugLineInfo> DebugLines;
-
 	ID3D11Buffer* DebugLineVertexBuffer = nullptr;
 	// 현재 버퍼의 크기로 그릴 수 있는 선의 최대 개수로, 그려야 할 선의 개수와는 다름에 주의.
 	uint32 DebugLineCurrentMaxNum = 0;

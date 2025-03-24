@@ -44,6 +44,8 @@ void UWorld::Tick(float DeltaTime)
             Actor->Tick(DeltaTime);
         }
     }
+
+    UpdateDebugLines(DeltaTime);
 }
 
 void UWorld::LateTick(float DeltaTime)
@@ -79,7 +81,7 @@ void UWorld::Render(float DeltaTime)
      * Axis는 Grid에 가려지면 안되므로 Grid 먼저 렌더.
      * Axis는 아래의 RenderMainTexture 함수에서 렌더됨.
      */
-    RenderWorldGrid(*Renderer);
+    Renderer->RenderWorldGrid();
         
     if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
     {
@@ -91,7 +93,8 @@ void UWorld::Render(float DeltaTime)
     RenderMesh(*Renderer);
     
 	RenderBoundingBoxes(*Renderer);
-    RenderDebugLines(*Renderer, DeltaTime);
+    
+    Renderer->RenderDebugLines();
 
     // DisplayPickingTexture(*Renderer);
 }
@@ -188,16 +191,6 @@ void UWorld::RenderBoundingBoxes(URenderer& Renderer)
             Renderer.RenderBox(*Box);
         }
     }
-}
-
-void UWorld::RenderWorldGrid(URenderer& Renderer)
-{
-    Renderer.RenderWorldGrid();
-}
-
-void UWorld::RenderDebugLines(URenderer& Renderer, float DeltaTime)
-{
-    Renderer.RenderDebugLines(DeltaTime);
 }
 
 void UWorld::RenderBillboard(URenderer& Renderer)
@@ -381,7 +374,7 @@ UWorldInfo UWorld::GetWorldInfo() const
     return WorldInfo;
 }
 
-bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const
+bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent)
 {
     TArray<TPair<USceneComponent*, float>> Hits;
 	for (FBox* Box : BoundingBoxes)
@@ -427,10 +420,37 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) con
     return true;
 }
 
-void UWorld::DrawDebugLine(FVector Start, FVector End, FVector Color, float Time) const
+void UWorld::DrawDebugLine(FVector Start, FVector End, FVector Color, float Time)
 {
-    if (URenderer* Renderer = UEngine::Get().GetRenderer())
+    DebugLines.Add({Start, End, Color, Time});
+}
+
+void UWorld::UpdateDebugLines(const float DeltaTime)
+{
+    if (DebugLines.IsEmpty())
     {
-        Renderer->AddDebugLine(Start, End, Color, Time);
+        return;
+    }
+
+    bool bDebugLineChanged = false;
+    
+    for (auto& DebugLine : DebugLines)
+    {
+        DebugLine.Time -= DeltaTime;
+        bDebugLineChanged |= DebugLine.Time <= 0.f;
+    }
+
+    DebugLines.RemoveAll(
+        [](const FDebugLineInfo& Info)
+        {
+            return Info.Time <= 0.f;            
+        }
+    );
+
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    if (bDebugLineChanged && Renderer)
+    {
+        Renderer->AdjustDebugLineVertexBuffer(DebugLines.Num());
+        Renderer->UpdateDebugLineBuffer(DebugLines);
     }
 }

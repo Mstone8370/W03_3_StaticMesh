@@ -7,6 +7,7 @@
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "Viewport.h"
+#include "World.h"
 
 
 void URenderer::Create(HWND hWindow)
@@ -160,11 +161,11 @@ void URenderer::Create(HWND hWindow)
     InitMatrix();
 }
 
-void URenderer::PresentFinalRender()
+void URenderer::DrawFinalRender()
 {
     DeviceContext->RSSetViewports(1, &FinalViewport);
     DeviceContext->OMSetRenderTargets(1, &FinalRenderTargetView, nullptr);
-
+    
     uint32 FinalStride = sizeof(FFinalVertex);
     uint32 Offset = 0;
     DeviceContext->IASetInputLayout(FinalInputLayout);
@@ -211,8 +212,6 @@ void URenderer::PresentFinalRender()
         
         DeviceContext->DrawIndexed(6, 0, 0);
     }
-
-    FinalSwapChain->Present(1, 0);
 }
 
 
@@ -1359,55 +1358,11 @@ bool URenderer::IsOccluded()
     return false;
 }
 
-void URenderer::AddDebugLine(FVector Start, FVector End, FVector Color, float Time)
+void URenderer::RenderDebugLines()
 {
-    DebugLines.Add({Start, End, Color, Time});
-}
-
-void URenderer::RenderDebugLines(float DeltaTime)
-{
-    UpdateDebugLines(DeltaTime);
-
-    if (DebugLines.IsEmpty())
-    {
-        return;
-    }
-    
     PrepareDebugLines();
-
-    D3D11_MAPPED_SUBRESOURCE MappedSubresource;
-    DeviceContext->Map(DebugLineVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource);
-    if (FVertexSimple* VertexSimple = reinterpret_cast<FVertexSimple*>(MappedSubresource.pData))
-    {
-        int32 BufferIdx = 0;
-        for (int32 i = 0; i < DebugLines.Num(); ++i)
-        {
-            FVertexSimple StartVertex(
-                    DebugLines[i].Start.X,
-                    DebugLines[i].Start.Y,
-                    DebugLines[i].Start.Z,
-                    DebugLines[i].Color.X,
-                    DebugLines[i].Color.Y,
-                    DebugLines[i].Color.Z,
-                    1.f
-                );
-            VertexSimple[BufferIdx++] = StartVertex;
-
-            FVertexSimple EndVertex(
-                    DebugLines[i].End.X,
-                    DebugLines[i].End.Y,
-                    DebugLines[i].End.Z,
-                    DebugLines[i].Color.X,
-                    DebugLines[i].Color.Y,
-                    DebugLines[i].Color.Z,
-                    1.f
-                );
-            VertexSimple[BufferIdx++] = EndVertex;
-        }
-    }
-    DeviceContext->Unmap(DebugLineVertexBuffer, 0);
     
-    DeviceContext->Draw(DebugLines.Num() * 2, 0);
+    DeviceContext->Draw(UEngine::Get().GetWorld()->GetDebugLineNum() * 2, 0);
 }
 
 HRESULT URenderer::CreateTextureBuffer()
@@ -1643,28 +1598,6 @@ void URenderer::CreateDebugLineVertexBuffer(uint32 NewSize)
     }
 }
 
-void URenderer::UpdateDebugLines(float DeltaTime)
-{
-    if (DebugLines.IsEmpty())
-    {
-        return;
-    }
-
-    for (auto& DebugLine : DebugLines)
-    {
-        DebugLine.Time -= DeltaTime;
-    }
-
-    DebugLines.RemoveAll(
-        [](const FDebugLineInfo& Info)
-        {
-            return Info.Time <= 0.f;            
-        }
-    );
-
-    AdjustDebugLineVertexBuffer(DebugLines.Num());
-}
-
 void URenderer::PrepareDebugLines()
 {
     UINT Offset = 0;
@@ -1683,6 +1616,46 @@ void URenderer::PrepareDebugLines()
     DeviceContext->IASetInputLayout(InputLayout);
     DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+}
+
+void URenderer::UpdateDebugLineBuffer(const TArray<FDebugLineInfo>& DebugLines)
+{
+    D3D11_MAPPED_SUBRESOURCE MappedSubresource;
+    DeviceContext->Map(DebugLineVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource);
+    if (FVertexSimple* VertexSimple = reinterpret_cast<FVertexSimple*>(MappedSubresource.pData))
+    {
+        int32 BufferIdx = 0;
+        for (int32 i = 0; i < DebugLines.Num(); ++i)
+        {
+            FVertexSimple StartVertex(
+                    DebugLines[i].Start.X,
+                    DebugLines[i].Start.Y,
+                    DebugLines[i].Start.Z,
+                    DebugLines[i].Color.X,
+                    DebugLines[i].Color.Y,
+                    DebugLines[i].Color.Z,
+                    1.f
+                );
+            VertexSimple[BufferIdx++] = StartVertex;
+
+            FVertexSimple EndVertex(
+                    DebugLines[i].End.X,
+                    DebugLines[i].End.Y,
+                    DebugLines[i].End.Z,
+                    DebugLines[i].Color.X,
+                    DebugLines[i].Color.Y,
+                    DebugLines[i].Color.Z,
+                    1.f
+                );
+            VertexSimple[BufferIdx++] = EndVertex;
+        }
+    }
+    DeviceContext->Unmap(DebugLineVertexBuffer, 0);
+}
+
+void URenderer::PresentFinalRender()
+{
+    FinalSwapChain->Present(1, 0);
 }
 
 HRESULT URenderer::CreatePickingFrameBuffer()

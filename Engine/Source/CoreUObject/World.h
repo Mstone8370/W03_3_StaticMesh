@@ -15,6 +15,15 @@
 
 class AActor;
 class UBillboardComponent;
+	
+// Debug Line
+struct FDebugLineInfo
+{
+	FVector Start;
+	FVector End;
+	FVector Color;
+	float Time;
+};
 
 class UWorld :public UObject
 {
@@ -41,8 +50,6 @@ public:
 	void RenderMainTexture(URenderer& Renderer);
 	void RenderMesh(URenderer& Renderer);
 	void RenderBoundingBoxes(URenderer& Renderer);
-	void RenderWorldGrid(URenderer& Renderer);
-	void RenderDebugLines(URenderer& Renderer, float DeltaTime);
 	void RenderBillboard(URenderer& Renderer);
 	void RenderText(URenderer& Renderer);
 
@@ -72,18 +79,23 @@ private:
 	UWorldInfo GetWorldInfo() const;
 
 public:
-	// BoundingBox & Linetrace
-	bool LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const;
+	// BoundingBox & Line trace
+	bool LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent);
 	void AddBoundingBox(FBox* Box) { BoundingBoxes.Add(Box); }
 	void RemoveBoundingBox(FBox* Box) { BoundingBoxes.Remove(Box); }
 
-	void DrawDebugLine(FVector Start, FVector End, FVector Color, float Time) const;
+	void DrawDebugLine(FVector Start, FVector End, FVector Color, float Time);
+	void UpdateDebugLines(const float DeltaTime);
 	bool IsDebuggingRaycast() const { return bDebugRaycast; }
 	void SetDebugRaycast(bool bInDebugRaycast) { bDebugRaycast = bInDebugRaycast; }
 
-private:
-	bool bDebugRaycast = false;
+	uint32 GetDebugLineNum() const { return DebugLines.Num(); }
 	
+private:
+	bool bDebugRaycast = true;
+
+	TArray<FDebugLineInfo> DebugLines;
+
 public:
 	FString SceneName;
 	uint32 Version = 1;

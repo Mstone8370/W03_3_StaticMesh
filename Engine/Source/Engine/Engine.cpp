@@ -165,18 +165,18 @@ void UEngine::Run()
         if (World)
         {
             World->Tick(DeltaTime);
-            // World->Render(DeltaTime);
+            Renderer->DrawFinalRender();
             World->LateTick(DeltaTime);
         }
         
         // ui Update
-        //ui.Update();
+        ui.Update();
 
         // UI입력을 우선으로 처리하므로, 여기에서 업데이트
         APlayerInput::Get().UpdateInput();
         FEditorManager::Get().HandleInput(DeltaTime);
         // APlayerController::Get().ProcessPlayerInput(DeltaTime);
-
+        
         Renderer->PresentFinalRender();
         //Renderer->SwapBuffer();
 

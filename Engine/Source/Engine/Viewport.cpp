@@ -63,6 +63,9 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
     UEngine::Get().GetWorld()->RenderBillboard(*Renderer);
     UEngine::Get().GetWorld()->RenderText(*Renderer);
     UEngine::Get().GetWorld()->RenderMesh(*Renderer);
+    
+    UEngine::Get().GetWorld()->RenderBoundingBoxes(*Renderer);
+    Renderer->RenderDebugLines();
     // Render Bounding Box
 
     // Render Batch lines (Debug line)
