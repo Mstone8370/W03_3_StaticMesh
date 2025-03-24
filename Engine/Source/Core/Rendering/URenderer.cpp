@@ -1724,7 +1724,6 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
         FViewport& View = Viewports[i];
         if (View.RTV == nullptr || View.DSV == nullptr || RenderWorld == nullptr)
             continue;
-        DeviceContext->RSSetViewports(1, &View.ViewportDesc);
 
 
         //렌더링
@@ -1737,7 +1736,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
 void URenderer::RenderViewport(const FViewport& View, UWorld* RenderWorld)
 {
     if (!RenderWorld) return;
-
+    //DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     // 뷰 행렬, 프로젝션 행렬 업데이트
     //UpdateViewMatrix(ViewCamera->GetActorTransform());
     //UpdateProjectionMatrix(ViewCamera);
@@ -1745,6 +1744,7 @@ void URenderer::RenderViewport(const FViewport& View, UWorld* RenderWorld)
     // 기본 렌더링 단계 수행
     //PrepareRender();
 
+    DeviceContext->RSSetViewports(1, &View.ViewportDesc);
     // 카메라가 지정되어 있으면 업데이트
     if (View.ViewCamera)
     {
