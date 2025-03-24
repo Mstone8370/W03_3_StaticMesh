@@ -162,8 +162,9 @@ void APlayerController::ProcessPlayerInput(float DeltaTime)
     // HandleGizmoMovement(DeltaTime); // TODO: 의미없는 함수인듯
     HandleCameraMovement(DeltaTime);
 }
-void APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHeight)
+bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHeight)
 {
+    bool result = false;
     int32 MouseX, MouseY;
     APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
     URenderer *Renderer = UEngine::Get().GetRenderer();
@@ -187,9 +188,12 @@ void APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
     if (bDraggingHorizontal)
     {
         Renderer->HorizontalSplitRatio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+        result = true;
     }
     if (bDraggingVertical)
     {
         Renderer->VerticalSplitRatio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
+        result = true;
     }
+    return result;
 }

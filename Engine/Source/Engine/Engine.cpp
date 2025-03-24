@@ -163,7 +163,7 @@ void UEngine::Run()
         {
             World->Tick(DeltaTime);
             //World->Render(DeltaTime);
-            Renderer->RenderViewports(World);
+            Renderer->UpdateViewports(World);
 
             World->LateTick(DeltaTime);
         }
@@ -174,7 +174,6 @@ void UEngine::Run()
         // UI입력을 우선으로 처리하므로, 여기에서 업데이트
         APlayerInput::Get().UpdateInput();
         APlayerController::Get().ProcessPlayerInput(DeltaTime);
-
         Renderer->SwapBuffer();
 
         // FPS 제한

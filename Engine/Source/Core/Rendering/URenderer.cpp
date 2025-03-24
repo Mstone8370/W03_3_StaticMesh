@@ -1666,22 +1666,9 @@ FMatrix URenderer::GetProjectionMatrix() const
 {
     return ProjectionMatrix;
 }
-
-void URenderer::RenderViewports(UWorld* RenderWorld)
+void URenderer::UpdateViewports(UWorld* RenderWorld)
 {
-    APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height);
-
-    //Viewport 크기 동적 계산 변수
-    const float TotalWidth = ViewportInfo.Width;
-    const float TotalHeight = ViewportInfo.Height;
-
-    float LeftWidth = TotalWidth * HorizontalSplitRatio;
-    float RightWidth = TotalWidth - LeftWidth;
-
-    float TopHeight = TotalHeight * VerticalSplitRatio;
-    float BottomHeight = TotalHeight - TopHeight;
-    
-    // 메인 카메라 기준 입력 적용
+    //메인 카메라의 특정 수치를 서브카메라로 이동
     ACamera* MainCamera = FEditorManager::Get().GetCamera();
 
     if (MainCamera)
@@ -1691,6 +1678,46 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
         Viewports[0].ViewCamera->SetActorTransform(MainTransform);
         Viewports[0].ViewCamera->SetFieldOfView(FieldOfView);
     }
+    ResizeViewports();
+    RenderViewports(RenderWorld);
+
+}
+void URenderer::ResizeViewports()
+{
+    //입력 받고 뷰포트 크기 조절
+    if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
+    {
+        //Viewport 크기 동적 계산 변수
+        const float TotalWidth = ViewportInfo.Width;
+        const float TotalHeight = ViewportInfo.Height;
+
+        float LeftWidth = TotalWidth * HorizontalSplitRatio;
+        float RightWidth = TotalWidth - LeftWidth;
+
+        float TopHeight = TotalHeight * VerticalSplitRatio;
+        float BottomHeight = TotalHeight - TopHeight;
+        for (int i = 0; i < Viewports.Num(); ++i)
+        {
+            FViewport& View = Viewports[i];
+            //Viewport 크기 동적 계산
+            float X = (i % 2 == 0) ? 0.0f : LeftWidth;
+            float Y = (i / 2 == 0) ? 0.0f : TopHeight;
+            float W = (i % 2 == 0) ? LeftWidth : RightWidth;
+            float H = (i / 2 == 0) ? TopHeight : BottomHeight;
+
+            View.ViewportDesc.TopLeftX = X;
+            View.ViewportDesc.TopLeftY = Y;
+            View.ViewportDesc.Width = W;
+            View.ViewportDesc.Height = H;
+        }
+    }
+    
+}
+void URenderer::RenderViewports(UWorld* RenderWorld)
+{
+
+    // 메인 카메라 기준 입력 적용
+
     DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView);
     for (int i = 0; i < Viewports.Num(); ++i)
     {
@@ -1699,43 +1726,31 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
             continue;
         DeviceContext->RSSetViewports(1, &View.ViewportDesc);
 
-        //Viewport 크기 동적 계산
-        float X = (i % 2 == 0) ? 0.0f : LeftWidth;
-        float Y = (i / 2 == 0) ? 0.0f : TopHeight;
-        float W = (i % 2 == 0) ? LeftWidth : RightWidth;
-        float H = (i / 2 == 0) ? TopHeight : BottomHeight;
 
-        View.ViewportDesc.TopLeftX = X;
-        View.ViewportDesc.TopLeftY = Y;
-        View.ViewportDesc.Width = W;
-        View.ViewportDesc.Height = H;
-        // 카메라가 지정되어 있으면 업데이트
-        if (View.ViewCamera)
-        {
-            UpdateViewMatrix(View.ViewCamera->GetActorTransform());
-            UpdateProjectionMatrixAspect(View.ViewCamera, W,H);
-        }
         //렌더링
-        RenderWorld->RenderWorldGrid(*this);
-        RenderWorld->RenderMainTexture(*this);
-        RenderWorld->RenderMesh(*this);
-        RenderWorld->RenderDebugLines(*this, 0.f);
+        RenderViewport(View,RenderWorld);
     }
     UpdateViewMatrix(FEditorManager::Get().GetCamera()->GetActorTransform());
     UpdateProjectionMatrix(FEditorManager::Get().GetCamera());
 }
 
-void URenderer::RenderViewport(ACamera* ViewCamera, UWorld* RenderWorld)
+void URenderer::RenderViewport(const FViewport& View, UWorld* RenderWorld)
 {
-    if (!ViewCamera || !RenderWorld) return;
+    if (!RenderWorld) return;
 
     // 뷰 행렬, 프로젝션 행렬 업데이트
     //UpdateViewMatrix(ViewCamera->GetActorTransform());
     //UpdateProjectionMatrix(ViewCamera);
 
     // 기본 렌더링 단계 수행
-    PrepareRender();
+    //PrepareRender();
 
+    // 카메라가 지정되어 있으면 업데이트
+    if (View.ViewCamera)
+    {
+        UpdateViewMatrix(View.ViewCamera->GetActorTransform());
+        UpdateProjectionMatrixAspect(View.ViewCamera, View.ViewportDesc.Width,View.ViewportDesc.Height);
+    }
     RenderWorld->RenderWorldGrid(*this);
     RenderWorld->RenderPickingTexture(*this);
     RenderWorld->RenderMainTexture(*this);
@@ -1744,6 +1759,7 @@ void URenderer::RenderViewport(ACamera* ViewCamera, UWorld* RenderWorld)
     RenderWorld->RenderMesh(*this);
     RenderWorld->RenderBoundingBoxes(*this);
     RenderWorld->RenderDebugLines(*this, 0.f); // 나중에 DeltaTime 전달하도록 수정
+
 }
 
 void URenderer::InitializeViewports()

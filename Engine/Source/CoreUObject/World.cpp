@@ -67,15 +67,16 @@ void UWorld::LateTick(float DeltaTime)
 
 void UWorld::Render(float DeltaTime)
 {
+    //UWorld의 렌더 함수 부분을 Renderer의 RenderViewports로 이전
     URenderer* Renderer = UEngine::Get().GetRenderer();
 
     if (Renderer == nullptr)
     {
         return;
     }
-
-    ACamera* Camera = FEditorManager::Get().GetCamera();
-    Renderer->RenderViewport(Camera, this);
+    
+    //ACamera* Camera = FEditorManager::Get().GetCamera();
+    //Renderer->RenderViewport(Camera, this);
     /**
      * Axis는 Grid에 가려지면 안되므로 Grid 먼저 렌더.
      * Axis는 아래의 RenderMainTexture 함수에서 렌더됨.

@@ -35,7 +35,7 @@ public :
 	float DragHandleSize = 10.f;
 	bool bDraggingHorizontal = false;
 	bool bDraggingVertical = false;
-	void HandleViewportDrag(float ViewportWidth, float ViewportHeight);
+	bool HandleViewportDrag(float ViewportWidth, float ViewportHeight);
 
 protected:
 	float CurrentSpeed;
