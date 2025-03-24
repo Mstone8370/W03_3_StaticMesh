@@ -276,7 +276,7 @@ protected:
 	ID3D11BlendState* GridBlendState = nullptr;
 	
 	uint32 Stride = 0;                                // Vertex 버퍼의 각 요소 크기
-	uint32 GridStride = 0;
+	
 	// Depth Stenil Buffer
 	ID3D11Texture2D* DepthStencilBuffer = nullptr;          // DepthStencil버퍼 역할을 하는 텍스쳐
 	ID3D11DepthStencilView* DepthStencilView = nullptr;     // DepthStencil버퍼를 렌더 타겟으로 사용하는 뷰

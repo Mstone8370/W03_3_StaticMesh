@@ -244,7 +244,6 @@ void URenderer::CreateShader()
 
     // unit byte
     Stride = sizeof(FVertexSimple);
-    GridStride = sizeof(FVertexGrid);
 }
 
 void URenderer::ReleaseShader()
@@ -458,7 +457,7 @@ void URenderer::ClearViewport(FViewport* InViewport)
 
     FLOAT TestColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
     DeviceContext->ClearRenderTargetView(InViewport->RenderTargetView, TestColor);
-    DeviceContext->ClearDepthStencilView(InViewport->DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0, 1);
+    DeviceContext->ClearDepthStencilView(InViewport->DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f , 0);
 }
 
 void URenderer::SetViewMatrix(const FMatrix& InViewMatrix)
@@ -683,7 +682,8 @@ void URenderer::PrepareMeshShader()
 
 void URenderer::PrepareWorldGrid()
 {
-    UINT Offset = 0;
+    uint32 GridStride = sizeof(FVertexGrid);
+    uint32 Offset = 0;
     DeviceContext->IASetVertexBuffers(0, 1, &GridVertexBuffer, &GridStride, &Offset);
 
     DeviceContext->RSSetState(RasterizerState_Solid);
@@ -720,7 +720,7 @@ void URenderer::RenderWorldGrid()
     int32 StepY = static_cast<int32>(CameraLocation.Y / GridGap);
 
     //FVector GridOffset(StepX * GridGap, StepY * GridGap, 0.f);
-    FVector GridOffset(0 * GridGap, 0 * GridGap, 0.f);
+    FVector GridOffset(0.f * GridGap, 0.f * GridGap, 0.f);
     FVector GridScale(GridGap, GridGap, 1.f);
 
     FTransform GridTransform(GridOffset, FVector::ZeroVector, GridScale);
@@ -728,7 +728,7 @@ void URenderer::RenderWorldGrid()
     ConstantUpdateInfo UpdateInfo
     {
         GridTransform.GetMatrix(),
-        FVector4(0.8f, 0.8f, 0.8f, 1.0f),
+        FVector4(0.5f, 0.5f, 0.5f, 1.0f),
         false,
     };
 
