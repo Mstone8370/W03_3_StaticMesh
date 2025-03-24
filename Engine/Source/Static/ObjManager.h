@@ -18,7 +18,6 @@ struct FStaticMesh
 
     TArray<FStaticMeshVertex> Vertices;
     TArray<uint32> Indices;
-    TArray<FSubMesh> SubMeshes;
     TArray<FName> MaterialsName;
 };
 
@@ -107,20 +106,17 @@ struct FObjImporter
         OutTangent = FVector(Tx, Ty, Tz);
         OutTangent.Normalize();
     }
-    static void UpdateMaterialSubmeshMap(const FString& ObjPath, const TArray<FName>& MaterialsName, const TArray<FSubMesh>& SubMeshes);
- 
+
     // MeshKey를 정규화하는 유틸리티 함수
     static FName GetNormalizedMeshKey(const FString& ObjPath)
     {
-        // 파일 경로에서 마지막 '/' 또는 '\' 위치를 찾음
-        size_t pos = ObjPath.FindLastOf(TEXT("/\\"));
-        // 마지막 구분자 이후의 문자열(파일 이름)을 추출 (구분자가 없으면 전체 문자열 사용)
-        FString fileName = (pos == std::string::npos) ? ObjPath : ObjPath.Substr(pos + 1);
-        // 파일 이름에서 마지막 '.' 위치를 찾아 확장자 제거 (점이 없으면 그대로 사용)
-        size_t dotPos = fileName.FindLastOf(TEXT("."));
-        fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
-        return FName(*fileName);
+        // 파일 경로 전체에서 마지막 '.' 위치를 찾아 확장자 제거
+        size_t dotPos = ObjPath.FindLastOf(TEXT("."));
+        // 확장자 제거 후 남은 문자열(하위폴더 포함)을 key로 사용
+        FString key = (dotPos == std::string::npos) ? ObjPath : ObjPath.Substr(0, dotPos);
+        return FName(*key);
     }
+
 
 };
 
@@ -128,7 +124,7 @@ struct FObjImporter
 class FObjManager
 {
 public:
-    static TMap<FName, TMap<FName, TArray<FSubMesh>>> MaterialSubmeshMap;
+    static TMap<FName,FSubMesh> MaterialSubmeshMap;
     static FStaticMesh* LoadObjStaticMeshAsset(const FString& PathFileName);
     static UStaticMesh* LoadObjStaticMesh(const FString& PathFileName);
     static FObjImporter Importer;

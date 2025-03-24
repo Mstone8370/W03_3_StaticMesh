@@ -366,22 +366,20 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
     };
     UpdateObjectConstantBuffer(ConstantInfo);
     
+    // 머티리얼 이름
+    // staticmesh
+    // subMesh -
     for (const FName& materialName : MeshAsset->MaterialsName)
     {
         // FObjManager::MaterialSubmeshMap에서 materialName에 해당하는 서브맵을 찾음
         if (FObjManager::MaterialSubmeshMap.Contains(materialName))
         {
-            TMap<FName, TArray<FSubMesh>>& meshMap = FObjManager::MaterialSubmeshMap[materialName];
-            // 현재 MeshKey에 해당하는 서브메쉬 정보를 확인
-            if (meshMap.Contains(meshKey))
-            {
-                TArray<FSubMesh> subMeshes = meshMap[meshKey];
-                for (const FSubMesh& subMesh : subMeshes) {
+            FSubMesh& subMesh = FObjManager::MaterialSubmeshMap[materialName];
+            
+            UINT count = subMesh.endIndex - subMesh.startIndex + 1;
+            DeviceContext->DrawIndexed(count, subMesh.startIndex, 0);
 
-                    UINT count = subMesh.endIndex - subMesh.startIndex + 1;
-                    DeviceContext->DrawIndexed(count, subMesh.startIndex, 0);
-                }
-            }
+
         }
     }
 }

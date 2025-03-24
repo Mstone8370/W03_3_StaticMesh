@@ -10,7 +10,7 @@
 TMap<FString, FStaticMesh*> FObjManager::ObjStaticMeshMap;
 FObjImporter FObjManager::Importer;
 // MaterialSubmeshMap: 머티리얼 이름 -> (MeshKey -> 서브메쉬 배열)
-TMap<FName, TMap<FName, TArray<FSubMesh>>> FObjManager::MaterialSubmeshMap;
+TMap<FName, FSubMesh> FObjManager::MaterialSubmeshMap;
 
 FStaticMesh* FObjManager::LoadObjStaticMeshAsset(const FString& PathFileName)
 {
@@ -108,60 +108,26 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
         ++VertexCount;
     }
 
-    // 파싱 단계에서 얻은 머티리얼 이름 배열 (예: usemtl 지시어에 의해 추출)
+    // 파싱 단계에서 얻은 머티리얼 이름 배열 (usemtl 지시어에 의해 추출)
     TArray<FName> MaterialsName = Reader.GetMaterialsName();
     FStaticMesh* StaticMesh = new FStaticMesh();
     StaticMesh->Vertices = CookedVertices;
     StaticMesh->Indices = CookedIndices;
     StaticMesh->PathFileName = ObjPath.c_char();
-    StaticMesh->SubMeshes = SubMeshes;
     StaticMesh->MaterialsName = MaterialsName;
 
     FName MeshKey = GetNormalizedMeshKey(ObjPath);
 
-    // 각 서브메쉬에 대해 MaterialSubmeshMap 업데이트 (머티리얼 당 여러 서브메쉬 배열을 관리)
-    for (int32 i = 0; i < StaticMesh->SubMeshes.Num(); ++i)
+    // 각 서브메쉬에 대해 MaterialSubmeshMap 업데이트 (머티리얼 하나당 하나의 서브메쉬가 나온다.)
+    for (int i = 0; i < MaterialsName.Num(); ++i)
     {
-        FSubMesh CurrentSubMesh = StaticMesh->SubMeshes[i];
-        for (const FName& MaterialName : MaterialsName)
+        const FName& MaterialName = MaterialsName[i];
+        const FSubMesh& CurrentSubMesh = SubMeshes[i];
+        if (!FObjManager::MaterialSubmeshMap.Contains(MaterialName))
         {
-            if (!FObjManager::MaterialSubmeshMap.Contains(MaterialName))
-            {
-                FObjManager::MaterialSubmeshMap.Add(MaterialName, TMap<FName, TArray<FSubMesh>>());
-            }
-            TMap<FName, TArray<FSubMesh>>& MeshMap = FObjManager::MaterialSubmeshMap[MaterialName];
-            if (!MeshMap.Contains(MeshKey))
-            {
-                MeshMap.Add(MeshKey, TArray<FSubMesh>());
-            }
-            MeshMap[MeshKey].Add(CurrentSubMesh);
+            FObjManager::MaterialSubmeshMap[MaterialName] = CurrentSubMesh;
         }
     }
-    UpdateMaterialSubmeshMap(ObjPath, MaterialsName, SubMeshes);
 
     return StaticMesh;
-}
-
-void FObjImporter::UpdateMaterialSubmeshMap(const FString& ObjPath, const TArray<FName>& MaterialsName, const TArray<FSubMesh>& SubMeshes)
-{
-    // 재확인: 동일한 MeshKey 생성
-    FName MeshKey = GetNormalizedMeshKey(ObjPath);
-    // 각 서브메쉬에 대해 다시 한 번 추가 (중복 추가될 가능성이 있다면 이 함수에서 병합 정책을 고려해야 함)
-    for (int32 i = 0; i < SubMeshes.Num(); ++i)
-    {
-        FSubMesh CurrentSubMesh = SubMeshes[i];
-        for (const FName& MaterialName : MaterialsName)
-        {
-            if (!FObjManager::MaterialSubmeshMap.Contains(MaterialName))
-            {
-                FObjManager::MaterialSubmeshMap.Add(MaterialName, TMap<FName, TArray<FSubMesh>>());
-            }
-            TMap<FName, TArray<FSubMesh>>& MeshMap = FObjManager::MaterialSubmeshMap[MaterialName];
-            if (!MeshMap.Contains(MeshKey))
-            {
-                MeshMap.Add(MeshKey, TArray<FSubMesh>());
-            }
-            MeshMap[MeshKey].Add(CurrentSubMesh);
-        }
-    }
 }
