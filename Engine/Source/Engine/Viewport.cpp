@@ -129,8 +129,10 @@ FViewport::FViewport()
     : ViewportClient(std::make_unique<FViewportClient>())
 {}
 
-void FViewport::Init(int32 InWidth, int32 InHeight)
+void FViewport::Init(int32 InTopLeftX, int32 InTopLeftY, int32 InWidth, int32 InHeight)
 {
+    TopLeftX = InTopLeftX;
+    TopLeftY = InTopLeftY;
     Width = InWidth;
     Height = InHeight;
 

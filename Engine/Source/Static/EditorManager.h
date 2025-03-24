@@ -8,7 +8,7 @@ class AGizmoHandle;
 class FEditorManager : public TSingleton<FEditorManager>
 {
 public:
-	void Init();
+	void Init(int32 InWidth, int32 InHeight);
 
 	virtual void Tick(const float DeltaTime);
     

@@ -13,6 +13,18 @@ SViewport::~SViewport()
     }
 }
 
+void SViewport::Init(const FRect& InRect)
+{
+    if (!Viewport)
+    {
+        return;
+    }
+
+    int32 Width = InRect.Right - InRect.Left;
+    int32 Height = InRect.Bottom - InRect.Top;
+    Viewport->Init(InRect.Left, InRect.Top, Width, Height);   
+}
+
 void SViewport::Paint()
 {
     if (Viewport)

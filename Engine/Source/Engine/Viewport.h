@@ -64,7 +64,7 @@ public:
     FViewport();
     virtual ~FViewport() = default;
 
-    void Init(int32 InWidth, int32 InHeight);
+    void Init(int32 InTopLeftX, int32 InTopLeftY, int32 InWidth, int32 InHeight);
 
     /**
      * TODO: FViewport는 인터페이스에 가까움

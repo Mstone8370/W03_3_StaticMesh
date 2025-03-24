@@ -99,7 +99,7 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
     
     InitWorld();
 
-    FEditorManager::Get().Init();
+    FEditorManager::Get().Init(ClientWidth, ClientHeight);
     
     ui.Initialize(WindowHandle, *Renderer, ClientWidth, ClientHeight);
 

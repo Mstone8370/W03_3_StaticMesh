@@ -4,11 +4,13 @@
 #include "CoreUObject/World.h"
 #include "Gizmo/GizmoHandle.h"
 
-void FEditorManager::Init()
+void FEditorManager::Init(int32 InWidth, int32 InHeight)
 {
     if (!EditorWindow)
     {
         EditorWindow = std::make_unique<SWindow>();
+        FRect Temp(0.f, 0.f, InWidth, InHeight); // Temp
+        EditorWindow->Init(Temp);
     }
 }
 

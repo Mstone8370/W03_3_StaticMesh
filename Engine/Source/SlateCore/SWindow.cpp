@@ -16,7 +16,10 @@ SWindow::~SWindow()
 
 void SWindow::Init(const FRect& InRect)
 {
-    SCompoundWidget::Init(InRect);
+    if (Viewport)
+    {
+        Viewport->Init(InRect);   
+    }
 }
 
 void SWindow::Tick(const float DeltaTime)

@@ -11,6 +11,8 @@ public:
     SViewport();
     virtual ~SViewport() override;
 
+    virtual void Init(const FRect& InRect) override;
+
     virtual void Paint() override;
 
     virtual void HandleInput(const float DeltaTime) override;
