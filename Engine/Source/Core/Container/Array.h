@@ -56,6 +56,7 @@ public:
 		requires std::is_invocable_r_v<bool, Predicate, const T&>
 	SizeType RemoveAll(const Predicate& Pred);
 	T* GetData();
+	const T* GetData() const;
 	bool IsEmpty() const;
 
 	/**
@@ -220,6 +221,13 @@ T* TArray<T, Allocator>::GetData()
 {
 	return PrivateVector.data();
 }
+
+template <typename T, typename Allocator>
+const T* TArray<T, Allocator>::GetData() const
+{
+	return PrivateVector.data();
+}
+
 
 template <typename T, typename Allocator>
 bool TArray<T, Allocator>::IsEmpty() const
