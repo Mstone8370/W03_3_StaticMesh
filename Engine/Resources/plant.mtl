@@ -1,0 +1,35 @@
+# Blender 4.3.2 MTL File: 'None'
+# www.blender.org
+
+newmtl Blatt
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+illum 9
+map_Kd textures/bpng.jpg
+map_Ks textures/bpng.jpg
+map_d textures/bpng_Schwaz_weistensel.jpg
+map_Bump textures/bpng_NRM Kopie.jpg
+
+newmtl Blatt_NONE
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+illum 9
+map_Kd textures/bpng.jpg
+map_Ks textures/bpng.jpg
+map_d textures/bpng_Schwaz_weistensel.jpg
+map_Bump bpng_NRM_Kopie.jpg
+
+newmtl Material.001
+Ns 96.078453
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd textures/Pot_textures_col.jpg
+map_Ks textures/Pot_textures_col.jpg
+map_Bump textures/Pot_textures_nor.png
