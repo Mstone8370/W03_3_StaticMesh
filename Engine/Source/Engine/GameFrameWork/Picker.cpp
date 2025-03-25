@@ -138,7 +138,7 @@ bool APicker::PickByRay()
     FRay Ray = FRay::GetRayByViewportPoint(FView->GetCamera(), Rect);
 
     USceneComponent* FirstHitComponent = nullptr;
-    if (GetWorld()->LineTrace(Ray, &FirstHitComponent))
+    if (GetWorld()->LineTrace(Ray, FirstHitComponent))
     {
         if (FirstHitComponent)
         {

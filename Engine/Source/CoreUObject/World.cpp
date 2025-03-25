@@ -447,7 +447,7 @@ UWorldInfo UWorld::GetWorldInfo() const
     return WorldInfo;
 }
 
-bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const
+bool UWorld::LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) const
 {
     TArray<TPair<USceneComponent*, float>> Hits;
     for (FBox* Box : BoundingBoxes)
@@ -476,7 +476,7 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) con
         if (Dist < MinDistance)
         {
             MinDistance = Dist;
-            *FirstHitComponent = SceneComp;
+            FirstHitComponent = SceneComp;
         }
     }
     if (bDebugRaycast)
