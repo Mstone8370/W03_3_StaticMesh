@@ -17,7 +17,14 @@ void FEditorManager::Init(int32 InWidth, int32 InHeight)
     MainRect = FRect(0.f, 0.f, InWidth, InHeight);
     EditorWindow->Init(MainRect);
 
-    ActivateQuadViewport();
+    if (ViewportMode == EViewportMode::EVM_Single)
+    {
+        DeactivateQuadViewport();
+    }
+    else
+    {
+        ActivateQuadViewport();
+    }
 }
 
 void FEditorManager::Tick(const float DeltaTime)
@@ -178,6 +185,13 @@ void FEditorManager::DeactivateQuadViewport()
     EditorWindow->Init(MainRect);
 }
 
+void FEditorManager::OnResize(uint32 InWidth, uint32 InHeight)
+{
+    ReleaseAllViewports();
+
+    ResizeViewports(InWidth, InHeight);
+}
+
 void FEditorManager::TraverseViewports(SWindow* CurrentWindow, TArray<SViewport*>& OutViewports) const
 {
     if (CurrentWindow == nullptr)
@@ -221,4 +235,29 @@ SViewport* FEditorManager::FindActiveViewport(SWindow* CurrentWindow, const FPoi
     }
     
     return nullptr;
+}
+
+void FEditorManager::ReleaseAllViewports()
+{
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    if (!Renderer)
+    {
+        return;
+    }
+    
+    TArray<SViewport*> Viewports;
+    GetAllViewportWidgets(Viewports);
+    for (SViewport* Viewport : Viewports)
+    {
+        if (FViewport* View = Viewport->Viewport.get())
+        {
+            Renderer->ReleaseViewport(View);
+        }
+    }
+}
+
+void FEditorManager::ResizeViewports(uint32 InWidth, uint32 InHeight)
+{
+    MainRect = FRect(0, 0, InWidth, InHeight);
+    EditorWindow->OnResize(MainRect);
 }

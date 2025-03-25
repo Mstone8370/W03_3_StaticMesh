@@ -50,6 +50,8 @@ public:
 	void DeactivateQuadViewport();
 
 	bool IsQuadViewportActive() const { return ViewportMode == EViewportMode::EVM_Quad; }
+
+	void OnResize(uint32 InWidth, uint32 InHeight);
     
 private:
 	// 메인 에디터 윈도우
@@ -67,4 +69,10 @@ private:
 	void TraverseViewports(SWindow* CurrentWindow, TArray<SViewport*>& OutViewports) const;
 
 	SViewport* FindActiveViewport(SWindow* CurrentWindow, const FPoint& Point) const;
+
+	// Release RTV, DSV
+	void ReleaseAllViewports();
+
+	// Re-assign RTV, DSV with resized width and height
+	void ResizeViewports(uint32 InWidth, uint32 InHeight);
 };

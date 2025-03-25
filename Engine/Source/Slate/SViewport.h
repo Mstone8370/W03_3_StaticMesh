@@ -19,6 +19,8 @@ public:
     
     virtual bool IsHover(FPoint coord) const override;
 
+    virtual void OnResize(const FRect& NewRect) override;
+
     std::shared_ptr<FViewport> Viewport;
 private:
 };

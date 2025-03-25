@@ -21,6 +21,8 @@ public:
 
     virtual void HandleInput(const float DeltaTime) override;
 
+    virtual void OnResize(const FRect& NewRect) override;
+
     std::unique_ptr<SViewport> Viewport;
     
 private:
@@ -42,12 +44,16 @@ public:
     virtual void Paint() override;
 
     virtual void HandleInput(const float DeltaTime) override;
+    
+    virtual void OnResize(const FRect& NewRect) override;
 
     virtual void Split() = 0;
     
     // TODO: 아래의 두 포인터를 어떻게 관리해야할지 생각하기
     SWindow* SideLT; // Left or Top
     SWindow* SideRB; // Right or Bottom
+
+    float PercentageLT;
 private:
 };
 
@@ -55,10 +61,14 @@ class SSplitterH : public SSplitter
 {
 public:
     virtual void Split() override;
+
+    virtual void OnResize(const FRect& NewRect) override;
 };
 
 class SSplitterV : public SSplitter
 {
 public:
     virtual void Split() override;
+
+    virtual void OnResize(const FRect& NewRect) override;
 };

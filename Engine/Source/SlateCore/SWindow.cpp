@@ -64,6 +64,22 @@ void SWindow::HandleInput(const float DeltaTime)
     }
 }
 
+void SWindow::OnResize(const FRect& NewRect)
+{
+    Rect = NewRect;
+
+    FRect ChildRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
+    if (Viewport)
+    {
+        Viewport->OnResize(ChildRect);
+    }
+}
+
 
 SSplitter::SSplitter()
     : SideLT(nullptr)
@@ -89,6 +105,7 @@ void SSplitter::Init(const FRect& InRect)
     
     SideLT = new SWindow();
     SideLT->Init(ChildRect);
+    PercentageLT = 1.f;
     
     SideRB = nullptr;
 }
@@ -157,6 +174,34 @@ void SSplitter::HandleInput(const float DeltaTime)
     }
 }
 
+void SSplitter::OnResize(const FRect& NewRect)
+{
+    /**
+     * 이 클래스의 함수는 기초적인 작동만 진행중.
+     * 현재 두 children이 어느 크기를 가지고있었는지 상관 없이 하나의 child가 꽉 차게 진행함.
+     * 하위 클래스인 SSplitterH 또는 SSplitterV에서는 상황에 따른 정확한 사이즈 조절이 가능함.
+     */
+    FRect PrevRect = Rect;
+    Rect = NewRect;
+
+    FRect ChildRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
+    if (SideLT)
+    {
+        FRect LTRect = SideLT->Rect;
+        SideLT->OnResize(ChildRect);
+    }
+    if (SideRB)
+    {
+        FRect RBRect = SideRB->Rect;
+        SideRB->OnResize(ChildRect);
+    }
+}
+
 void SSplitterH::Split()
 {
     if (SideLT)
@@ -168,12 +213,15 @@ void SSplitterH::Split()
         delete SideRB;
     }
 
-    int32 HalfWidth = (Rect.Right - Rect.Left) / 2;
+    PercentageLT = 0.5f;
+    int32 ParentWidth = (Rect.Right - Rect.Left);
+    int32 WidthLT = ParentWidth * PercentageLT;
+    int32 WidthRB = ParentWidth - WidthLT;
     
     FRect LeftRect = {
         Rect.Left + Padding.Left,
         Rect.Top + Padding.Top,
-        Rect.Left + HalfWidth - Padding.Right,
+        Rect.Left + WidthLT - Padding.Right,
         Rect.Bottom - Padding.Bottom
     };
     SideLT = new SSplitterV();
@@ -181,7 +229,7 @@ void SSplitterH::Split()
     SideLT->Init(LeftRect);
 
     FRect RightRect = {
-        Rect.Left + HalfWidth + Padding.Left,
+        Rect.Right - WidthRB + Padding.Left,
         Rect.Top + Padding.Top,
         Rect.Right - Padding.Right,
         Rect.Bottom - Padding.Bottom
@@ -189,6 +237,37 @@ void SSplitterH::Split()
     SideRB = new SSplitterV();
     SideRB->Padding.Left = 5;
     SideRB->Init(RightRect);
+}
+
+void SSplitterH::OnResize(const FRect& NewRect)
+{
+    FRect PrevRect = Rect;
+    Rect = NewRect;
+
+    int32 NewParentWidth = Rect.Right - Rect.Left;
+    int32 WidthLT = NewParentWidth * PercentageLT;
+    int32 WidthRB = NewParentWidth - WidthLT;
+    
+    if (SideLT)
+    {
+        FRect ChildRect = {
+            Rect.Left + Padding.Left,
+            Rect.Top + Padding.Top,
+            Rect.Left + WidthLT - Padding.Right,
+            Rect.Bottom - Padding.Bottom
+        };
+        SideLT->OnResize(ChildRect);
+    }
+    if (SideRB)
+    {
+        FRect ChildRect = {
+            Rect.Right - WidthRB + Padding.Left,
+            Rect.Top + Padding.Top,
+            Rect.Right + Padding.Right,
+            Rect.Bottom - Padding.Bottom
+        };
+        SideRB->OnResize(ChildRect);
+    }
 }
 
 void SSplitterV::Split()
@@ -202,13 +281,16 @@ void SSplitterV::Split()
         delete SideRB;
     }
 
-    int32 HalfHeight = (Rect.Bottom - Rect.Top) / 2;
+    PercentageLT = 0.5f;
+    int32 ParentHeight = (Rect.Bottom - Rect.Top);
+    int32 HeightLT = ParentHeight * PercentageLT;
+    int32 HeightRB = ParentHeight - HeightLT;
     
     FRect TopRect = {
         Rect.Left + Padding.Left,
         Rect.Top + Padding.Top,
         Rect.Right - Padding.Right,
-        Rect.Top + HalfHeight - Padding.Bottom
+        Rect.Top + HeightLT - Padding.Bottom
     };
     SideLT = new SSplitterH();
     SideLT->Padding.Bottom = 5;
@@ -216,11 +298,42 @@ void SSplitterV::Split()
 
     FRect BottomRect = {
         Rect.Left + Padding.Left,
-        Rect.Top + HalfHeight + Padding.Top,
+        Rect.Bottom - HeightRB + Padding.Top,
         Rect.Right - Padding.Right,
         Rect.Bottom - Padding.Bottom
     };
     SideRB = new SSplitterH();
     SideRB->Padding.Top = 5;
     SideRB->Init(BottomRect);
+}
+
+void SSplitterV::OnResize(const FRect& NewRect)
+{
+    FRect PrevRect = Rect;
+    Rect = NewRect;
+
+    int32 ParentHeight = Rect.Bottom - Rect.Top;
+    int32 HeightLT = ParentHeight * PercentageLT;
+    int32 HeightRB = ParentHeight - HeightLT;
+    
+    if (SideLT)
+    {
+        FRect ChildRect = {
+            Rect.Left + Padding.Left,
+            Rect.Top + Padding.Top,
+            Rect.Right - Padding.Right,
+            Rect.Top + HeightLT - Padding.Bottom
+        };
+        SideLT->OnResize(ChildRect);
+    }
+    if (SideRB)
+    {
+        FRect ChildRect = {
+            Rect.Left + Padding.Left,
+            Rect.Bottom - HeightRB + Padding.Top,
+            Rect.Right - Padding.Right,
+            Rect.Bottom - Padding.Bottom
+        };
+        SideRB->OnResize(ChildRect);
+    }
 }

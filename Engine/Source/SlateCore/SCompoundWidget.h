@@ -25,6 +25,8 @@ public:
 
     virtual void HandleInput(const float DeltaTime) {}
 
+    virtual void OnResize(const FRect& NewRect) {}
+
     // Client 기준으로 Left Top이 (0, 0)
     FRect Rect;
 

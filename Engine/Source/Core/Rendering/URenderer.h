@@ -108,6 +108,8 @@ public:
 	// 클라이언트의 크기가 변경되면 호출됨.
 	void OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight);
 
+	void ReleaseViewport(FViewport* InViewport);
+
 	// 프리미티브의 바운딩 박스 크기를 Min, Max에 전달.
     void GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FVector& OutMax);
 

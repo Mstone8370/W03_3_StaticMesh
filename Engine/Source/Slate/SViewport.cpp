@@ -56,3 +56,16 @@ bool SViewport::IsHover(FPoint coord) const
 {
     return Rect.Left < coord.X && coord.X < Rect.Right && Rect.Top < coord.Y && coord.Y < Rect.Bottom;
 }
+
+void SViewport::OnResize(const FRect& NewRect)
+{
+    Rect = NewRect;
+    if (!Viewport)
+    {
+        return;
+    }
+
+    int32 Width = Rect.Right - Rect.Left;
+    int32 Height = Rect.Bottom - Rect.Top;
+    Viewport->Init(0, 0, Width, Height);
+}

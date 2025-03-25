@@ -497,30 +497,7 @@ void URenderer::SwapBuffer()
 
 void URenderer::PrepareRender()
 {
-    // Clear Screen
-	DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor);
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    DeviceContext->ClearRenderTargetView(PickingFrameBufferRTV, PickingClearColor);
-    DeviceContext->ClearDepthStencilView(PickingDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    // Rasterization할 Viewport를 설정 
-    DeviceContext->RSSetViewports(1, &ViewportInfo);
-
-
-    switch (CurrentRasterizerStateType)
-    {
-    case EViewModeIndex::ERS_Solid:
-        CurrentRasterizerState = &RasterizerState_Solid;
-        break;
-    case EViewModeIndex::ERS_Wireframe:
-        CurrentRasterizerState = &RasterizerState_Wireframe;
-        break;
-    default:
-        break;
-    }
-
-    DeviceContext->RSSetState(*CurrentRasterizerState);
+    
 }
 
 void URenderer::PrepareMainShader() const
@@ -1915,50 +1892,84 @@ void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
 
 void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InClientHeight)
 {
-    if (SwapChain)
+    if (!FinalSwapChain)
     {
-		DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        return;
+    }
+    
+	DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
-        ReleasePickingFrameBuffer();
-
-        ReleaseDepthStencilBuffer();
-        ReleaseFrameBuffer();
-
-        HRESULT hr = SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
-		if (FAILED(hr))
-		{
-            wchar_t errorMsg[256];
-			swprintf_s(errorMsg, TEXT("Failed to resize SwapChain! HRESULT: 0x%08X"), hr);
-			MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-			return;
-		}
-
-        DXGI_SWAP_CHAIN_DESC SwapChainDesc;
-        hr = SwapChain->GetDesc(&SwapChainDesc);
-		if (FAILED(hr))
-		{
-			wchar_t errorMsg[256];
-			swprintf_s(errorMsg, TEXT("Failed to get SwapChain Description! HRESULT: 0x%08X"), hr);
-			return;
-		}
-
-        ViewportInfo = {
-            .TopLeftX= 0.0f, .TopLeftY= 0.0f,
-            .Width= static_cast<float>(InClientWidth),
-			.Height= static_cast<float>(InClientHeight),
-            .MinDepth= 0.0f, .MaxDepth= 1.0f
-        };
-
-        CreateFrameBuffer();
-        CreateDepthStencilBuffer();
-
-    	CreatePickingFrameBuffer();
-
+    if (FinalTexture2D)
+    {
+        FinalTexture2D->Release();
+    }
+    if (FinalRenderTargetView)
+    {
+        FinalRenderTargetView->Release();
     }
 
-    if (ACamera* Camera = FEditorManager::Get().GetCamera())
+    HRESULT hr = FinalSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	if (FAILED(hr))
+	{
+        wchar_t errorMsg[256];
+		swprintf_s(errorMsg, TEXT("Failed to resize SwapChain! HRESULT: 0x%08X"), hr);
+		MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
+		return;
+	}
+
+    DXGI_SWAP_CHAIN_DESC FinalSwapChainDesc;
+    hr = FinalSwapChain->GetDesc(&FinalSwapChainDesc);
+	if (FAILED(hr))
+	{
+		wchar_t errorMsg[256];
+		swprintf_s(errorMsg, TEXT("Failed to get SwapChain Description! HRESULT: 0x%08X"), hr);
+		return;
+	}
+
+    FEditorManager::Get().OnResize(InClientWidth, InClientHeight);
+
+    FinalViewport = { 0.0f, 0.0f, (float)FinalSwapChainDesc.BufferDesc.Width, (float)FinalSwapChainDesc.BufferDesc.Height, 0.0f, 1.0f };
+    ViewportInfo = FinalViewport; // TEMP
+    
+    hr = FinalSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&FinalTexture2D);
+    if (FAILED(hr))
+        return;
+    
+    D3D11_RENDER_TARGET_VIEW_DESC FinalRTVDesc;
+    ZeroMemory(&FinalRTVDesc, sizeof(FinalRTVDesc));
+    FinalRTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    FinalRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    hr = Device->CreateRenderTargetView(FinalTexture2D, &FinalRTVDesc, &FinalRenderTargetView);
+    if (FAILED(hr))
+        return;
+}
+
+void URenderer::ReleaseViewport(FViewport* InViewport)
+{
+    if (!InViewport)
     {
-        UpdateProjectionMatrix(Camera);
+        return;
+    }
+
+    if (InViewport->RenderTargetSRV)
+    {
+        InViewport->RenderTargetSRV->Release();
+    }
+    if (InViewport->RenderTarget)
+    {
+        InViewport->RenderTarget->Release();
+    }
+    if (InViewport->RenderTargetView)
+    {
+        InViewport->RenderTargetView->Release();
+    }
+    if (InViewport->DepthStencilBuffer)
+    {
+        InViewport->DepthStencilBuffer->Release();
+    }
+    if (InViewport->DepthStencilView)
+    {
+        InViewport->DepthStencilView->Release();
     }
 }
 
