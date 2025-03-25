@@ -6,8 +6,10 @@
 cbuffer ChangeEveryObject : register(b0)
 {
     matrix WorldMatrix;
+    matrix NormalMatrix;
     float4 CustomColor;
     uint bUseVertexColor;
+
 }
 
 cbuffer ChangeEveryFrame : register(b1)

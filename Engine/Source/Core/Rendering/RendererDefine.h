@@ -27,12 +27,11 @@ enum class EIndexBufferType : uint8
 {
 	EIT_Cube,
 };
-
 struct FStaticMeshVertex
 {
-	FVector Position;
-	FVector4 Color;
-	FVector Normal;
-	FVector Tangent;
-	FVector2D UV;
+	FVector   Position;  // 16바이트 할당(실제 크기 12바이트 + 4바이트 내부 패딩)
+	FVector   Normal;    // 16바이트 할당
+	FVector   Tangent;   // 16바이트 할당
+	FVector2D UV;        // 8바이트
+	FVector4  Color;     // 16바이트
 };

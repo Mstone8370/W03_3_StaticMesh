@@ -8,6 +8,7 @@
 
 // 전역 변수들
 TMap<FString, FStaticMesh*> FObjManager::ObjStaticMeshMap;
+TMap<FName, FObjMaterialInfo> FObjManager::MaterialMap;
 FObjImporter FObjManager::Importer;
 
 // MaterialSubmeshMap: 머티리얼 이름 -> 서브메쉬 
@@ -43,14 +44,15 @@ UStaticMesh* FObjManager::LoadObjStaticMesh(const FString& PathFileName)
 
 FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
 {
+    TArray<FSubMesh> SubMeshes;
+    
     TArray<FStaticMeshVertex> CookedVertices;
     TArray<uint32> CookedIndices;
-    TArray<FSubMesh> SubMeshes;
-    TMap<FName, FObjMaterialInfo> MaterialList;
 
     ObjReader Reader(ObjPath);
+    
     FObjInfo RawData = Reader.GetRawData();
-    MaterialList = Reader.GetMaterialList();
+      
     SubMeshes = Reader.GetSubMeshes();
 
     uint32 TotalIndices = RawData.VertexIndexList.Num();
@@ -58,6 +60,7 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
     CookedIndices = TArray<uint32>(TotalIndices);
 
     uint32 VertexCount = 0;
+    
     for (uint32 i = 0; i < TotalIndices; i += 3)
     {
         uint32 vIdx0 = RawData.VertexIndexList[i];
@@ -86,11 +89,12 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
         TArray<float> Col2 = RawData.Colors[vIdx2];
         TArray<float> UV2 = RawData.UVs[uvIdx2];
         TArray<float> Norm2 = RawData.Normals[nIdx2];
-
+     
         FStaticMeshVertex Vertex0, Vertex1, Vertex2;
-        MakeVertex(Pos0,Col0, Norm0, UV0, Vertex0);
-        MakeVertex(Pos1,Col1, Norm1, UV1, Vertex2);
-        MakeVertex(Pos2,Col2, Norm2, UV2, Vertex1);
+        MakeVertex(Pos0, Col0, Norm0, UV0, Vertex0);
+        MakeVertex(Pos2, Col2, Norm2, UV2, Vertex1);
+        MakeVertex(Pos1, Col1, Norm1, UV1, Vertex2);
+
 
         CalculateTangent(Vertex0, Vertex1, Vertex2, Vertex0.Tangent);
         CalculateTangent(Vertex1, Vertex2, Vertex0, Vertex1.Tangent);
@@ -108,6 +112,7 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
         CookedIndices[VertexCount] = VertexCount;
         ++VertexCount;
     }
+    
 
     // 파싱 단계에서 얻은 머티리얼 이름 배열 (usemtl 지시어에 의해 추출)
     TArray<FName> MaterialsName = Reader.GetMaterialsName();

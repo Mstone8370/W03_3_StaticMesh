@@ -83,6 +83,8 @@ public:
 	/** Constant Data를 업데이트 합니다. */
 	void UpdateObjectConstantBuffer(const ConstantUpdateInfo& UpdateInfo) const;
 
+	void UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterialInfo) const;
+
 	ID3D11Device* GetDevice() const;
 	ID3D11DeviceContext* GetDeviceContext() const;
 
@@ -217,8 +219,9 @@ protected:
 	EViewModeIndex CurrentRasterizerStateType = EViewModeIndex::ERS_Solid; // 현재 사용중인 레스터라이즈 상태 타입
 
 	ID3D11Buffer* CbChangeEveryObject = nullptr;                 // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
-	ID3D11Buffer* CbChangeOnCameraMove = nullptr;                  // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
+	ID3D11Buffer* CbChangeOnCameraMove = nullptr;                // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
 	ID3D11Buffer* CbChangeOnResizeAndFov = nullptr;              // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
+	ID3D11Buffer* cbMaterialInfo = nullptr;						 // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
 
 	FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
 	D3D11_VIEWPORT ViewportInfo = {};                       // 렌더링 영역을 정의하는 뷰포트 정보

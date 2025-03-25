@@ -110,6 +110,15 @@ void URenderer::CreateConstantBuffer()
     hr = Device->CreateBuffer(&TextureConstantBufferDesc, nullptr, &TextureConstantBuffer);
     if (FAILED(hr))
         return;
+
+    D3D11_BUFFER_DESC MaterialConstantBufferDesc = {};
+    MaterialConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    MaterialConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    MaterialConstantBufferDesc.ByteWidth = sizeof(FMaterialInfo) + 0xf & 0xfffffff0;
+    MaterialConstantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    hr = Device->CreateBuffer(&MaterialConstantBufferDesc, nullptr, &cbMaterialInfo);
+    if (FAILED(hr))
+        return;
     
     /**
      * 여기에서 상수 버퍼를 쉐이더에 바인딩.
@@ -125,6 +134,7 @@ void URenderer::CreateConstantBuffer()
     DeviceContext->PSSetConstantBuffers(1, 1, &CbChangeOnCameraMove);
     DeviceContext->PSSetConstantBuffers(2, 1, &CbChangeOnResizeAndFov);
     DeviceContext->PSSetConstantBuffers(3, 1, &ConstantPickingBuffer);
+    DeviceContext->PSSetConstantBuffers(4, 1, &cbMaterialInfo);
     DeviceContext->PSSetConstantBuffers(5, 1, &TextureConstantBuffer);
 }
 
@@ -152,6 +162,11 @@ void URenderer::ReleaseConstantBuffer()
     {
         ConstantPickingBuffer->Release();
         ConstantPickingBuffer = nullptr;
+    }
+    if (cbMaterialInfo) 
+    {
+        cbMaterialInfo->Release();
+        cbMaterialInfo = nullptr;
     }
 }
 
@@ -335,51 +350,121 @@ void URenderer::RenderBox(const FBox& Box, const FVector4& Color)
 //}
 
 
- //URenderer::RenderMesh test
+// 활성 텍스처 플래그 계산 함수
+int GetActiveTextureFlags(const FObjMaterialInfo& materialInfo)
+{
+    enum TextureFlag {
+        TEX_Ka = 1   << 0,
+        TEX_Kd = 1   << 1,
+        TEX_Ks = 1   << 2,
+        TEX_Ns = 1   << 3,
+        TEX_d =  1   << 4,
+        TEX_bump = 1 << 5,
+        TEX_refl = 1 << 6
+    };
+
+    int flags = 0;
+    if (!materialInfo.map_Ka.empty())   flags |= TEX_Ka;
+    if (!materialInfo.map_Kd.empty())   flags |= TEX_Kd;
+    if (!materialInfo.map_Ks.empty())   flags |= TEX_Ks;
+    if (!materialInfo.map_Ns.empty())   flags |= TEX_Ns;
+    if (!materialInfo.map_d.empty())    flags |= TEX_d;
+    if (!materialInfo.map_bump.empty()) flags |= TEX_bump;
+    if (!materialInfo.map_refl.empty()) flags |= TEX_refl;
+    return flags;
+}
+
 void URenderer::RenderMesh(UMeshComponent* MeshComp)
 {
+    // UStaticMeshComponent로 캐스팅
     UStaticMeshComponent* StaticMeshComp = static_cast<UStaticMeshComponent*>(MeshComp);
-  
-    // UStaticMeshComponent에서 UStaticMesh를 가져옴
+    if (!StaticMeshComp) return;
+
+    // UStaticMesh와 FStaticMeshAsset 가져오기
     UStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh();
     if (!StaticMesh) return;
     FStaticMesh* MeshAsset = StaticMesh->GetStaticMeshAsset();
     if (!MeshAsset) return;
 
+    // 메시 키 생성 및 버퍼 정보 획득
     FName meshKey = FObjImporter::GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
-
     FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(meshKey);
 
     ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
     ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
+    if (!VertexBuffer || !IndexBuffer) return;
 
+    // 정점 버퍼 및 인덱스 버퍼 설정
     UINT MeshStride = sizeof(FStaticMeshVertex);
     UINT Offset = 0;
     DeviceContext->IASetVertexBuffers(0, 1, &VertexBuffer, &MeshStride, &Offset);
     DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+    // 객체 상수 버퍼 업데이트
     ConstantUpdateInfo ConstantInfo = {
-     MeshComp->GetWorldTransform().GetMatrix(),
-     MeshComp->GetCustomColor(),
-     MeshComp->IsUseVertexColor(),
+        StaticMeshComp->GetWorldTransform().GetMatrix(),
+        StaticMeshComp->GetCustomColor(),
+        StaticMeshComp->IsUseVertexColor(),
     };
     UpdateObjectConstantBuffer(ConstantInfo);
-    
-    // 머티리얼 이름
-    // staticmesh
-    // subMesh -
+
+    // 텍스처 바인딩 정보 정의
+    struct TextureBinding {
+        int slot;         // PS에서 사용할 텍스처 슬롯 번호
+        FName suffix;     // 텍스처 타입 접미사
+    };
+
+    const TextureBinding textureBindings[] = {
+        { 0, TEXT("map_Ka") },
+        { 1, TEXT("map_Kd") },
+        { 2, TEXT("map_Ks") },
+        { 3, TEXT("map_Ns") },
+        { 4, TEXT("map_d")  },
+        { 5, TEXT("map_bump") },
+        { 6, TEXT("map_refl") }
+    };
+
+    // 각 재질에 대해 렌더링 처리
     for (const FName& materialName : MeshAsset->MaterialsName)
     {
-        // FObjManager::MaterialSubmeshMap에서 materialName에 해당하는 서브맵을 찾음
+        FObjMaterialInfo materialInfo = FObjManager::MaterialMap[materialName];
+
+        // 각 텍스처 바인딩 처리
+        for (const auto& binding : textureBindings)
+        {
+            FString textureKeyStr = materialName.ToString();
+            textureKeyStr += binding.suffix.ToString();
+            FName textureKey(*textureKeyStr);
+
+            // 재질 상수 버퍼 업데이트
+            FMaterialInfo matBuffer;
+            matBuffer.ActiveTextureFlag = GetActiveTextureFlags(materialInfo);
+            matBuffer.Ns = materialInfo.Ns;
+            matBuffer.d = materialInfo.d;
+            matBuffer.illum = materialInfo.illum;
+            matBuffer.Ni = materialInfo.Ni;
+            matBuffer.Ka = materialInfo.Ka;
+            matBuffer.Kd = materialInfo.Kd;
+            matBuffer.Ks = materialInfo.Ks;
+            matBuffer.Ke = materialInfo.Ke;
+              
+            UpdateMaterialConstantBuffer(matBuffer);
+
+            // 텍스처가 존재하면 PS에 설정
+            TextureInfo* texInfo = UEngine::Get().GetTextureInfo(textureKey);
+            if (texInfo && texInfo->ShaderResourceView)
+            {
+                DeviceContext->PSSetShaderResources(binding.slot + 1, 1, &texInfo->ShaderResourceView);
+            }
+        }
+
+        // 서브메시 렌더링: 재질에 해당하는 인덱스 범위를 찾아 DrawIndexed 호출
         if (FObjManager::MaterialSubmeshMap.Contains(materialName))
         {
             FSubMesh& subMesh = FObjManager::MaterialSubmeshMap[materialName];
-            
             UINT count = subMesh.endIndex - subMesh.startIndex + 1;
             DeviceContext->DrawIndexed(count, subMesh.startIndex, 0);
-
-
         }
     }
 }
@@ -545,11 +630,35 @@ void URenderer::UpdateObjectConstantBuffer(const ConstantUpdateInfo& UpdateInfo)
     if (FCbChangeEveryObject* Constants = static_cast<FCbChangeEveryObject*>(ConstantBufferMSR.pData))
     {
         Constants->WorldMatrix = FMatrix::Transpose(UpdateInfo.TransformMatrix);
+        Constants->NormalMatrix = FMatrix::Transpose(Constants->WorldMatrix.Inverse());
         Constants->CustomColor = UpdateInfo.Color;
         Constants->bUseVertexColor = UpdateInfo.bUseVertexColor ? 1 : 0;
     }
     // UnMap해서 GPU에 값이 전달 될 수 있게 함
     DeviceContext->Unmap(CbChangeEveryObject, 0);
+}
+
+void URenderer::UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterialInfo) const
+{
+    D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
+
+    // D3D11_MAP_WRITE_DISCARD는 이전 내용을 무시하고 새로운 데이터로 덮어쓰기 위해 사용
+    DeviceContext->Map(cbMaterialInfo, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
+    // 매핑된 메모리를 FConstants 구조체로 캐스팅
+    if (FMaterialInfo* Constants = static_cast<FMaterialInfo*>(ConstantBufferMSR.pData))
+    {
+        Constants->ActiveTextureFlag = UpdateMaterialInfo.ActiveTextureFlag;
+        Constants->d = UpdateMaterialInfo.d;
+        Constants->illum = UpdateMaterialInfo.illum;
+        Constants->Ka= UpdateMaterialInfo.Ka;
+        Constants->Kd = UpdateMaterialInfo.Kd;
+        Constants->Ke = UpdateMaterialInfo.Ke;
+        Constants->Ks = UpdateMaterialInfo.Ks;
+        Constants->Ni = UpdateMaterialInfo.Ni;
+        Constants->Ns = UpdateMaterialInfo.Ns;
+    }
+    // UnMap해서 GPU에 값이 전달 될 수 있게 함
+    DeviceContext->Unmap(cbMaterialInfo, 0);
 }
 
 ID3D11Device* URenderer::GetDevice() const
@@ -962,7 +1071,6 @@ void URenderer::CreateTextureSamplerState()
     URenderer* Renderer = UEngine::Get().GetRenderer();
     Renderer->GetDevice()->CreateSamplerState(&SamplerDesc, &SamplerState);
 }
-
 void URenderer::ReleaseTextureSamplerState()
 {
     if (SamplerState)

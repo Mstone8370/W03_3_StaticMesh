@@ -5,7 +5,7 @@
 #include "Rendering/RendererDefine.h"
 #include "CoreUObject/NameTypes.h"
 #include "Core/Math/Vector.h"
-
+#include "Core/Rendering/TextureLoader.h"
 
 class  UStaticMesh;
 struct FStaticMeshVertex;
@@ -38,6 +38,25 @@ struct FObjMaterialInfo
     std::wstring map_d;      // Alpha (투명도) texture map
     std::wstring map_bump;   // Bump 또는 Normal map
     std::wstring map_refl;   // Reflection map
+    FObjMaterialInfo()
+        : Ns(1.0f)
+        , Ka(1.0f, 1.0f, 1.0f)
+        , Kd(1.0f, 1.0f, 1.0f)
+        , Ks(1.0f, 1.0f, 1.0f)
+        , Ke(0.0f, 0.0f, 0.0f)
+        , Ni(1.f)
+        , d(1.0f)
+        , illum()
+        , map_Ka(L"")
+        , map_Kd(L"")
+        , map_Ks(L"")
+        , map_Ns(L"")
+        , map_d(L"")
+        , map_bump(L"")
+        , map_refl(L"")
+    {
+    }
+
 };
 
 //Raw Data
@@ -50,7 +69,6 @@ struct FObjInfo
     TArray<uint32> VertexIndexList;
     TArray<uint32> UVIndexList;
     TArray<uint32> NormalIndexList;
-    TMap<FName, FObjMaterialInfo> MaterialList;
     TArray<std::wstring> TextureList;
 };
 
@@ -81,9 +99,9 @@ struct FObjImporter
     {
         OutVertex = {};
         OutVertex.Position = { Vertex[0], Vertex[1], Vertex[2] };
-        OutVertex.Color = { Color[0], Color[1], Color[2], 1};
         OutVertex.Normal = { Normal[0], Normal[1], Normal[2] };
         OutVertex.UV = { UV[0], UV[1] };
+        OutVertex.Color = { Color[0], Color[1], Color[2], 1};
     }
     static void CalculateTangent(const FStaticMeshVertex& Vertex0, const FStaticMeshVertex& Vertex1,
         const FStaticMeshVertex& Vertex2, FVector& OutTangent)
@@ -125,6 +143,7 @@ class FObjManager
 {
 public:
     static TMap<FName,FSubMesh> MaterialSubmeshMap;
+    static TMap<FName,FObjMaterialInfo> MaterialMap;
     static FStaticMesh* LoadObjStaticMeshAsset(const FString& PathFileName);
     static UStaticMesh* LoadObjStaticMesh(const FString& PathFileName);
     static FObjImporter Importer;
