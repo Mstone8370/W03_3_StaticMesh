@@ -38,6 +38,8 @@ AStaticMesh::AStaticMesh()
     }
 }
 
+void AStaticMesh::BeginPlay(){}
+
 void AStaticMesh::Tick(float DeltaTime)
 {
 }
