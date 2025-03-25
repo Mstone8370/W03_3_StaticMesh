@@ -20,15 +20,13 @@ AStaticMesh::AStaticMesh()
     MeshComponent = AddComponent<UStaticMeshComponent>();
     MeshComponent->SetupAttachment(RootComponent);
     
+    // Default Mesh 로드
     FString staticMeshPath = "Resources/" + DefaultMesh;
     UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(staticMeshPath);
-    
     MeshComponent->SetStaticMesh(StaticMesh);
     MeshComponent->SetCanBeRendered(true);
     MeshComponent->SetUseVertexColor(false);
-  
     UEngine::Get().GetWorld()->AddRenderComponent(MeshComponent);
-
 
     UStaticMesh* Mesh = MeshComponent->GetStaticMesh();
     if (Mesh)
@@ -38,23 +36,6 @@ AStaticMesh::AStaticMesh()
         OutputDebugString(L"\n");
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
     }
-    /*UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/plant.obj"));
-    
-    MeshComponent->SetStaticMesh(StaticMesh);
-    MeshComponent->SetCanBeRendered(true);
-    MeshComponent->SetUseVertexColor(false);
-  
-    UEngine::Get().GetWorld()->AddRenderComponent(MeshComponent);
-
-}
-
-    Mesh = MeshComponent->GetStaticMesh();
-    if (Mesh)
-    {
-        FString ObjPath = Mesh->GetAssetPathFileName();
-        UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
-    }   */
-
 }
 
 void AStaticMesh::Tick(float DeltaTime)
