@@ -289,12 +289,12 @@ protected:
     ID3D11DepthStencilView* PickingDepthStencilView = nullptr;
     ID3D11RenderTargetView* PickingFrameBufferRTV = nullptr; // 텍스처를 렌더 타겟으로 사용하는 뷰
     ID3D11Buffer* ConstantPickingBuffer = nullptr; // 뷰 상수 버퍼
-    FLOAT PickingClearColor[4] = {1.0f, 1.0f, 1.0f, 1.0f}; //
     ID3D11PixelShader* PickingPixelShader = nullptr; // Pixel의 색상을 결정하는 Pixel 셰이더
 
     ID3D11DepthStencilState* IgnoreDepthStencilState = nullptr; // DepthStencil 상태(깊이 테스트, 스텐실 테스트 등 정의)
 
 public:
+    FLOAT PickingClearColor[4] = {1.0f, 1.0f, 1.0f, 1.0f}; //
     //피킹용 함수들	
     void CreatePickingFrameBuffer();
     void ReleasePickingFrameBuffer();
@@ -362,5 +362,9 @@ public:
     void UpdateScreenConstantBuffer(float Width, float Height);
 
     ID3D11Buffer* ScreenConstantBuffer = nullptr;
+
+    //픽셀 피킹 호환
+    FVector4 GetPixelFromViewport(int32 X, int32 Y, const FViewport& View);
+    bool bRenderPicking=false;
 #pragma endregion Viewports
 };

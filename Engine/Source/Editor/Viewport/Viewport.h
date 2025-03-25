@@ -30,7 +30,15 @@ struct FViewport
 
     ACamera* ViewCamera = nullptr;
     ID3D11ShaderResourceView* ShaderResourceView = nullptr;
-
+    
+    //픽킹 전용 텍스처
+    ID3D11Texture2D* PickingTexture = nullptr;
+    ID3D11RenderTargetView* PickingRTV = nullptr;
+    ID3D11Texture2D* PickingStaging = nullptr;
+    ID3D11Texture2D* PickingDepth = nullptr;
+    ID3D11DepthStencilView* PickingDSV = nullptr;
+    ID3D11ShaderResourceView* PixelShaderResourceView = nullptr;
+    
     void Initialize(ID3D11Device* Device, float InWidth, float InHeight, const FVector2D& InTopLeft);
     void Release();
 };

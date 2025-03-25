@@ -35,7 +35,31 @@ void FViewport::Initialize(ID3D11Device* Device, float InWidth, float InHeight, 
 
     Device->CreateTexture2D(&DSDesc, nullptr, &DepthStencil);
     Device->CreateDepthStencilView(DepthStencil, nullptr, &DSV);
+    
+    // 픽셀 피킹용 RTV
+    Device->CreateTexture2D(&RTDesc, nullptr, &PickingTexture);
+    Device->CreateRenderTargetView(PickingTexture, nullptr, &PickingRTV);
 
+    D3D11_TEXTURE2D_DESC StagingDesc = {};
+    StagingDesc.Width = RTDesc.Width;
+    StagingDesc.Height = RTDesc.Height;
+    StagingDesc.MipLevels = 1;
+    StagingDesc.ArraySize = 1;
+    StagingDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    StagingDesc.SampleDesc.Count = 1;
+    StagingDesc.Usage = D3D11_USAGE_STAGING;
+    StagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    Device->CreateTexture2D(&StagingDesc, nullptr, &PickingStaging);
+
+    D3D11_TEXTURE2D_DESC DepthDesc = RTDesc;
+    DepthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    DepthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    Device->CreateTexture2D(&DepthDesc, nullptr, &PickingDepth);
+    Device->CreateDepthStencilView(PickingDepth, nullptr, &PickingDSV);
+    //ShaderResourceView 생성 (합성에 필수)
+    Device->CreateShaderResourceView(PickingTexture, &SRVDesc, &PixelShaderResourceView);
+    
     // Viewport 설정
     Position.X = InTopLeft.X;
     Position.Y = InTopLeft.Y;
@@ -57,4 +81,12 @@ void FViewport::Release()
     if (DepthStencil) { DepthStencil->Release(); DepthStencil = nullptr; }
     if (DSV) { DSV->Release(); DSV = nullptr; }
     if (ShaderResourceView) { ShaderResourceView->Release(); ShaderResourceView = nullptr; }
+    if (PixelShaderResourceView) { PixelShaderResourceView->Release(); PixelShaderResourceView = nullptr; }
+
+    if (PickingTexture) { PickingTexture->Release(); PickingTexture = nullptr; }
+    if (PickingRTV) { PickingRTV->Release(); PickingRTV = nullptr; }
+    if (PickingStaging) { PickingStaging->Release(); PickingStaging = nullptr; }
+    if (PickingDepth) { PickingDepth->Release(); PickingDepth = nullptr; }
+    if (PickingDSV) { PickingDSV->Release(); PickingDSV = nullptr; }
+
 }

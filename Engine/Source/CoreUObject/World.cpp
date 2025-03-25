@@ -119,7 +119,42 @@ void UWorld::RenderPickingTexture(URenderer& Renderer)
         RenderComponent->Render(&Renderer);
     }
 }
+void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& View)
+{
+    if (!View.PickingRTV || !View.PickingDSV) return;
+    ID3D11DeviceContext* DeviceContext = Renderer.GetDeviceContext();
+    DeviceContext->OMSetRenderTargets(1, &View.PickingRTV, View.PickingDSV);
+    DeviceContext->ClearRenderTargetView(View.PickingRTV, Renderer.PickingClearColor);
+    DeviceContext->ClearDepthStencilView(View.PickingDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+    DeviceContext->RSSetViewports(1, &View.ViewportDesc);
+
+    if (View.ViewCamera)
+    {
+        Renderer.UpdateViewMatrix(View.ViewCamera->GetActorTransform());
+        Renderer.UpdateProjectionMatrixAspect(View.ViewCamera, View.ViewportDesc.Width, View.ViewportDesc.Height);
+    }
+
+    Renderer.PreparePicking();
+    Renderer.PreparePickingShader();
+
+    // Main Pickable Objects
+    for (auto& RenderComponent : RenderComponents)
+    {
+        uint32 UUID = RenderComponent->GetUUID();
+        RenderComponent->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
+        RenderComponent->Render(&Renderer);
+    }
+
+    // ZIgnore
+    Renderer.PrepareZIgnore();
+    for (auto& RenderComponent : ZIgnoreRenderComponents)
+    {
+        uint32 UUID = RenderComponent->GetUUID();
+        RenderComponent->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
+        RenderComponent->Render(&Renderer);
+    }
+}
 void UWorld::RenderMainTexture(URenderer& Renderer)
 {
     Renderer.PrepareMain();

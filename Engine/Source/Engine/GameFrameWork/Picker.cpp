@@ -82,31 +82,30 @@ const char* APicker::GetTypeName()
 
 bool APicker::PickByColor()
 {
-    int32 X = 0;
-    int32 Y = 0;
+    int32 X, Y;
     APlayerInput::Get().GetMousePositionClient(X, Y);
 
-    FVector4 color = UEngine::Get().GetRenderer()->GetPixel(X, Y);
-    uint32_t UUID = DecodeUUID(color);
+    int32 ViewportIndex = APlayerController::Get().GetClickedViewportIndex();
+    if (ViewportIndex == -1)
+        return false;
 
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    const FViewport& View = Renderer->Viewports[ViewportIndex];
+    FVector4 color = Renderer->GetPixelFromViewport(X, Y, View);
+
+    uint32 UUID = DecodeUUID(color);
     USceneComponent* PickedComponent = UEngine::Get().GetObjectByUUID<USceneComponent>(UUID);
 
     bool bIsPicked = false;
-    if (PickedComponent != nullptr)
+    if (PickedComponent && !PickedComponent->GetOwner()->IsGizmoActor())
     {
+        FEditorManager::Get().SelectComponent(PickedComponent);
         bIsPicked = true;
-   //     AActor* PickedActor = PickedComponent->GetOwner();
-
-   //     // 액터없는 컴포넌트가 검출될 수 있나? -> return false
-   //     if (PickedActor == nullptr) return false;
-		if (PickedComponent->GetOwner()->IsGizmoActor() == false)
-		{
-			FEditorManager::Get().SelectComponent(PickedComponent);
-		}
     }
     UE_LOG("Pick - UUID: %d", UUID);
     return bIsPicked;
 }
+
 
 bool APicker::PickByRay()
 {

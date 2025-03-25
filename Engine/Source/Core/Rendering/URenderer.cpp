@@ -8,6 +8,7 @@
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "Editor/Viewport/Viewport.h"
 #include "World.h"
+#include "GameFrameWork/Picker.h"
 #include "Input/PlayerController.h"
 
 void URenderer::Create(HWND hWindow)
@@ -1390,7 +1391,7 @@ void URenderer::PrepareZIgnore()
 void URenderer::PreparePicking()
 {
     // 렌더 타겟 바인딩
-    DeviceContext->OMSetRenderTargets(1, &PickingFrameBufferRTV, PickingDepthStencilView);
+    //DeviceContext->OMSetRenderTargets(1, &PickingFrameBufferRTV, PickingDepthStencilView);
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0); // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
 }
@@ -1698,6 +1699,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
     for (FViewport& View : Viewports)
     {
         RenderViewport(View, RenderWorld);
+        RenderWorld->RenderPickingTextureForViewport(*this,View);
     }
     RenderWorld->RenderPickingTexture(*this);
     // 2. 합성 (SRV를 메인 FrameBuffer에 출력)
@@ -1831,8 +1833,10 @@ void URenderer::CompositeViewportsToBackBuffer()
     for (const FViewport& View : Viewports)
     {
         if (View.ShaderResourceView == nullptr) continue;
-
-        DeviceContext->PSSetShaderResources(0, 1, &View.ShaderResourceView);
+        if (!bRenderPicking)
+            DeviceContext->PSSetShaderResources(0, 1, &View.ShaderResourceView);
+        else
+            DeviceContext->PSSetShaderResources(0, 1, &View.PixelShaderResourceView);
 
         D3D11_VIEWPORT VP = View.ViewportDesc;
         //DeviceContext->RSSetViewports(1, &VP);
@@ -1842,7 +1846,7 @@ void URenderer::CompositeViewportsToBackBuffer()
             //FVector2D(0, 0)
             FVector2D(View.Position.X, View.Position.Y)
         );
-
+        
         DeviceContext->Draw(6, 0); // 풀스크린 쿼드
     }
 }
@@ -1926,4 +1930,44 @@ void URenderer::RecreateAllViewportRTVs()
         View.Initialize(Device, View.Size.X, View.Size.Y, View.Position);
         //View.Initialize(Device, View.ViewportDesc.Width, View.ViewportDesc.Height,FVector2D(View.Position.X, View.Position.Y));
     }
+}
+
+FVector4 URenderer::GetPixelFromViewport(int32 X, int32 Y, const FViewport& View)
+{
+    FVector4 color{1, 1, 1, 1};
+
+    // Viewport의 로컬 좌표로 변환
+    int32 LocalX = X - static_cast<int32>(View.Position.X);
+    int32 LocalY = Y - static_cast<int32>(View.Position.Y);
+
+    // 유효 범위 검사
+    if (LocalX < 0 || LocalY < 0 ||
+        LocalX >= static_cast<int32>(View.ViewportDesc.Width) ||
+        LocalY >= static_cast<int32>(View.ViewportDesc.Height))
+        return color;
+
+    // 스테이징 텍스처 바운드 검사 생략 가능
+    D3D11_BOX srcBox = {
+        (UINT)LocalX, (UINT)(LocalY), 0,
+        (UINT)(LocalX + 1), (UINT)(LocalY + 1), 1
+    };
+
+    DeviceContext->CopySubresourceRegion(
+        View.PickingStaging, 0, 0, 0, 0,
+        View.PickingTexture, 0, &srcBox
+    );
+
+    D3D11_MAPPED_SUBRESOURCE Mapped = {};
+    HRESULT hr = DeviceContext->Map(View.PickingStaging, 0, D3D11_MAP_READ, 0, &Mapped);
+    if (FAILED(hr))
+        return color;
+
+    const BYTE* pixelData = static_cast<const BYTE*>(Mapped.pData);
+    color.X = static_cast<float>(pixelData[0]);
+    color.Y = static_cast<float>(pixelData[1]);
+    color.Z = static_cast<float>(pixelData[2]);
+    color.W = static_cast<float>(pixelData[3]);
+
+    DeviceContext->Unmap(View.PickingStaging, 0);
+    return color;
 }
