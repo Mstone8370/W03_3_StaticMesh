@@ -67,6 +67,10 @@ public:
 		Components.Remove(Object);
 	}
 
+	template<typename T>
+		requires std::derived_from<T, UActorComponent>
+	T* FindComponent() const;
+
 	FTransform GetActorTransform() const;
 	bool CanEverTick() const { return bCanEverTick; }
 	virtual const char* GetTypeName();
@@ -141,4 +145,17 @@ T* AActor::AddComponent()
 	UE_LOG("Component Added: %s", *ObjectName);
 
 	return ObjectInstance;
+}
+
+template<typename T> requires std::derived_from<T, UActorComponent>
+T* AActor::FindComponent() const
+{
+	for (UActorComponent* Component : Components)
+	{
+		if (T* FondComponent = dynamic_cast<T*>(Component))
+		{
+			return FondComponent;
+		}
+	}
+	return nullptr;
 }

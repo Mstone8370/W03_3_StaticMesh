@@ -28,11 +28,11 @@ bool TextureLoader::LoadTexture(const FName& Name, const FString& FileName, int3
     // DirectX 텍스처 로드
     ID3D11ShaderResourceView* ShaderResourceView;
     HRESULT Result = DirectX::CreateWICTextureFromFile(Device, Context, FullPath.c_wchar(), nullptr, &ShaderResourceView);
-	if (FAILED(Result))
+    if (FAILED(Result))
 	{
 		return false;
 	}
-    
+   
     // 텍스처 정보 추가
     TextureInfo NewInfo;
     NewInfo.Rows = InRows;

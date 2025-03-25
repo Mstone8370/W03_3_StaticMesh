@@ -25,7 +25,7 @@
 #include "ImGui/imgui_internal.h"
 #include "Input/PlayerController.h"
 #include "Input/PlayerInput.h"
-
+#include "GameFrameWork/AStaticMesh.h"
 //@TODO: Replace with EditorWindow
 
 std::shared_ptr<ConsoleWindow> UI::ConsoleWindowInstance = nullptr;
@@ -209,7 +209,7 @@ void UI::RenderMemoryUsage()
 
 void UI::RenderPrimitiveSelection()
 {
-    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow" };
+    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "TestStaticMesh"};
 
     ImGui::Combo("Primitive", &currentItem, items, IM_ARRAYSIZE(items));
 
@@ -237,6 +237,10 @@ void UI::RenderPrimitiveSelection()
             else if (strcmp(items[currentItem], "Arrow") == 0)
             {
                 World->SpawnActor<AArrow>();
+            }
+            else if (strcmp(items[currentItem], "TestStaticMesh") == 0)
+            {
+                World->SpawnActor<AStaticMesh>();
             }
             //else if (strcmp(items[currentItem], "Triangle") == 0)
             //{
@@ -468,7 +472,49 @@ void UI::RenderPropertyWindow()
 			//FEditorManager::Get().SelectComponent(nullptr);
 			World->DestroyActor(SelectedComponent->GetOwner());
         }
+
+        ImGui::Separator();
+        const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj" };
+
+        if (SelectedComponent != PrevSelectedComponent)
+        {
+            AStaticMesh* StaticMeshOwner = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
+            if (StaticMeshOwner)
+            {
+                FString MeshName = StaticMeshOwner->GetAssetName();
+                for (int i = 0; i < IM_ARRAYSIZE(Items); ++i)
+                {
+                    if (MeshName.Equals(Items[i]))
+                    {
+                        CurrentMesh = i;
+                        break;
+                    }
+                }
+            }
+            PrevSelectedComponent = SelectedComponent;
+        }
+
+        if (ImGui::BeginCombo("Static Mesh DropList", Items[CurrentMesh]))
+        {
+            for (int i = 0; i < IM_ARRAYSIZE(Items); i++)
+            {
+                bool isSelected = (CurrentMesh == i);
+                if (ImGui::Selectable(Items[i], isSelected)) {
+                    CurrentMesh = i;
+                    AStaticMesh* SelectedActor = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
+                    if (UStaticMeshComponent* MeshComponent = SelectedActor->FindComponent<UStaticMeshComponent>())
+                    {
+                        SelectedActor->SetAssetName(Items[CurrentMesh]);
+                        MeshComponent->ChangeStaticMesh(Items[CurrentMesh]);
+                    }
+                }
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
     }
+
     ImGui::End();
 }
 

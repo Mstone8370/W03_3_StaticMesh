@@ -252,8 +252,11 @@
     <ClInclude Include="Source\Utils\JsonSaveHelper.h" />
     <ClInclude Include="Source\Utils\MeshBuilder.h" />
     <ClInclude Include="Source\Utils\ObjReader.h" />
+    <ClInclude Include="Source\Engine\GameFrameWork\AStaticMesh.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp" />
+    <ClCompile Include="Source\Engine\GameFrameWork\AStaticMesh.cpp" />
     <None Include="Shaders\StaticMeshShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -305,7 +308,6 @@
     <ClCompile Include="Source\Engine\GameFrameWork\Cylinder.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Picker.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Sphere.cpp" />
-    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp" />
     <ClCompile Include="Source\Gizmo\Axis.cpp" />
     <ClCompile Include="Source\Gizmo\GizmoHandle.cpp" />
     <ClCompile Include="Source\Gizmo\WorldGrid.cpp" />

@@ -56,6 +56,7 @@ public:
 		requires std::is_invocable_r_v<bool, Predicate, const T&>
 	SizeType RemoveAll(const Predicate& Pred);
 	T* GetData();
+	const T* GetData() const;
 	bool IsEmpty() const;
 
 	/**
@@ -65,6 +66,8 @@ public:
 	 */
 	SizeType Find(const T& Item);
 	bool Find(const T& Item, SizeType& Index);
+
+	bool Contains(const T& Item) const;
 
 	/** Size */
 	SizeType Num() const;
@@ -220,6 +223,13 @@ T* TArray<T, Allocator>::GetData()
 }
 
 template <typename T, typename Allocator>
+const T* TArray<T, Allocator>::GetData() const
+{
+	return PrivateVector.data();
+}
+
+
+template <typename T, typename Allocator>
 bool TArray<T, Allocator>::IsEmpty() const
 {
 	return PrivateVector.empty();
@@ -238,7 +248,11 @@ bool TArray<T, Allocator>::Find(const T& Item, SizeType& Index)
 	Index = Find(Item);
 	return (Index != -1);
 }
-
+template <typename T, typename Allocator>
+bool TArray<T, Allocator>::Contains(const T& Item) const
+{
+	return std::find(PrivateVector.begin(), PrivateVector.end(), Item) != PrivateVector.end();
+}
 template <typename T, typename Allocator>
 typename TArray<T, Allocator>::SizeType TArray<T, Allocator>::Num() const
 {

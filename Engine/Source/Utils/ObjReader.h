@@ -1,6 +1,11 @@
 ﻿#pragma once
-#include "Container/Array.h"
-#include "Container/String.h"
+#include "ObjManager.h"
+
+struct FStaticMesh;
+struct FObjMaterialInfo;
+struct FSubMesh;
+//Raw Data
+struct FObjInfo;
 
 class ObjReader
 {
@@ -12,20 +17,24 @@ public:
     ~ObjReader();
 
     TArray<float> GetVertex(int32 Idx);
-    
+
     TArray<float> GetNormal(int32 Idx);
-    
+     
     TArray<float> GetUV(int32 Idx);
-    
+     
     TArray<TArray<TArray<uint32>>> GetFaces() { return Faces; }
 
     TArray<uint32> GetVertexIndices();
 
-    uint32 GetVertexNum() const { return Vertices.Num(); }
+    TArray<uint32> GetUVIndices();
 
-    uint32 GetNormalNum() const { return Normals.Num(); }
+    TArray<uint32> GetNormalIndices();
 
-    uint32 GetUVNum() const { return UVs.Num(); }
+    FObjInfo GetRawData();
+   
+    TArray<FSubMesh> GetSubMeshes() { return SubMeshes; }
+
+    TArray<FName> GetMaterialsName() { return MaterialsName; }
 
     uint32 GetFaceNum() const { return Faces.Num(); }
 
@@ -40,10 +49,25 @@ protected:
     
     void ReadFile();
 
-    void Clear();
+    void ReadMaterialFile();
 
-    TArray<TArray<float>> Vertices;
-    TArray<TArray<float>> Normals;
-    TArray<TArray<float>> UVs;
+    void CreateSubMesh();
+
+    void Clear();
+    std::wstring ExtractFileName(const std::wstring& fullPath)
+    {
+        size_t pos = fullPath.find_last_of(L"/\\");
+        if (pos != std::wstring::npos)
+            return fullPath.substr(pos + 1);
+        return fullPath;
+    }
+
+    TArray<TArray<float>> VerticesColor;
+    FObjInfo RawData;
     TArray<TArray<TArray<uint32>>> Faces;
+
+    FString MaterialPath;
+    TArray<FSubMesh> SubMeshes;
+    TArray<FName> MaterialsName;
+    TMap<FName, TArray<uint32>> MaterialIndexMap;
 };

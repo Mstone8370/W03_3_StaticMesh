@@ -7,9 +7,11 @@ struct FVector;
 struct alignas(16) FCbChangeEveryObject
 {
 	FMatrix WorldMatrix;
+	FMatrix NormalMatrix;
 	FVector4 CustomColor;
 	// true인 경우 Vertex Color를 사용하고, false인 경우 CustomColor를 사용합니다.
 	uint32 bUseVertexColor;
+	uint32 Padding[3];
 };
 
 // 한 프레임에 한번 바뀌는 값
@@ -52,4 +54,31 @@ struct ConstantUpdateInfo
 struct FVertexGrid
 {
 	FVector Location;
+};
+
+struct FMaterialInfo
+{
+	int ActiveTextureFlag;
+
+	float Ns;                // Specular exponent (광택 정도)
+	float d;                 // Dissolve (투명도; 1.0이면 불투명)
+	float illum;             // Illumination model (조명 모델 번호)
+	float Ni;                // Optical density 
+
+	FVector Ka;              // Ambient color 
+	FVector Kd;              // Diffuse color 
+	FVector Ks;              // Specular color 
+	FVector Ke;              // Emissive color
+	
+	FMaterialInfo()
+		: Ns(1.0f)
+		, Ka(1.0f, 1.0f, 1.0f)
+		, Kd(1.0f, 1.0f, 1.0f)
+		, Ks(1.0f, 1.0f, 1.0f)
+		, Ke(0.0f, 0.0f, 0.0f)
+		, Ni(1.f)
+		, d(1.0f)
+		, illum()
+	{
+	}
 };
