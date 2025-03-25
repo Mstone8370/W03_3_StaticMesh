@@ -93,7 +93,9 @@ struct FObjImporter
     // Convert the Raw data to Cooked data (FStaticMesh)
 
     static FStaticMesh* BuildMeshFromObj(const FString& ObjPath);
-
+    static void SaveStaticMeshToBinary(const std::string& BinaryPath, FStaticMesh* Mesh);
+    static FStaticMesh* LoadStaticMeshFromBinary(const std::string& BinaryPath);
+    static void LoadMaterialTextures();
     static void MakeVertex(const TArray<float>& Vertex, const TArray<float>& Color, const TArray<float>& Normal, const TArray<float>& UV,
         FStaticMeshVertex& OutVertex)
     {

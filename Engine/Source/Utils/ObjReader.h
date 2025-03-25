@@ -53,8 +53,6 @@ protected:
 
     void CreateSubMesh();
 
-    void LoadMaterialTextures();
-
     void Clear();
     std::wstring ExtractFileName(const std::wstring& fullPath)
     {

@@ -101,13 +101,14 @@ FObjInfo ObjReader::GetRawData()
 
 void ObjReader::SetFilePath(const FString& InFilePath)
 {
+    // binary 체크 없다면? obj로!
     if (CheckFile(InFilePath))
     {
         FilePath = InFilePath;
         ReadFile();
         ReadMaterialFile();
         CreateSubMesh();
-        LoadMaterialTextures();
+        FObjImporter::LoadMaterialTextures();
     }
 }
 
@@ -139,7 +140,12 @@ void ObjReader::Clear()
         }
         Face.Empty();
     }
-    Faces.Empty();
+    Faces.Empty();   
+    SubMeshes.Empty();
+    MaterialsName.Empty();
+    for (auto& MateiralMap  : MaterialIndexMap) {
+        MateiralMap.Value.Empty();
+    }
 }
 
 bool ObjReader::CheckFile(const FString& InFilePath) const
@@ -367,33 +373,4 @@ void ObjReader::CreateSubMesh()
         }
         currentStartIndex += count;
     }
-}
-
-void ObjReader::LoadMaterialTextures()
-{
-  
-    bool bLoaded = true;
-    for (auto& material : FObjManager::MaterialMap) {
-        if (material.Value.map_Ka.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Ka"), material.Value.map_Ka.c_str());
-        
-        if (material.Value.map_Kd.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Kd"), material.Value.map_Kd.c_str());
-
-        if (material.Value.map_Ks.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Ks"), material.Value.map_Ks.c_str());
-
-        if (material.Value.map_Ns.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Ns"), material.Value.map_Ns.c_str());
-
-        if (material.Value.map_d.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_d"), material.Value.map_d.c_str());
-
-        if (material.Value.map_bump.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_bump"), material.Value.map_bump.c_str());
-
-        if (material.Value.map_refl.length())
-            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_refl"), material.Value.map_refl.c_str());
-    }
-   
 }

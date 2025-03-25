@@ -23,9 +23,9 @@ testMesh::testMesh()
     //UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/mst.obj"));
     //UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/cat.obj"));
     
-    UStaticMesh* StaticMesh1 = FObjManager::LoadObjStaticMesh(TEXT("Resources/mst.obj"));
     
     UStaticMeshComponent* meshcomp = AddComponent<UStaticMeshComponent>();
+    UStaticMesh* StaticMesh1 = FObjManager::LoadObjStaticMesh(TEXT("Resources/BT.obj"));
     meshcomp->SetStaticMesh(StaticMesh1);
     meshcomp->SetCanBeRendered(true);
     meshcomp->SetUseVertexColor(false);
@@ -41,7 +41,7 @@ testMesh::testMesh()
         OutputDebugString(L"\n");
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
     }
-    UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/plant.obj"));
+    /*UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(TEXT("Resources/plant.obj"));
     
     MeshComponent->SetStaticMesh(StaticMesh);
     MeshComponent->SetCanBeRendered(true);
@@ -55,7 +55,7 @@ testMesh::testMesh()
     {
         FString ObjPath = Mesh->GetAssetPathFileName();
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
-    }   
+    }   */
 
 }
 
