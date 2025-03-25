@@ -1,10 +1,11 @@
 #include "pch.h" 
 #include "BufferCache.h"
 
-#include "MeshBuilder.h"
+#include "ObjManager.h"
 #include "Engine/Engine.h"
+#include "GameFrameWork/StaticMesh.h"
 #include "Primitive/PrimitiveVertices.h"
-
+#include "Static/ObjManager.h"
 
 FBufferCache::FBufferCache()
 {
@@ -49,43 +50,40 @@ FStaticMeshBufferInfo FBufferCache::GetStaticMeshBufferInfo(FName InName)
     }
     return {};
 }
-
 bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 {
-    MeshBuilder Builder;
-    bool bSuccess = Builder.BuildMeshFromObj(ObjFilePath);
-    if (!bSuccess)
-    {
-        return false;
-    }
+    // FObjManager::LoadObjStaticMesh 함수가 FStaticMesh 객체를 생성하여 반환함
+    UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(ObjFilePath);
+    if (!StaticMesh) return false;
 
-    // Begin 파일 경로에서 파일 이름만 획득
+    // 파일 경로에서 파일 이름만 추출
     FString filePath = *ObjFilePath;
-    
-    size_t pos = filePath.FindLastOf(TEXT("/\\"));
-    FString fileName = (pos == std::string::npos) ? filePath : filePath.Substr(pos + 1);
-    
-    size_t dotPos = fileName.FindLastOf(TEXT("."));
-    fileName = (dotPos == std::string::npos) ? fileName : fileName.Substr(0, dotPos);
-    // End 파일 경로에서 파일 이름만 획득
-    FName Key(fileName);
+
+    FName Key = FObjImporter::GetNormalizedMeshKey(filePath);
+
+    if (StaticMeshBufferCache.Contains(Key)) return true; 
 
     URenderer* Renderer = UEngine::Get().GetRenderer();
-    
-    uint32 VertexBufferByteWidth = Builder.GetVertexNum() * sizeof(FStaticMeshVertex);
-    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(Builder.GetVertices().GetData(), VertexBufferByteWidth);
 
-    uint32 IndexBufferByteWidth = Builder.GetIndexNum() * sizeof(uint32);
-    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(Builder.GetIndices().GetData(), IndexBufferByteWidth);
+    FStaticMesh* StaticMeshAsset = StaticMesh->GetStaticMeshAsset();
+    if (!StaticMeshAsset) return false;
 
-    FVertexBufferInfo VertexInfo(VertexBuffer, Builder.GetVertexNum(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
-    FIndexBufferInfo IndexInfo(IndexBuffer, Builder.GetIndexNum());
-    
+    // FStaticMesh 객체 내부에 저장된 데이터를 사용
+    uint32 VertexBufferByteWidth = StaticMeshAsset->Vertices.Num() * sizeof(FStaticMeshVertex);
+    ID3D11Buffer* VertexBuffer = Renderer->CreateImmutableVertexBuffer(StaticMeshAsset->Vertices.GetData(), VertexBufferByteWidth);
+
+    uint32 IndexBufferByteWidth = StaticMeshAsset->Indices.Num() * sizeof(uint32);
+    ID3D11Buffer* IndexBuffer = Renderer->CreateIndexBuffer(StaticMeshAsset->Indices.GetData(), IndexBufferByteWidth);
+
+    FVertexBufferInfo VertexInfo(VertexBuffer, StaticMeshAsset->Vertices.Num(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
+    FIndexBufferInfo IndexInfo(IndexBuffer, StaticMeshAsset->Indices.Num());
+
     FStaticMeshBufferInfo StaticMeshInfo(VertexInfo, IndexInfo);
     StaticMeshBufferCache.Add(Key, StaticMeshInfo);
 
-    return bSuccess;
+    return true;
 }
+
 
 FVertexBufferInfo FBufferCache::CreateVertexBufferInfo(EPrimitiveType Type)
 {

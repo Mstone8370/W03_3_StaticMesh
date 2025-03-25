@@ -397,16 +397,16 @@ bool UEngine::LoadTexture(const FName& Name, const FString& FileName, int32 Rows
 {
 	if (TextureLoaderInstance)
 	{
-		return TextureLoaderInstance->LoadTexture(Name, FileName, Rows, Columns);
+       return TextureLoaderInstance->LoadTexture(Name, FileName, Rows, Columns);
 	}
     return false;
 }
 
- TextureInfo* UEngine::GetTextureInfo(const FName& Name) const
+TextureInfo* UEngine::GetTextureInfo(const FName& Name) const
 {
     if (TextureLoaderInstance)
     {
-		return TextureLoaderInstance->GetTextureInfo(Name);
+        return TextureLoaderInstance->GetTextureInfo(Name);
     }
     return nullptr;
 }

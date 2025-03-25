@@ -6,6 +6,7 @@
 #include "CoreUObject/World.h"
 #include "Core/Input/PlayerInput.h"
 #include "Static/EditorManager.h"
+#include "Static/ObjManager.h"
 #include "Components/StaticMeshComponent.h"
 
 AGizmoHandle::AGizmoHandle()
@@ -29,8 +30,11 @@ AGizmoHandle::AGizmoHandle()
 void AGizmoHandle::InitTranslationGizmo()
 {
     // x
+    UStaticMesh* SM_Translation = FObjManager::LoadObjStaticMesh(TEXT("Resources/GizmoTranslation.obj"));
     UStaticMeshComponent* TranslationX = AddComponent<UStaticMeshComponent>();
     TranslationX->SetMeshName("GizmoTranslation");
+    TranslationX->SetStaticMesh(SM_Translation);
+    TranslationX->SetCanBeRendered(true);
     TranslationX->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), GizmoScale));
     TranslationX->SetCustomColor(FVector4(1.0f, 0.0f, 0.0f, 1.0f));
     AllGizmos.Add(TranslationX);
@@ -40,6 +44,7 @@ void AGizmoHandle::InitTranslationGizmo()
     // y
     UStaticMeshComponent* TranslationY = AddComponent<UStaticMeshComponent>();
     TranslationY->SetMeshName("GizmoTranslation");
+    TranslationY->SetStaticMesh(SM_Translation);
     TranslationY->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 90.0f), GizmoScale));
     TranslationY->SetCustomColor(FVector4(0.0f, 1.0f, 0.0f, 1.0f));
     AllGizmos.Add(TranslationY);
@@ -49,6 +54,7 @@ void AGizmoHandle::InitTranslationGizmo()
     // z
     UStaticMeshComponent* TranslationZ = AddComponent<UStaticMeshComponent>();
     TranslationZ->SetMeshName("GizmoTranslation");
+    TranslationZ->SetStaticMesh(SM_Translation);
     TranslationZ->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, -90.0f, 0.0f), GizmoScale));
     TranslationZ->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));
     AllGizmos.Add(TranslationZ);
@@ -58,13 +64,18 @@ void AGizmoHandle::InitTranslationGizmo()
     UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationX);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationY);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationZ);
+
+    FString ObjPath = SM_Translation->GetAssetPathFileName();
+    UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
+
 }
 
 void AGizmoHandle::InitRotationGizmo()
 {
     // x
     UStaticMeshComponent* RotationX = AddComponent<UStaticMeshComponent>();
-    RotationX->SetMeshName("GizmoRotation");
+    UStaticMesh* SM_Rotation = FObjManager::LoadObjStaticMesh(TEXT("Resources/GizmoRotation.obj"));
+    RotationX->SetStaticMesh(SM_Rotation);
     RotationX->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), GizmoScale));
     RotationX->SetCustomColor(FVector4(1.0f, 0.0f, 0.0f, 1.0f));
     AllGizmos.Add(RotationX);
@@ -73,7 +84,7 @@ void AGizmoHandle::InitRotationGizmo()
 
     // y
     UStaticMeshComponent* RotationY = AddComponent<UStaticMeshComponent>();
-    RotationY->SetMeshName("GizmoRotation");
+    RotationY->SetStaticMesh(SM_Rotation);
     RotationY->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(90.0f, 0.0f, 90.0f), GizmoScale));
     RotationY->SetCustomColor(FVector4(0.0f, 1.0f, 0.0f, 1.0f));
     AllGizmos.Add(RotationY);
@@ -82,7 +93,7 @@ void AGizmoHandle::InitRotationGizmo()
 
     // z
     UStaticMeshComponent* RotationZ = AddComponent<UStaticMeshComponent>();
-    RotationZ->SetMeshName("GizmoRotation");
+    RotationZ->SetStaticMesh(SM_Rotation);
     RotationZ->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, -90.0f, -90.0f), GizmoScale));
     RotationZ->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));
     AllGizmos.Add(RotationZ);
@@ -92,13 +103,17 @@ void AGizmoHandle::InitRotationGizmo()
     UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationZ);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationX);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationY);
+   
+    FString ObjPath = SM_Rotation->GetAssetPathFileName();
+    UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
 }
 
 void AGizmoHandle::InitScaleGizmo()
 {
     // x
+    UStaticMesh* SM_Scale = FObjManager::LoadObjStaticMesh(TEXT("Resources/GizmoScale.obj"));
     UStaticMeshComponent* ScaleX = AddComponent<UStaticMeshComponent>();
-    ScaleX->SetMeshName("GizmoScale");
+    ScaleX->SetStaticMesh(SM_Scale);
     ScaleX->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 0.0f), GizmoScale));
     ScaleX->SetCustomColor(FVector4(1.0f, 0.0f, 0.0f, 1.0f));
     AllGizmos.Add(ScaleX);
@@ -107,7 +122,7 @@ void AGizmoHandle::InitScaleGizmo()
 
     // y
     UStaticMeshComponent* ScaleY = AddComponent<UStaticMeshComponent>();
-    ScaleY->SetMeshName("GizmoScale");
+    ScaleY->SetStaticMesh(SM_Scale);
     ScaleY->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 90.0f), GizmoScale));
     ScaleY->SetCustomColor(FVector4(0.0f, 1.0f, 0.0f, 1.0f));
     AllGizmos.Add(ScaleY);
@@ -116,7 +131,7 @@ void AGizmoHandle::InitScaleGizmo()
 
     // z
     UStaticMeshComponent* ScaleZ = AddComponent<UStaticMeshComponent>();
-    ScaleZ->SetMeshName("GizmoScale");
+    ScaleZ->SetStaticMesh(SM_Scale);
     ScaleZ->SetRelativeTransform(FTransform(FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, -90.0f, 0.0f), GizmoScale));
     ScaleZ->SetCustomColor(FVector4(0.0f, 0.0f, 1.0f, 1.0f));
     AllGizmos.Add(ScaleZ);
@@ -126,6 +141,9 @@ void AGizmoHandle::InitScaleGizmo()
     UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleZ);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleX);
     UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleY);
+  
+    FString ObjPath = SM_Scale->GetAssetPathFileName();
+    UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
 }
 
 void AGizmoHandle::OnGizmoTypeChanged(EGizmoType NewGizmoType)

@@ -181,12 +181,13 @@
     <ClCompile Include="Source\CoreUObject\Components\AnimatedBillboardComponent.cpp">
       <Filter>Source Files\CoreUObject\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp">
-      <Filter>Source Files\Engine\GameFrameWork</Filter>
-    </ClCompile>
     <ClCompile Include="Source\CoreUObject\ObjectIterator.cpp" />
     <ClCompile Include="Source\Core\Delegates\Delegate.cpp">
       <Filter>Source Files\Core\Delegates</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\GameFrameWork\StaticMesh.cpp" />
+    <ClCompile Include="Source\Engine\GameFrameWork\AStaticMesh.cpp">
+      <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -442,12 +443,13 @@
     <ClInclude Include="Source\CoreUObject\Components\AnimatedBillboardComponent.h">
       <Filter>Header Files\CoreUObject\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h">
-      <Filter>Header Files\Engine\GameFrameWork</Filter>
-    </ClInclude>
     <ClInclude Include="Source\CoreUObject\ObjectIterator.h" />
     <ClInclude Include="Source\Core\Delegates\Delegate.h">
       <Filter>Header Files\Core\Delegates</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h" />
+    <ClInclude Include="Source\Engine\GameFrameWork\AStaticMesh.h">
+      <Filter>Header Files\Engine\GameFrameWork</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

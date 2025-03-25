@@ -8,6 +8,7 @@
 class AActor;
 class URenderer;
 class ConsoleWindow;
+class USceneComponent;
 
 class UI
 {
@@ -92,6 +93,9 @@ private:
 
 	ImVec2 PreRatio;
 	ImVec2 CurRatio;
+
+	USceneComponent* PrevSelectedComponent = nullptr;
+	int CurrentMesh = 0;
 public:
 	static std::shared_ptr<ConsoleWindow> ConsoleWindowInstance;
 };
