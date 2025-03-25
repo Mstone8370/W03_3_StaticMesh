@@ -474,17 +474,17 @@ void UI::RenderPropertyWindow()
         }
 
         ImGui::Separator();
-        const char* Items[] = { "cube.obj", "pineapple.obj", "mst.obj", "plant.obj" };
+        const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj" };
 
         if (SelectedComponent != PrevSelectedComponent)
         {
             AStaticMesh* StaticMeshOwner = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
             if (StaticMeshOwner)
             {
-                FString DefaultMesh = StaticMeshOwner->GetDefaultMesh();
+                FString MeshName = StaticMeshOwner->GetAssetName();
                 for (int i = 0; i < IM_ARRAYSIZE(Items); ++i)
                 {
-                    if (DefaultMesh.Equals(Items[i]))
+                    if (MeshName.Equals(Items[i]))
                     {
                         CurrentMesh = i;
                         break;
@@ -504,6 +504,7 @@ void UI::RenderPropertyWindow()
                     AStaticMesh* SelectedActor = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
                     if (UStaticMeshComponent* MeshComponent = SelectedActor->FindComponent<UStaticMeshComponent>())
                     {
+                        SelectedActor->SetAssetName(Items[CurrentMesh]);
                         MeshComponent->ChangeStaticMesh(Items[CurrentMesh]);
                     }
                 }

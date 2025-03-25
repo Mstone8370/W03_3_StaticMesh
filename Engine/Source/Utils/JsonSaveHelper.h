@@ -9,6 +9,7 @@ struct UObjectInfo
     FVector Rotation;
     FVector Scale;
     std::string ObjectType;
+    std::string AssetName;
 
     uint32 UUID;
 };

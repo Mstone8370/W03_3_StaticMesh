@@ -21,7 +21,7 @@ AStaticMesh::AStaticMesh()
     MeshComponent->SetupAttachment(RootComponent);
     
     // Default Mesh 로드
-    FString staticMeshPath = "Resources/" + DefaultMesh;
+    FString staticMeshPath = "Resources/" + AssetName;
     UStaticMesh* StaticMesh = FObjManager::LoadObjStaticMesh(staticMeshPath);
     MeshComponent->SetStaticMesh(StaticMesh);
     MeshComponent->SetCanBeRendered(true);
@@ -47,9 +47,4 @@ void AStaticMesh::Tick(float DeltaTime)
 const char* AStaticMesh::GetTypeName()
 {
     return "AStaticMesh";
-}
-
-const FString AStaticMesh::GetDefaultMesh()
-{
-    return DefaultMesh;
 }

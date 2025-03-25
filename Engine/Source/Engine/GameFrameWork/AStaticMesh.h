@@ -12,8 +12,12 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual const char* GetTypeName() override;
-	virtual const FString GetDefaultMesh();
+	virtual const FString GetAssetName() { return AssetName; }
+	void SetAssetName(FString newAssetName ) { 
+		AssetName = newAssetName;
+		MeshComponent->ChangeStaticMesh(newAssetName);
+	}
 private:
 	UStaticMeshComponent* MeshComponent;
-	FString DefaultMesh = "mst.obj";
+	FString AssetName = "BT.obj";
 };

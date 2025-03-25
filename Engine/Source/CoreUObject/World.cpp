@@ -13,6 +13,7 @@
 #include "Engine/GameFrameWork/Cube.h"
 #include "Engine/GameFrameWork/Cylinder.h"
 #include "Engine/GameFrameWork/Sphere.h"
+#include "Engine/GameFrameWork/AStaticMesh.h"
 #include "Input/PlayerController.h"
 
 #include "Components/BillboardComponent.h"
@@ -345,6 +346,15 @@ void UWorld::LoadWorld(const char* InSceneName)
         {
             Actor = SpawnActor<ACone>();
         }
+        else if (ObjectInfo->ObjectType == "AStaticMesh")
+        {
+            Actor = SpawnActor<AStaticMesh>();
+            if (Actor)
+            {
+                AStaticMesh* MeshActor = static_cast<AStaticMesh*>(Actor);
+                MeshActor->SetAssetName(ObjectInfo->AssetName);
+            }
+        }
 
         if (Actor)
         {
@@ -374,6 +384,10 @@ UWorldInfo UWorld::GetWorldInfo() const
         WorldInfo.ObjctInfos[i]->Rotation = Transform.GetRotation().GetEuler();
         WorldInfo.ObjctInfos[i]->Scale = Transform.GetScale();
         WorldInfo.ObjctInfos[i]->ObjectType = actor->GetTypeName();
+        if (actor->GetTypeName() == "AStaticMesh") {
+            AStaticMesh* StaticMeshActor = static_cast<AStaticMesh*>(actor);
+            WorldInfo.ObjctInfos[i]->AssetName = StaticMeshActor->GetAssetName().c_char();
+        }
 
         WorldInfo.ObjctInfos[i]->UUID = actor->GetUUID();
         i++;
