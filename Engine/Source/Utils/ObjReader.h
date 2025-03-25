@@ -31,9 +31,7 @@ public:
     TArray<uint32> GetNormalIndices();
 
     FObjInfo GetRawData();
-    
-    TMap<FName, FObjMaterialInfo> GetMaterialList() { return RawData.MaterialList; }
-
+   
     TArray<FSubMesh> GetSubMeshes() { return SubMeshes; }
 
     TArray<FName> GetMaterialsName() { return MaterialsName; }
@@ -55,7 +53,16 @@ protected:
 
     void CreateSubMesh();
 
+    void LoadMaterialTextures();
+
     void Clear();
+    std::wstring ExtractFileName(const std::wstring& fullPath)
+    {
+        size_t pos = fullPath.find_last_of(L"/\\");
+        if (pos != std::wstring::npos)
+            return fullPath.substr(pos + 1);
+        return fullPath;
+    }
 
     TArray<TArray<float>> VerticesColor;
     FObjInfo RawData;
@@ -63,6 +70,6 @@ protected:
 
     FString MaterialPath;
     TArray<FSubMesh> SubMeshes;
-    TArray<FName> FaceMaterials;
     TArray<FName> MaterialsName;
+    TMap<FName, TArray<uint32>> MaterialIndexMap;
 };

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ObjReader.h"
+#include "Engine/Engine.h"
 #include <sstream>
 #include <filesystem>
 
@@ -104,6 +105,9 @@ void ObjReader::SetFilePath(const FString& InFilePath)
     {
         FilePath = InFilePath;
         ReadFile();
+        ReadMaterialFile();
+        CreateSubMesh();
+        LoadMaterialTextures();
     }
 }
 
@@ -174,6 +178,8 @@ void ObjReader::ReadFile()
     FString CurrentMaterial;
     while (std::getline(File, Line))
     {
+        if (Line.empty())
+            continue;
         std::stringstream TokenStream(Line);
         TArray<std::string> Tokens;
         std::string Token;
@@ -181,7 +187,7 @@ void ObjReader::ReadFile()
         {
             Tokens.Add(Token);
         }
-        if (Tokens.IsEmpty()) return;
+        if (Tokens.IsEmpty()) continue;
         const std::string& Key = Tokens[0];
         if (Key == "mtllib")
         {
@@ -223,7 +229,7 @@ void ObjReader::ReadFile()
         }
         else if (Key == "usemtl") 
         {
-            CurrentMaterial = FString{Tokens[1]};
+            CurrentMaterial = FString(Tokens[1]);
         }
         else if (Key == "f")
         {
@@ -241,13 +247,17 @@ void ObjReader::ReadFile()
                 }
             }
             Faces.Add(Face);
-            FaceMaterials.Add(CurrentMaterial); //faces 배열과 동일한 순서로 머티리얼 이름 기록
+            if (!MaterialIndexMap.Contains(CurrentMaterial))
+            {
+                MaterialIndexMap.Add(CurrentMaterial, TArray<uint32>());
+            }
+            // 각 face의 첫번째 값(정점 인덱스)을 머티리얼별로 저장
+            MaterialIndexMap[CurrentMaterial].Add(Face[0][0]);
+            MaterialIndexMap[CurrentMaterial].Add(Face[1][0]);
+            MaterialIndexMap[CurrentMaterial].Add(Face[2][0]);
         }
     }
     File.close();
-   
-    ReadMaterialFile();
-    CreateSubMesh();
 }
 
 void ObjReader::ReadMaterialFile()
@@ -260,10 +270,14 @@ void ObjReader::ReadMaterialFile()
         return;
     }
     In.imbue(std::locale("ko_KR.UTF-8")); //한글 깨짐 문제로 한국 로케일.
-    
+
     std::wstring Line;
     FString CurrentMaterial;
     FObjMaterialInfo ObjMaterialInfo;
+
+    std::filesystem::path basePath(*MaterialPath);
+    basePath = basePath.parent_path();
+
     while (std::getline(In, Line))
     {
         if (Line.empty())
@@ -307,70 +321,79 @@ void ObjReader::ReadMaterialFile()
         else if (Key == TEXT("illum")) {
             ObjMaterialInfo.illum = std::stof(Tokens[1]);
         }
-
         else if (Key == TEXT("map_Ka")) {
-            ObjMaterialInfo.map_Ka = Tokens[1];
+            ObjMaterialInfo.map_Ka = ExtractFileName(Tokens[1]);
         }
         else if (Key == TEXT("map_Kd")) {
-            ObjMaterialInfo.map_Kd = Tokens[1];
+            ObjMaterialInfo.map_Kd = ExtractFileName(Tokens[1]);
         }
         else if (Key == TEXT("map_Ks")) {
-            ObjMaterialInfo.map_Ks = Tokens[1];
+            ObjMaterialInfo.map_Ks = ExtractFileName(Tokens[1]);
         }
         else if (Key == TEXT("map_Ns")) {
-            ObjMaterialInfo.map_Ns = Tokens[1];
+            ObjMaterialInfo.map_Ns = ExtractFileName(Tokens[1]);
         }
         else if (Key == TEXT("map_d")) {
-            ObjMaterialInfo.map_d = Tokens[1];
+            ObjMaterialInfo.map_d = ExtractFileName(Tokens[1]);
         }
         else if (Key == TEXT("map_bump")) {
-            ObjMaterialInfo.map_bump = Tokens[1];
+            ObjMaterialInfo.map_bump = ExtractFileName(Tokens[1]);
         }
         else if (Key == TEXT("map_refl")) {
-            ObjMaterialInfo.map_refl = Tokens[1];
+            ObjMaterialInfo.map_refl = ExtractFileName(Tokens[1]);
         }
-        RawData.MaterialList[CurrentMaterial] = ObjMaterialInfo;
+        FObjManager::MaterialMap[CurrentMaterial] = ObjMaterialInfo;
     }
 
 }
 
 void ObjReader::CreateSubMesh()
 {
-    TMap<FName, TArray<uint32>> MaterialIndexMap;
-    for (int i = 0; i < Faces.Num(); ++i) {
-        const FName& MatName = FaceMaterials[i];
-        TArray<uint32>* pIndices = MaterialIndexMap.Find(MatName);
-        if (pIndices == nullptr)
-        {
-            MaterialIndexMap[MatName]= TArray<uint32>();
-            pIndices = MaterialIndexMap.Find(MatName);
-        }
-        TArray<TArray<uint32>>& face = Faces[i];
-        for (int32 j = 0; j < 3; ++j)
-        {
-            pIndices->Add(face[j][0]);
-        }
-    }
-
-    for (int i = 0; i < FaceMaterials.Num(); ++i)
-    {
-        if (!MaterialsName.Contains(FaceMaterials[i]))
-        {
-            MaterialsName.Add(FaceMaterials[i]);
-        }
-    }
-
     int32 currentStartIndex = 0;
-    for (auto it = MaterialIndexMap.begin(); it != MaterialIndexMap.end(); ++it)
+    
+    // MaterialIndexMap에 기록된 내용을 활용하여 SubMesh 생성
+    for (auto& pair : MaterialIndexMap)
     {
         FSubMesh Submesh;
-        TArray<uint32>& indices = it->Value;
+        TArray<uint32>& indices = pair.Value;
         int32 count = indices.Num();
-     
+
         Submesh.startIndex = currentStartIndex;
         Submesh.endIndex = currentStartIndex + count - 1;
-
         SubMeshes.Add(Submesh);
+
+        if (!MaterialsName.Contains(pair.Key)) {
+            MaterialsName.Add(pair.Key);
+        }
         currentStartIndex += count;
     }
+}
+
+void ObjReader::LoadMaterialTextures()
+{
+  
+    bool bLoaded = true;
+    for (auto& material : FObjManager::MaterialMap) {
+        if (material.Value.map_Ka.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Ka"), material.Value.map_Ka.c_str());
+        
+        if (material.Value.map_Kd.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Kd"), material.Value.map_Kd.c_str());
+
+        if (material.Value.map_Ks.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Ks"), material.Value.map_Ks.c_str());
+
+        if (material.Value.map_Ns.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_Ns"), material.Value.map_Ns.c_str());
+
+        if (material.Value.map_d.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_d"), material.Value.map_d.c_str());
+
+        if (material.Value.map_bump.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_bump"), material.Value.map_bump.c_str());
+
+        if (material.Value.map_refl.length())
+            bLoaded |= UEngine::Get().LoadTexture(material.Key.ToString() + TEXT("map_refl"), material.Value.map_refl.c_str());
+    }
+   
 }
