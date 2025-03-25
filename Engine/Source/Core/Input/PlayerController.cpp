@@ -30,8 +30,8 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
 
 	if (!APlayerInput::Get().IsMouseDown(true))
 	{
-		if (APlayerInput::Get().IsMouseReleased(true))
-			ShowCursor(true);
+		if (APlayerInput::Get().IsMouseReleased(true)){}
+			//ShowCursor(true);
 		return;
 	}
 
@@ -57,7 +57,7 @@ void APlayerController::HandleCameraMovement(float DeltaTime)
 	if (APlayerInput::Get().IsMousePressed(true))
 	{
 		APlayerInput::Get().CacheCursorPosition();
-		ShowCursor(false);
+		//ShowCursor(false);
 	}
 	APlayerInput::Get().FixMouseCursor();
 
@@ -169,10 +169,10 @@ void APlayerController::ProcessPlayerInput(float DeltaTime)
         }
         return;
     }
-    
+	UpdateViewportClickState();
     // TODO: 기즈모 조작시에는 카메라 입력 무시
     // HandleGizmoMovement(DeltaTime); // TODO: 의미없는 함수인듯
-    HandleCameraMovement(DeltaTime);
+    //HandleCameraMovement(DeltaTime);
 }
 bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHeight)
 {
@@ -234,4 +234,16 @@ int32 APlayerController::GetClickedViewportIndex()
 	}
 
 	return -1; // 어떤 뷰포트도 클릭되지 않음
+}
+void APlayerController::UpdateViewportClickState()
+{
+	if (APlayerInput::Get().IsMousePressed(true) || APlayerInput::Get().IsMousePressed(false)) // 우클릭 or 좌클릭
+	{
+		ClickedViewportIndex = GetClickedViewportIndex();
+	}
+
+	if (APlayerInput::Get().IsMouseReleased(true) || APlayerInput::Get().IsMouseReleased(false))
+	{
+		ClickedViewportIndex = -1;
+	}
 }

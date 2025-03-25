@@ -1689,7 +1689,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
 void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
 {
     float AspectRatio = UEngine::Get().GetClientRatio();
-
+    AspectRatio*=2.0f;
     float FOV = FMath::DegreesToRadians(Camera->GetFieldOfView());
     float NearClip = Camera->GetNearClip();
     float FarClip = Camera->GetFarClip();
@@ -1886,6 +1886,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
         }
     }
 
+    DeviceContext->RSSetState(RasterizerState_Solid);
     CompositeViewportsToBackBuffer();
 
     if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
@@ -1929,6 +1930,7 @@ void URenderer::InitializeViewports()
 
             FView->Initialize(Device, Rect.Width, Rect.Height);
             FView->SetClient(new FViewportClient());
+            FView->index=Viewports.Len();
             Viewports.Add(SView);
         }
     }

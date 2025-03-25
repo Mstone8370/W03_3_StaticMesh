@@ -37,12 +37,14 @@ public :
 	void SetIsUiInput(bool bInUiInput) { bUiInput = bInUiInput; }
 
 	//ViewPort 관련
+    int32 ClickedViewportIndex = -1;
 	float DragHandleSize = 10.f;
 	bool bDraggingHorizontal = false;
 	bool bDraggingVertical = false;
 	bool HandleViewportDrag(float ViewportWidth, float ViewportHeight);
 	int32 GetClickedViewportIndex();
-
+	int32 GetActiveViewportIndex() const { return ClickedViewportIndex; }
+	void UpdateViewportClickState();
 protected:
 	float CurrentSpeed;
 	float MaxSpeed;

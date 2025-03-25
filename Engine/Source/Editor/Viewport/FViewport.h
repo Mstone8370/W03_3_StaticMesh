@@ -42,7 +42,6 @@ public:
 
     ACamera* ViewCamera = nullptr;
     FViewportClient* Client = nullptr;
-
 public:
     void Initialize(ID3D11Device* InDevice, float Width, float Height);
     void Release();
@@ -56,6 +55,7 @@ public:
 
     void SetCamera(ACamera* InCamera) { ViewCamera = InCamera; }
     ACamera* GetCamera() const { return ViewCamera; }
+    int32 index=0;
 private:
     ID3D11Device* Device = nullptr;
 
