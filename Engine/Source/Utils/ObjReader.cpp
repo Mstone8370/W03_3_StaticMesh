@@ -181,7 +181,7 @@ void ObjReader::ReadFile()
 
     std::string Line; // std::string을 참조해야하므로, FString 대신 std::string 사용
    
-    FString CurrentMaterial;
+    FString CurrentMaterial = FString("default");
     while (std::getline(File, Line))
     {
         if (Line.empty())
@@ -244,11 +244,57 @@ void ObjReader::ReadFile()
             {
                 Face[i] = TArray<uint32>(3);
                 std::stringstream ss(Tokens[i + 1]);
-                std::string Val;
+                std::string token;
                 int Cnt = 0;
-                while (std::getline(ss, Val, '/'))
+                TArray<float> defaultUV = TArray<float>(2);
+                TArray<float> defaultNormal = TArray<float>(3);
+                TArray<float> defaultColor = TArray<float>(3);
+
+                while (std::getline(ss, token, '/'))
                 {
-                    Face[i][Cnt] = std::stoi(Val) - 1;
+                    
+                    if (token.empty())
+                    {
+                        if (Cnt == 1)
+                        {
+                            // UV 누락 시 기본 UV 추가
+                            Face[i][Cnt] = RawData.UVs.Num();
+                            RawData.UVs.Add(defaultUV);
+                        }
+                        else if (Cnt == 2)
+                        {
+                            // 노멀 누락 시 기본 노멀 추가
+                            Face[i][Cnt] = RawData.Normals.Num();
+                            RawData.Normals.Add(defaultNormal);
+                        }
+                        else
+                        {
+                          
+                            Face[i][Cnt] = 0;
+                        }
+                    }
+                    else
+                    {
+                        Face[i][Cnt] = std::stoi(token) - 1;
+                    }
+                    ++Cnt;
+                }
+                while (Cnt < 3)
+                {
+                    if (Cnt == 1)
+                    {
+                        Face[i][Cnt] = RawData.UVs.Num();
+                        RawData.UVs.Add(defaultUV);
+                    }
+                    else if (Cnt == 2)
+                    {
+                        Face[i][Cnt] = RawData.Normals.Num();
+                        RawData.Normals.Add(defaultNormal);
+                    }
+                    else
+                    {
+                        Face[i][Cnt] = 0;
+                    }
                     ++Cnt;
                 }
             }
@@ -256,19 +302,36 @@ void ObjReader::ReadFile()
             if (!MaterialIndexMap.Contains(CurrentMaterial))
             {
                 MaterialIndexMap.Add(CurrentMaterial, TArray<uint32>());
+
             }
             // 각 face의 첫번째 값(정점 인덱스)을 머티리얼별로 저장
             MaterialIndexMap[CurrentMaterial].Add(Face[0][0]);
             MaterialIndexMap[CurrentMaterial].Add(Face[1][0]);
             MaterialIndexMap[CurrentMaterial].Add(Face[2][0]);
         }
+
     }
     File.close();
 }
 
 void ObjReader::ReadMaterialFile()
 {
-    if (MaterialPath.IsEmpty()) return;
+
+    if (MaterialPath.IsEmpty())
+    {
+        // 기본 머티리얼 생성
+        FObjMaterialInfo defaultMaterial;
+        defaultMaterial.Ns = 32.0f;                   // 적당한 광택 값
+        defaultMaterial.Ka = { 0.1f, 0.1f, 0.1f };     // 주변광
+        defaultMaterial.Kd = { 0.8f, 0.8f, 0.8f };     // 확산광
+        defaultMaterial.Ks = { 0.5f, 0.5f, 0.5f };     // 반사광
+        defaultMaterial.Ke = { 0.0f, 0.0f, 0.0f };     // 방출광
+        defaultMaterial.Ni = 1.0f;                      // 굴절률
+        defaultMaterial.d = 1.0f;                      // 불투명도
+        defaultMaterial.illum = 2;                      // 조명 모델
+        FObjManager::MaterialMap.Add(FString("default"), defaultMaterial);
+        return;
+    }
 
     std::wifstream In(MaterialPath.c_char());
     if (!In) {
