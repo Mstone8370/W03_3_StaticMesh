@@ -221,27 +221,13 @@ void FObjImporter::SaveStaticMeshToBinary(const std::string& BinaryPath, FStatic
         // 값(FObjMaterialInfo) 저장
         FObjMaterialInfo& info = pair.Value;
         out.write(reinterpret_cast<char*>(&info.Ns), sizeof(info.Ns));
-
-        out.write(reinterpret_cast<char*>(&info.Ka.X), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Ka.Y), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Ka.Z), sizeof(float));
-
-        out.write(reinterpret_cast<char*>(&info.Kd.X), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Kd.Y), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Kd.Z), sizeof(float));
-
-        out.write(reinterpret_cast<char*>(&info.Ks.X), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Ks.Y), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Ks.Z), sizeof(float));
-
-        out.write(reinterpret_cast<char*>(&info.Ke.X), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Ke.Y), sizeof(float));
-        out.write(reinterpret_cast<char*>(&info.Ke.Z), sizeof(float));
-
+        out.write(reinterpret_cast<char*>(&info.Ka), sizeof(info.Ka));
+        out.write(reinterpret_cast<char*>(&info.Kd), sizeof(info.Kd));
+        out.write(reinterpret_cast<char*>(&info.Ks), sizeof(info.Ks));
+        out.write(reinterpret_cast<char*>(&info.Ke), sizeof(info.Ke));
         out.write(reinterpret_cast<char*>(&info.Ni), sizeof(info.Ni));
         out.write(reinterpret_cast<char*>(&info.d), sizeof(info.d));
         out.write(reinterpret_cast<char*>(&info.illum), sizeof(info.illum));
-
         // wide string 데이터를 저장하기 위한 람다 함수
         auto WriteWString = [&](const std::wstring& wstr) {
             uint32_t len = static_cast<uint32_t>(wstr.size());
