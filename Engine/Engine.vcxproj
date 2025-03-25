@@ -172,12 +172,18 @@
     <ClInclude Include="Source\CoreUObject\Components\TextBillboardComponent.h" />
     <ClInclude Include="Source\CoreUObject\ObjectIterator.h" />
     <ClInclude Include="Source\Core\Delegates\Delegate.h" />
+    <ClInclude Include="Source\Core\Math\FRect.h" />
+    <ClInclude Include="Source\Core\Rendering\RenderContext.h" />
     <ClInclude Include="Source\Core\Rendering\ShaderCache.h" />
     <ClInclude Include="Source\Core\Rendering\Constants.h" />
     <ClInclude Include="Source\CoreUObject\NameTypes.h" />
     <ClInclude Include="Source\CoreUObject\Name.h" />
     <ClInclude Include="Source\Editor\ActorTreeNode.h" />
-    <ClInclude Include="Source\Editor\Viewport\Viewport.h" />
+    <ClInclude Include="Source\Editor\Slate\SSplitter.h" />
+    <ClInclude Include="Source\Editor\Slate\SViewport.h" />
+    <ClInclude Include="Source\Editor\Slate\SWindow.h" />
+    <ClInclude Include="Source\Editor\Viewport\FViewport.h" />
+    <ClInclude Include="Source\Editor\Viewport\FViewportClient.h" />
     <ClInclude Include="Source\Engine\GameFrameWork\StaticMesh.h" />
     <ClInclude Include="Source\Static\ObjManager.h" />
     <ClInclude Include="Source\ThirdParty\IniParser\iniparser.hpp" />
@@ -270,6 +276,7 @@
     <ClCompile Include="Source\CoreUObject\Components\TextBillboardComponent.cpp" />
     <ClCompile Include="Source\CoreUObject\ObjectIterator.cpp" />
     <ClCompile Include="Source\Core\Delegates\Delegate.cpp" />
+    <ClCompile Include="Source\Core\Math\FRect.cpp" />
     <ClCompile Include="Source\Core\Rendering\ShaderCache.cpp" />
     <ClCompile Include="Source\CoreUObject\Components\ActorComponent.cpp" />
     <ClCompile Include="Source\CoreUObject\Components\PrimitiveComponent.cpp" />
@@ -293,7 +300,11 @@
     <ClCompile Include="Source\Core\Rendering\UI.cpp" />
     <ClCompile Include="Source\Core\Rendering\URenderer.cpp" />
     <ClCompile Include="Source\Debugging\DebugConsole.cpp" />
-    <ClCompile Include="Source\Editor\Viewport\Viewport.cpp" />
+    <ClCompile Include="Source\Editor\Slate\SSplitter.cpp" />
+    <ClCompile Include="Source\Editor\Slate\SViewport.cpp" />
+    <ClCompile Include="Source\Editor\Slate\SWindow.cpp" />
+    <ClCompile Include="Source\Editor\Viewport\FViewport.cpp" />
+    <ClCompile Include="Source\Editor\Viewport\FViewportClient.cpp" />
     <ClCompile Include="Source\Editor\Windows\ConsoleWindow.cpp" />
     <ClCompile Include="Source\EnginePch.cpp" />
     <ClCompile Include="Source\Engine\Engine.cpp" />
@@ -381,8 +392,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

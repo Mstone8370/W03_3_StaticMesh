@@ -38,6 +38,7 @@ public:
 	void Render(float DeltaTime);
 	void RenderPickingTexture(URenderer& Renderer);
     void RenderPickingTextureForViewport(URenderer& Renderer, FViewport& View);
+
 	void DisplayPickingTexture(URenderer& Renderer);
 	void RenderMainTexture(URenderer& Renderer);
 	void RenderMesh(URenderer& Renderer);

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Core/AbstractClass/Singleton.h"
+#include "Math/Vector.h"
+
+struct FTransform;
 
 class APlayerController : public TSingleton<APlayerController>
 {
@@ -14,6 +17,8 @@ public :
 
 	void HandleCameraMovement(float DeltaTime);
 	void SaveCameraProperties(class ACamera* Camera);
+	void HandleCameraRotation(ACamera* Camera, FTransform& Transform, bool bIsPerspective);
+	FVector GetCameraMovementDirection(ACamera* Camera, bool bIsPerspective);
 
 	float GetCurrentSpeed() const { return CurrentSpeed; }
 	float GetMaxSpeed() const { return MaxSpeed; }

@@ -9,7 +9,7 @@
 #include "Primitive/PrimitiveVertices.h"
 #include "RendererDefine.h"
 #include "Constants.h"
-#include "Editor/Viewport/Viewport.h"
+#include "Editor/Slate/SViewport.h"
 
 struct FVertexSimple;
 struct FVector4;
@@ -313,15 +313,15 @@ public:
 
 #pragma endregion picking
 #pragma region Viewports
-    TArray<FViewport> Viewports;
+    TArray<SViewport*> Viewports;
     void InitializeViewports();
     void UpdateViewports(UWorld* RenderWorld,float Deltatime);
     void ResizeViewports();
     void ComputeViewportRects();
-    void RecreateAllViewportRTVs();
+    //void RecreateAllViewportRTVs();
     
     void RenderViewports(UWorld* RenderWorld,float Deltatime);
-    void RenderViewport(FViewport& View, UWorld* RenderWorld,float Deltatime);
+    //void RenderViewport(FViewport& View, UWorld* RenderWorld,float Deltatime);
     float HorizontalSplitRatio = 0.5f; // 수평 분할 비율 (0.0 ~ 1.0)
     float VerticalSplitRatio = 0.5f; // 수직 분할 비율 (0.0 ~ 1.0)
 
@@ -333,7 +333,7 @@ public:
     const float ViewportClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
     const float TestClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
     void CreateCompositeConstantBuffer();
-    void UpdateCompositeConstantBuffer(const FVector2D& Size, const FVector2D& Position);
+    void UpdateCompositeConstantBuffer(const FRect& Rect);
     void CompositeViewportsToBackBuffer();
     struct FVertexUV
     {
@@ -359,12 +359,12 @@ public:
     };
     void CreateFullscreenQuadVertexBuffer();
     void CreateScreenConstantBuffer();
-    void UpdateScreenConstantBuffer(float Width, float Height);
+    void UpdateScreenConstantBuffer(const FVector2D& ScreenSize);
 
     ID3D11Buffer* ScreenConstantBuffer = nullptr;
 
     //픽셀 피킹 호환
-    FVector4 GetPixelFromViewport(int32 X, int32 Y, const FViewport& View);
+    //FVector4 GetPixelFromViewport(int32 X, int32 Y, const FViewport& View);
     bool bRenderPicking=false;
 #pragma endregion Viewports
 };

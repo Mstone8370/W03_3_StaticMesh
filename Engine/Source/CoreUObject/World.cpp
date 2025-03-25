@@ -1,4 +1,4 @@
-#include "pch.h" 
+#include "pch.h"
 #include "World.h"
 
 #include "WorldGrid.h"
@@ -19,6 +19,7 @@
 #include "Components/TextBillboardComponent.h"
 #include "GameFrameWork/Picker.h"
 #include "CoreUObject/ObjectIterator.h"
+#include "Editor/Viewport/FViewport.h"
 
 void UWorld::BeginPlay()
 {
@@ -74,7 +75,7 @@ void UWorld::Render(float DeltaTime)
     {
         return;
     }
-    
+
     //ACamera* Camera = FEditorManager::Get().GetCamera();
     //Renderer->RenderViewport(Camera, this);
     /**
@@ -110,42 +111,6 @@ void UWorld::RenderPickingTexture(URenderer& Renderer)
     }
 
     Renderer.PrepareZIgnore();
-    for (auto& RenderComponent: ZIgnoreRenderComponents)
-    {
-        uint32 UUID = RenderComponent->GetUUID();
-        RenderComponent->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
-        RenderComponent->Render(&Renderer);
-    }
-}
-void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& View)
-{
-    if (!View.PickingRTV || !View.PickingDSV) return;
-    ID3D11DeviceContext* DeviceContext = Renderer.GetDeviceContext();
-    DeviceContext->OMSetRenderTargets(1, &View.PickingRTV, View.PickingDSV);
-    DeviceContext->ClearRenderTargetView(View.PickingRTV, Renderer.PickingClearColor);
-    DeviceContext->ClearDepthStencilView(View.PickingDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    DeviceContext->RSSetViewports(1, &View.ViewportDesc);
-
-    if (View.ViewCamera)
-    {
-        Renderer.UpdateViewMatrix(View.ViewCamera->GetActorTransform());
-        Renderer.UpdateProjectionMatrixAspect(View.ViewCamera, View.ViewportDesc.Width, View.ViewportDesc.Height);
-    }
-
-    Renderer.PreparePicking();
-    Renderer.PreparePickingShader();
-
-    // Main Pickable Objects
-    for (auto& RenderComponent : RenderComponents)
-    {
-        uint32 UUID = RenderComponent->GetUUID();
-        RenderComponent->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
-        RenderComponent->Render(&Renderer);
-    }
-
-    // ZIgnore
-    Renderer.PrepareZIgnore();
     for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
         uint32 UUID = RenderComponent->GetUUID();
@@ -153,6 +118,56 @@ void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& Vie
         RenderComponent->Render(&Renderer);
     }
 }
+
+void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& View)
+{
+    if (!View.PickingRTV || !View.PickingDSV)
+        return;
+
+    ID3D11DeviceContext* Context = Renderer.GetDeviceContext();
+
+    // 1. 렌더 타겟 바인딩
+    Context->OMSetRenderTargets(1, &View.PickingRTV, View.PickingDSV);
+    Context->ClearRenderTargetView(View.PickingRTV, Renderer.PickingClearColor);
+    Context->ClearDepthStencilView(View.PickingDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+    // 2. 뷰포트 설정
+    Context->RSSetViewports(1, &View.ViewportDesc);
+
+    // 3. View / Projection 행렬 설정
+    if (View.ViewCamera)
+    {
+        Renderer.UpdateViewMatrix(View.ViewCamera->GetActorTransform());
+        Renderer.UpdateProjectionMatrixAspect(View.ViewCamera, View.ViewportDesc.Width, View.ViewportDesc.Height);
+    }
+
+    // 4. Pickable 오브젝트 렌더링
+    Renderer.PreparePicking();
+    Renderer.PreparePickingShader();
+
+    for (UPrimitiveComponent* Component : RenderComponents)
+    {
+        if (!Component) continue;
+
+        uint32 UUID = Component->GetUUID();
+        Component->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
+        Component->Render(&Renderer);
+    }
+
+    // 5. ZIgnore 오브젝트 렌더링 (깊이 무시)
+    Renderer.PrepareZIgnore();
+
+    for (UPrimitiveComponent* Component : ZIgnoreRenderComponents)
+    {
+        if (!Component) continue;
+
+        uint32 UUID = Component->GetUUID();
+        Component->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
+        Component->Render(&Renderer);
+    }
+}
+
+
 void UWorld::RenderMainTexture(URenderer& Renderer)
 {
     Renderer.PrepareMain();
@@ -173,7 +188,7 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
     }
 
     Renderer.PrepareZIgnore();
-    for (auto& RenderComponent: ZIgnoreRenderComponents)
+    for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
         if (RenderComponent->IsA<UMeshComponent>())
         {
@@ -187,7 +202,7 @@ void UWorld::RenderMesh(URenderer& Renderer)
 {
     Renderer.PrepareMesh();
     Renderer.PrepareMeshShader();
-    
+
     bool bRenderPrimitives = UEngine::Get().GetShowPrimitives();
     for (auto& RenderComponent : RenderComponents)
     {
@@ -203,7 +218,7 @@ void UWorld::RenderMesh(URenderer& Renderer)
     }
 
     Renderer.PrepareZIgnore();
-    for (auto& RenderComponent: ZIgnoreRenderComponents)
+    for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
         if (!RenderComponent->IsA<UMeshComponent>())
         {
@@ -215,8 +230,8 @@ void UWorld::RenderMesh(URenderer& Renderer)
 
 void UWorld::RenderBoundingBoxes(URenderer& Renderer)
 {
-	Renderer.PrepareMain();
-	Renderer.PrepareMainShader();
+    Renderer.PrepareMain();
+    Renderer.PrepareMainShader();
     for (FBox* Box : BoundingBoxes)
     {
         if (Box && Box->bCanBeRendered && Box->IsValidBox())
@@ -241,13 +256,13 @@ void UWorld::RenderBillboard(URenderer& Renderer)
     // 텍스처와 샘플러 상태를 셰이더에 설정
     Renderer.PrepareBillboard();
 
-	for (UBillboardComponent* Billboard : BillboardComponents)
-	{
+    for (UBillboardComponent* Billboard : BillboardComponents)
+    {
         if (Billboard)
         {
             Billboard->Render(&Renderer);
         }
-	}
+    }
 }
 
 void UWorld::RenderText(URenderer& Renderer)
@@ -297,20 +312,20 @@ bool UWorld::DestroyActor(AActor* InActor)
     // 삭제될 때 Destroyed 호출
     InActor->Destroyed();
 
-	// 삭제하고자 하는 Actor를 가지고 있는 ActorTreeNode를 찾아서 삭제
-	for (ActorTreeNode* Node : ActorTreeNodes)
-	{
-		if (Node->GetActor() == InActor)
-		{
+    // 삭제하고자 하는 Actor를 가지고 있는 ActorTreeNode를 찾아서 삭제
+    for (ActorTreeNode* Node : ActorTreeNodes)
+    {
+        if (Node->GetActor() == InActor)
+        {
             Node->GetParent()->RemoveChild(Node);
-			for (ActorTreeNode* Child : Node->GetChildren())
-			{
-				Child->SetParent(Node->GetParent());
-			}
-			ActorTreeNodes.Remove(Node);
-			break;
-		}
-	}
+            for (ActorTreeNode* Child : Node->GetChildren())
+            {
+                Child->SetParent(Node->GetParent());
+            }
+            ActorTreeNodes.Remove(Node);
+            break;
+        }
+    }
 
     // World에서 제거
     Actors.Remove(InActor);
@@ -335,10 +350,11 @@ void UWorld::AddZIgnoreComponent(UPrimitiveComponent* InComponent)
 
 void UWorld::LoadWorld(const char* InSceneName)
 {
-    if (InSceneName == nullptr || strcmp(InSceneName, "") == 0){
+    if (InSceneName == nullptr || strcmp(InSceneName, "") == 0)
+    {
         return;
     }
-        
+
     UWorldInfo* WorldInfo = JsonSaveHelper::LoadScene(InSceneName);
     if (WorldInfo == nullptr) return;
 
@@ -356,7 +372,7 @@ void UWorld::LoadWorld(const char* InSceneName)
         Transform.Rotate(ObjectInfo->Rotation);
 
         AActor* Actor = nullptr;
-                
+
         if (ObjectInfo->ObjectType == "Actor")
         {
             Actor = SpawnActor<AActor>();
@@ -420,14 +436,14 @@ UWorldInfo UWorld::GetWorldInfo() const
 bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const
 {
     TArray<TPair<USceneComponent*, float>> Hits;
-	for (FBox* Box : BoundingBoxes)
-	{
-	    float Distance = 0.f;
-		if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
-		{
-			Hits.Add({Box->GetOwner(), Distance});
-		}
-	}
+    for (FBox* Box : BoundingBoxes)
+    {
+        float Distance = 0.f;
+        if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
+        {
+            Hits.Add({Box->GetOwner(), Distance});
+        }
+    }
     if (Hits.Num() == 0)
     {
         if (bDebugRaycast)
@@ -454,12 +470,12 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) con
         FVector Start = Ray.Origin;
         FVector End = Ray.Origin + Ray.Direction * MinDistance;
         DrawDebugLine(Start, End, FVector(1.f, 0.f, 0.f), 5.f);
-        
+
         Start = End;
         End = Start + Ray.Direction * (Ray.Length - MinDistance);
         DrawDebugLine(Start, End, FVector(0.f, 1.f, 0.f), 5.f);
     }
-    
+
     return true;
 }
 
