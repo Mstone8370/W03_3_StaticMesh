@@ -4,7 +4,7 @@
 
 class UStaticMeshComponent : public UMeshComponent
 {
-    UCLASS(UStaticMeshComponent, UMeshComponent)
+    UCLASS(UStaticMeshComponent, UMeshComponent);
 public:
     UStaticMeshComponent() = default;
     virtual void BeginPlay() override;
@@ -12,8 +12,7 @@ public:
 
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
     void SetStaticMesh(UStaticMesh* InStaticMesh) { StaticMesh = InStaticMesh; }
-
-   
+    void ChangeStaticMesh(FString changeMeshPath);
 private:
     UStaticMesh* StaticMesh;
 };
