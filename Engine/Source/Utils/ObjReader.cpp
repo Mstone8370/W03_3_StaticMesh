@@ -183,7 +183,7 @@ void ObjReader::ReadFile()
         std::stringstream TokenStream(Line);
         TArray<std::string> Tokens;
         std::string Token;
-        while (std::getline(TokenStream, Token, ' '))
+        while (TokenStream >> Token)//(std::getline(TokenStream, Token, ' '))
         {
             Tokens.Add(Token);
         }
