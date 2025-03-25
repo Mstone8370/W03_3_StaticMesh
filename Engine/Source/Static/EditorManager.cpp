@@ -6,12 +6,18 @@
 
 void FEditorManager::Init(int32 InWidth, int32 InHeight)
 {
-    if (!EditorWindow)
+    ViewportMode = EViewportMode::EVM_Single;
+    
+    if (EditorWindow)
     {
-        EditorWindow = std::make_unique<SWindow>();
-        FRect Temp(0.f, 0.f, InWidth, InHeight); // Temp
-        EditorWindow->Init(Temp);
+        EditorWindow.reset();
     }
+    
+    EditorWindow = std::make_unique<SWindow>();
+    MainRect = FRect(0.f, 0.f, InWidth, InHeight);
+    EditorWindow->Init(MainRect);
+
+    ActivateQuadViewport();
 }
 
 void FEditorManager::Tick(const float DeltaTime)
@@ -114,6 +120,103 @@ void FEditorManager::HandleInput(const float DeltaTime)
 void FEditorManager::GetAllViewportWidgets(TArray<SViewport*>& OutViewports) const
 {
     OutViewports.Empty();
-    // TODO: 트리 순환하면서 모두 찾기. 지금은 하드코딩
-    OutViewports.Add(EditorWindow.get()->Viewport.get());
+    TraverseViewports(EditorWindow.get(), OutViewports);
+}
+
+SViewport* FEditorManager::GetActiveViewport(const FPoint& Point) const
+{
+    return FindActiveViewport(EditorWindow.get(), Point);   
+}
+
+void FEditorManager::ActivateQuadViewport()
+{
+    if (ViewportMode == EViewportMode::EVM_Quad)
+    {
+        return;
+    }
+    
+    if (EditorWindow)
+    {
+        EditorWindow.reset();
+    }
+
+    EditorWindow = std::make_unique<SSplitterH>();
+    EditorWindow->Init(MainRect);
+
+    // TODO: 하드 코딩으로 뷰포트 4개 생성
+    if (SSplitterH* Splitter = dynamic_cast<SSplitterH*>(EditorWindow.get()))
+    {
+        Splitter->Split();
+        SWindow* Left = Splitter->SideLT;
+        if (SSplitterV* SplitterV = dynamic_cast<SSplitterV*>(Left))
+        {
+            SplitterV->Split();
+        }
+        SWindow* Right = Splitter->SideRB;
+        if (SSplitterV* SplitterV = dynamic_cast<SSplitterV*>(Right))
+        {
+            SplitterV->Split();
+        }
+    }
+}
+
+void FEditorManager::DeactivateQuadViewport()
+{
+    if (ViewportMode == EViewportMode::EVM_Single)
+    {
+        return;
+    }
+    
+    if (EditorWindow)
+    {
+        EditorWindow.reset();
+    }
+    
+    EditorWindow = std::make_unique<SWindow>();
+    EditorWindow->Init(MainRect);
+}
+
+void FEditorManager::TraverseViewports(SWindow* CurrentWindow, TArray<SViewport*>& OutViewports) const
+{
+    if (CurrentWindow == nullptr)
+    {
+        return;
+    }
+
+    if (SSplitter* Splitter = dynamic_cast<SSplitter*>(CurrentWindow))
+    {
+        TraverseViewports(Splitter->SideLT, OutViewports);
+        TraverseViewports(Splitter->SideRB, OutViewports);
+    }
+    else if (SViewport* Viewport = CurrentWindow->Viewport.get())
+    {
+        OutViewports.Add(Viewport);
+    }
+}
+
+SViewport* FEditorManager::FindActiveViewport(SWindow* CurrentWindow, const FPoint& Point) const
+{
+    if (CurrentWindow == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (SSplitter* Splitter = dynamic_cast<SSplitter*>(CurrentWindow))
+    {
+        if (SViewport* Viewport = FindActiveViewport(Splitter->SideLT, Point))
+        {
+            return Viewport;
+        }
+        return FindActiveViewport(Splitter->SideRB, Point);
+    }
+    
+    if (SViewport* Viewport = CurrentWindow->Viewport.get())
+    {
+        if (Viewport->IsHover(Point))
+        {
+            return Viewport;
+        }
+    }
+    
+    return nullptr;
 }

@@ -165,6 +165,7 @@ void URenderer::DrawFinalRender()
 {
     DeviceContext->RSSetViewports(1, &FinalViewport);
     DeviceContext->OMSetRenderTargets(1, &FinalRenderTargetView, nullptr);
+    DeviceContext->ClearRenderTargetView(FinalRenderTargetView, ClearColor);
     
     uint32 FinalStride = sizeof(FFinalVertex);
     uint32 Offset = 0;

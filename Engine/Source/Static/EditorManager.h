@@ -5,6 +5,14 @@
 
 class AGizmoHandle;
 
+enum class EViewportMode
+{
+	EVM_Single,
+	EVM_Quad,
+
+	EVM_Max,
+};
+
 class FEditorManager : public TSingleton<FEditorManager>
 {
 public:
@@ -34,13 +42,27 @@ public:
 	void HandleInput(const float DeltaTime);
 
 	void GetAllViewportWidgets(TArray<SViewport*>& OutViewports) const;
+
+	SViewport* GetActiveViewport(const FPoint& Point) const;
+
+	void ActivateQuadViewport();
+
+	void DeactivateQuadViewport();
     
 private:
 	// 메인 에디터 윈도우
 	std::unique_ptr<SWindow> EditorWindow = nullptr;
+
+	EViewportMode ViewportMode;
+
+	FRect MainRect;
 	
     ACamera* Camera = nullptr;
     AActor* SelectedActor = nullptr;
     USceneComponent* SelectedComponent = nullptr;
     AGizmoHandle* GizmoHandle = nullptr;
+
+	void TraverseViewports(SWindow* CurrentWindow, TArray<SViewport*>& OutViewports) const;
+
+	SViewport* FindActiveViewport(SWindow* CurrentWindow, const FPoint& Point) const;
 };

@@ -18,16 +18,16 @@ void SWindow::Init(const FRect& InRect)
 {
     Rect = InRect;
     
-    // TODO: Hard coded padding
-    
-    Rect.Left += 100;
-    Rect.Right -= 100;
-    Rect.Top += 100;
-    Rect.Bottom -= 100;
+    FRect ChildRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
     
     if (Viewport)
     {
-        Viewport->Init(Rect);   
+        Viewport->Init(ChildRect);   
     }
 }
 
@@ -69,6 +69,39 @@ SSplitter::SSplitter()
     : SideLT(nullptr)
     , SideRB(nullptr)
 {}
+
+SSplitter::~SSplitter()
+{
+    delete SideLT;
+    delete SideRB;
+}
+
+void SSplitter::Init(const FRect& InRect)
+{
+    Rect = InRect;
+    
+    FRect ChildRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
+    
+    SideLT = new SWindow();
+    SideLT->Init(ChildRect);
+    
+    SideRB = nullptr;
+}
+
+void SSplitter::Tick(const float DeltaTime)
+{
+    SWindow::Tick(DeltaTime);
+}
+
+bool SSplitter::IsHover(FPoint coord) const
+{
+    return SWindow::IsHover(coord);
+}
 
 void SSplitter::Paint()
 {
@@ -122,4 +155,68 @@ void SSplitter::HandleInput(const float DeltaTime)
             SideRB->HandleInput(DeltaTime);
         }
     }
+}
+
+void SSplitterH::Split()
+{
+    if (SideLT)
+    {
+        delete SideLT;
+    }
+    if (SideRB)
+    {
+        delete SideRB;
+    }
+
+    int32 HalfWidth = (Rect.Right - Rect.Left) / 2;
+    
+    FRect LeftRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Left + HalfWidth - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
+    SideLT = new SSplitterV();
+    SideLT->Init(LeftRect);
+
+    FRect RightRect = {
+        Rect.Left + HalfWidth + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
+    SideRB = new SSplitterV();
+    SideRB->Init(RightRect);
+}
+
+void SSplitterV::Split()
+{
+    if (SideLT)
+    {
+        delete SideLT;
+    }
+    if (SideRB)
+    {
+        delete SideRB;
+    }
+
+    int32 HalfHeight = (Rect.Bottom - Rect.Top) / 2;
+    
+    FRect TopRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Top + HalfHeight - Padding.Bottom
+    };
+    SideLT = new SSplitterH();
+    SideLT->Init(TopRect);
+
+    FRect BottomRect = {
+        Rect.Left + Padding.Left,
+        Rect.Top + HalfHeight + Padding.Top,
+        Rect.Right - Padding.Right,
+        Rect.Bottom - Padding.Bottom
+    };
+    SideRB = new SSplitterH();
+    SideRB->Init(BottomRect);
 }

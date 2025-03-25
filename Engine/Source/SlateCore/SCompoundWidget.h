@@ -27,6 +27,8 @@ public:
 
     // Client 기준으로 Left Top이 (0, 0)
     FRect Rect;
+
+    FRect Padding = {10, 10, 10, 10};
     
 protected:
 };

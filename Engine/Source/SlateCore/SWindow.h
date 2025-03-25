@@ -31,22 +31,34 @@ class SSplitter : public SWindow
 {
 public:
     SSplitter();
-    virtual ~SSplitter() override = default;
+    virtual ~SSplitter() override;
+
+    virtual void Init(const FRect& InRect) override;
+
+    virtual void Tick(const float DeltaTime) override;
+    
+    virtual bool IsHover(FPoint coord) const override;
 
     virtual void Paint() override;
 
     virtual void HandleInput(const float DeltaTime) override;
+
+    virtual void Split() = 0;
     
-private:
     // TODO: 아래의 두 포인터를 어떻게 관리해야할지 생각하기
     SWindow* SideLT; // Left or Top
     SWindow* SideRB; // Right or Bottom
+private:
 };
 
 class SSplitterH : public SSplitter
 {
+public:
+    virtual void Split() override;
 };
 
 class SSplitterV : public SSplitter
 {
+public:
+    virtual void Split() override;
 };
