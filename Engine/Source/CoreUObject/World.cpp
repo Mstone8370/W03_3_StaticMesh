@@ -84,10 +84,8 @@ void UWorld::Render(float DeltaTime)
     /*
     RenderWorldGrid(*Renderer);
         
-    if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
-    {
-        RenderPickingTexture(*Renderer);
-    }
+    //if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
+    //    RenderPickingTexture(*Renderer);
     RenderMainTexture(*Renderer);
 	RenderBillboard(*Renderer);
     RenderText(*Renderer);

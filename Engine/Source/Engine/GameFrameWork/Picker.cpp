@@ -1,4 +1,4 @@
-#include "pch.h" 
+#include "pch.h"
 #include "Picker.h"
 #include "Core/HAL/PlatformType.h"
 #include "Core/Input/PlayerInput.h"
@@ -24,14 +24,15 @@ FVector4 APicker::EncodeUUID(unsigned int UUID)
     float g = (UUID >> 8) & 0xff;
     float r = UUID & 0xff;
 
-    FVector4 color = { r, g, b, a };
+    FVector4 color = {r, g, b, a};
 
     return color;
 }
 
 int APicker::DecodeUUID(FVector4 color)
 {
-    return (static_cast<unsigned int>(color.W) << 24) | (static_cast<unsigned int>(color.Z) << 16) | (static_cast<unsigned int>(color.Y) << 8) | (static_cast<unsigned int>(color.X));
+    return (static_cast<unsigned int>(color.W) << 24) | (static_cast<unsigned int>(color.Z) << 16) | (static_cast<
+        unsigned int>(color.Y) << 8) | (static_cast<unsigned int>(color.X));
 }
 
 void APicker::BeginPlay()
@@ -52,19 +53,22 @@ void APicker::LateTick(float DeltaTime)
         return;
     }
 
-    if (APlayerInput::Get().IsMousePressed(false))    //좌클릭
+    if (APlayerInput::Get().IsMousePressed(false)) //좌클릭
     {
         if (!PickByColor())
         {
-            PickByRay();
+            if (!PickByRay())
+            {
+                FEditorManager::Get().ClearSelectedComponent();
+            }
         }
     }
 
 
     // 기즈모 핸들링
-    if (APlayerInput::Get().IsMouseDown(false))    //좌클릭
+    if (APlayerInput::Get().IsMouseDown(false)) //좌클릭
     {
-		HandleGizmo();
+        HandleGizmo();
     }
     else
     {
@@ -97,9 +101,10 @@ bool APicker::PickByColor()
     USceneComponent* PickedComponent = UEngine::Get().GetObjectByUUID<USceneComponent>(UUID);
 
     bool bIsPicked = false;
-    if (PickedComponent && !PickedComponent->GetOwner()->IsGizmoActor())
+    if (PickedComponent)
     {
-        FEditorManager::Get().SelectComponent(PickedComponent);
+        if (!PickedComponent->GetOwner()->IsGizmoActor())
+            FEditorManager::Get().SelectComponent(PickedComponent);
         bIsPicked = true;
     }
     UE_LOG("Pick - UUID: %d", UUID);
@@ -109,21 +114,33 @@ bool APicker::PickByColor()
 
 bool APicker::PickByRay()
 {
+    int32 ViewportIndex = APlayerController::Get().GetClickedViewportIndex();
+    if (ViewportIndex == -1)
+        return false;
+
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    const FViewport& View = Renderer->Viewports[ViewportIndex];
+    ACamera* Camera = View.ViewCamera;
+    if (!Camera)
+        return false;
+
+
     bool bIsPicked = false;
     // 충돌 검출
-	USceneComponent* FirstHitComponent = nullptr;
+    USceneComponent* FirstHitComponent = nullptr;
 
-    if (GetWorld()->LineTrace(FRay::GetRayByMousePoint(FEditorManager::Get().GetCamera()), &FirstHitComponent))
+    if (GetWorld()->LineTrace(FRay::GetRayByViewportPoint(Camera, View), &FirstHitComponent))
     {
         bIsPicked = true;
         if (FirstHitComponent == nullptr)
+        {
             return false;
+        }
 
         FEditorManager::Get().SelectComponent(FirstHitComponent);
     }
 
     return bIsPicked;
-    
 }
 
 void APicker::HandleGizmo()
@@ -131,8 +148,18 @@ void APicker::HandleGizmo()
     int32 X = 0;
     int32 Y = 0;
     APlayerInput::Get().GetMousePositionClient(X, Y);
-    
-    FVector4 color = UEngine::Get().GetRenderer()->GetPixel(X, Y);
+
+    int32 ViewportIndex = APlayerController::Get().GetClickedViewportIndex();
+    if (ViewportIndex == -1)
+        return;
+
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    if (ViewportIndex >= Renderer->Viewports.Num())
+        return;
+
+    const FViewport& View = Renderer->Viewports[ViewportIndex];
+    FVector4 color = Renderer->GetPixelFromViewport(X, Y, View);
+
     uint32_t UUID = DecodeUUID(color);
 
     UActorComponent* PickedComponent = UEngine::Get().GetObjectByUUID<UActorComponent>(UUID);
@@ -140,7 +167,7 @@ void APicker::HandleGizmo()
     {
         if (PickedComponent->GetOwner() && PickedComponent->GetOwner()->IsA<AGizmoHandle>())
         {
-			AGizmoHandle* Gizmo = static_cast<AGizmoHandle*>(PickedComponent->GetOwner());
+            AGizmoHandle* Gizmo = static_cast<AGizmoHandle*>(PickedComponent->GetOwner());
             if (Gizmo->GetSelectedAxis() != ESelectedAxis::None) return;
             UCylinderComp* CylinderComp = static_cast<UCylinderComp*>(PickedComponent);
             FVector4 CompColor = CylinderComp->GetCustomColor();
@@ -152,7 +179,7 @@ void APicker::HandleGizmo()
             {
                 Gizmo->SetSelectedAxis(ESelectedAxis::Y);
             }
-            else  // Blue - Z축
+            else // Blue - Z축
             {
                 Gizmo->SetSelectedAxis(ESelectedAxis::Z);
             }

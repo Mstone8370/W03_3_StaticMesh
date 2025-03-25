@@ -163,7 +163,7 @@ void UEngine::Run()
         {
             World->Tick(DeltaTime);
             //World->Render(DeltaTime);
-            Renderer->UpdateViewports(World);
+            Renderer->UpdateViewports(World,DeltaTime);
             //Renderer->RenderPickingTexture();
             World->LateTick(DeltaTime);
         }

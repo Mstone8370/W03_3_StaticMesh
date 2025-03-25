@@ -1,6 +1,8 @@
 #pragma once
 #include "Vector.h"
 
+struct FViewport;
+
 struct FRay
 {
 public:
@@ -13,4 +15,6 @@ public:
 	FVector Direction;
 	float Length;
 	static FRay GetRayByMousePoint(class ACamera* InCamera);
+	static FRay GetRayByViewportPoint(ACamera* InCamera, const FViewport& Viewport);
+
 };

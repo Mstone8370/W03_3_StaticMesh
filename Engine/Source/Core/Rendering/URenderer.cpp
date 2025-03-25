@@ -10,6 +10,7 @@
 #include "World.h"
 #include "GameFrameWork/Picker.h"
 #include "Input/PlayerController.h"
+#include "Input/PlayerInput.h"
 
 void URenderer::Create(HWND hWindow)
 {
@@ -1669,7 +1670,7 @@ FMatrix URenderer::GetProjectionMatrix() const
 }
 
 
-void URenderer::UpdateViewports(UWorld* RenderWorld)
+void URenderer::UpdateViewports(UWorld* RenderWorld,float Deltatime)
 {
     /*
     if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
@@ -1683,7 +1684,7 @@ void URenderer::UpdateViewports(UWorld* RenderWorld)
 
     if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
         ResizeViewports();
-    RenderViewports(RenderWorld);
+    RenderViewports(RenderWorld,Deltatime);
 }
 
 void URenderer::ResizeViewports()
@@ -1691,17 +1692,30 @@ void URenderer::ResizeViewports()
     ComputeViewportRects();
     RecreateAllViewportRTVs();
 }
-void URenderer::RenderViewports(UWorld* RenderWorld)
+void URenderer::RenderViewports(UWorld* RenderWorld,float Deltatime)
 {
     if (!RenderWorld) return;
-
+    switch (CurrentRasterizerStateType)
+    {
+    case EViewModeIndex::ERS_Solid:
+        CurrentRasterizerState = &RasterizerState_Solid;
+        break;
+    case EViewModeIndex::ERS_Wireframe:
+        CurrentRasterizerState = &RasterizerState_Wireframe;
+        break;
+    default:
+        break;
+    }
+    DeviceContext->RSSetState(*CurrentRasterizerState);
     // 1. 각 Viewport의 RTV에 렌더링
     for (FViewport& View : Viewports)
     {
-        RenderViewport(View, RenderWorld);
-        RenderWorld->RenderPickingTextureForViewport(*this,View);
+        RenderViewport(View, RenderWorld,Deltatime);
+        if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
+            RenderWorld->RenderPickingTextureForViewport(*this,View);
     }
-    RenderWorld->RenderPickingTexture(*this);
+
+    DeviceContext->RSSetState(RasterizerState_Solid);
     // 2. 합성 (SRV를 메인 FrameBuffer에 출력)
     CompositeViewportsToBackBuffer();
 
@@ -1714,7 +1728,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld)
 }
 
 
-void URenderer::RenderViewport(FViewport& View, UWorld* RenderWorld)
+void URenderer::RenderViewport(FViewport& View, UWorld* RenderWorld,float Deltatime)
 {
     if (!RenderWorld || View.RTV == nullptr || View.DSV == nullptr)
         return;
@@ -1739,13 +1753,14 @@ void URenderer::RenderViewport(FViewport& View, UWorld* RenderWorld)
     }
 
     // 5. 씬 렌더링
+    
     RenderWorld->RenderWorldGrid(*this);
     RenderWorld->RenderMainTexture(*this);
     RenderWorld->RenderBillboard(*this);
     RenderWorld->RenderText(*this);
     RenderWorld->RenderMesh(*this);
     RenderWorld->RenderBoundingBoxes(*this);
-    RenderWorld->RenderDebugLines(*this, 0.f);
+    RenderWorld->RenderDebugLines(*this,Deltatime);
 }
 
 

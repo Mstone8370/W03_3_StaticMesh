@@ -315,13 +315,13 @@ public:
 #pragma region Viewports
     TArray<FViewport> Viewports;
     void InitializeViewports();
-    void UpdateViewports(UWorld* RenderWorld);
+    void UpdateViewports(UWorld* RenderWorld,float Deltatime);
     void ResizeViewports();
     void ComputeViewportRects();
     void RecreateAllViewportRTVs();
     
-    void RenderViewports(UWorld* RenderWorld);
-    void RenderViewport(FViewport& View, UWorld* RenderWorld);
+    void RenderViewports(UWorld* RenderWorld,float Deltatime);
+    void RenderViewport(FViewport& View, UWorld* RenderWorld,float Deltatime);
     float HorizontalSplitRatio = 0.5f; // 수평 분할 비율 (0.0 ~ 1.0)
     float VerticalSplitRatio = 0.5f; // 수직 분할 비율 (0.0 ~ 1.0)
 
