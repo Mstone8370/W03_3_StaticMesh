@@ -159,11 +159,32 @@ void FEditorManager::ActivateQuadViewport()
         if (SSplitterV* SplitterV = dynamic_cast<SSplitterV*>(Left))
         {
             SplitterV->Split();
+
+            if (FViewport* ViewportLT = SplitterV->SideLT->Viewport->Viewport.get()) // TODO: not good
+            {
+                ViewportLT->SetProjectionMode(ECameraProjectionMode::ECP_Orthographic);
+                ViewportLT->SetOrthogonalDirection(EOrthogonalDirection::EOD_Back);
+            }
+            if (FViewport* ViewportRB = SplitterV->SideRB->Viewport->Viewport.get()) // TODO: not good
+            {
+                ViewportRB->SetProjectionMode(ECameraProjectionMode::ECP_Perspective);
+            }
         }
         SWindow* Right = Splitter->SideRB;
         if (SSplitterV* SplitterV = dynamic_cast<SSplitterV*>(Right))
         {
             SplitterV->Split();
+
+            if (FViewport* ViewportLT = SplitterV->SideLT->Viewport->Viewport.get()) // TODO: not good
+            {
+                ViewportLT->SetProjectionMode(ECameraProjectionMode::ECP_Orthographic);
+                ViewportLT->SetOrthogonalDirection(EOrthogonalDirection::EOD_Right);
+            }
+            if (FViewport* ViewportRB = SplitterV->SideRB->Viewport->Viewport.get()) // TODO: not good
+            {
+                ViewportRB->SetProjectionMode(ECameraProjectionMode::ECP_Orthographic);
+                ViewportRB->SetOrthogonalDirection(EOrthogonalDirection::EOD_Top);
+            }
         }
     }
 }

@@ -52,6 +52,8 @@ public:
 	bool IsQuadViewportActive() const { return ViewportMode == EViewportMode::EVM_Quad; }
 
 	void OnResize(uint32 InWidth, uint32 InHeight);
+
+	FVector GetOrthogonalPoint() const { return OrthogonalPoint; }
     
 private:
 	// 메인 에디터 윈도우
@@ -60,6 +62,8 @@ private:
 	EViewportMode ViewportMode;
 
 	FRect MainRect;
+
+	FVector OrthogonalPoint = FVector::ZeroVector;
 	
     ACamera* Camera = nullptr;
     AActor* SelectedActor = nullptr;

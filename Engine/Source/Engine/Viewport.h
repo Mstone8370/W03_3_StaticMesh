@@ -7,21 +7,31 @@ class FViewport;
 
 
 /**
- * 에디터 전용 카메라
+ * 에디터 Perspective 뷰 전용 카메라
  * ACamera는 게임 전용 액터로 남겨두고, 에디터 카메라는 훨씬 기초적인 동작만으로도 충분함.
  * FViewportClient가 에디터 카메라를 소유하고, 복잡한 기능이 필요 없으니 이곳에서 구조체로 구현.
  */
 struct FEditorCamera
 {
     FTransform Transform;
-    ECameraProjectionMode ProjectionMode;
-    float FOV; // Perspective
-    float ScreenSize; // Orthogonal
+    float FOV;
     float NearClip;
     float FarClip;
     float Speed;
     float Sensitivity;
     float MaxPitch;
+};
+
+enum class EOrthogonalDirection
+{
+    EOD_Top,
+    EOD_Bottom,
+    EOD_Left,
+    EOD_Right,
+    EOD_Front,
+    EOD_Back,
+
+    EOD_Max
 };
 
 /**
@@ -47,8 +57,20 @@ public:
 
     virtual void HandleInput(const float DeltaTime);
 
+    ECameraProjectionMode GetProjectionMode() const { return ProjectionMode; }
+
+    void SetProjectionMode(ECameraProjectionMode InProjectionMode);
+
+    EOrthogonalDirection GetOrthogonalDirection() const { return OrthogonalDirection; }
+
+    void SetOrthogonalDirection(EOrthogonalDirection InOrthogonalDirection);
+    
 protected:
     std::unique_ptr<FEditorCamera> EditorCamera;
+
+    ECameraProjectionMode ProjectionMode;
+
+    EOrthogonalDirection OrthogonalDirection;
 
 private:
     FMatrix ViewMatrix;
@@ -81,6 +103,14 @@ public:
     virtual void OnResize(int32 InWidth, int32 InHeight);
 
     virtual void HandleInput(const float DeltaTime);
+    
+    ECameraProjectionMode GetProjectionMode() const;
+
+    void SetProjectionMode(ECameraProjectionMode InProjectionMode);
+
+    EOrthogonalDirection GetOrthogonalDirection() const;
+
+    void SetOrthogonalDirection(EOrthogonalDirection InOrthogonalDirection);
     
 private:
     std::unique_ptr<FViewportClient> ViewportClient;

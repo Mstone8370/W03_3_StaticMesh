@@ -263,7 +263,7 @@ void SSplitterH::OnResize(const FRect& NewRect)
         FRect ChildRect = {
             Rect.Right - WidthRB + Padding.Left,
             Rect.Top + Padding.Top,
-            Rect.Right + Padding.Right,
+            Rect.Right - Padding.Right,
             Rect.Bottom - Padding.Bottom
         };
         SideRB->OnResize(ChildRect);

@@ -12,9 +12,7 @@ FViewportClient::FViewportClient()
 {
     EditorCamera = std::make_unique<FEditorCamera>();
     EditorCamera->Transform = FTransform(FVector(-4.f, 0.f, 3.f), FVector::ZeroVector, FVector::OneVector);;
-    EditorCamera->ProjectionMode = ECameraProjectionMode::ECP_Perspective;
     EditorCamera->FOV = 100.f;
-    EditorCamera->ScreenSize = 100.f;
     EditorCamera->NearClip = 0.1f;
     EditorCamera->FarClip = 100.0f;
     EditorCamera->Speed = 10.f;
@@ -44,6 +42,8 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
         return;
     }
 
+    const bool bIsOrthographic = ProjectionMode == ECameraProjectionMode::ECP_Orthographic;
+
     Viewport = InViewport;
 
     // 뷰포트 설정 후 clear
@@ -51,6 +51,35 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
     Renderer->ClearViewport(View.get());
 
     // 카메라 matrix 설정
+    if (bIsOrthographic)
+    {
+        // FEditorManager의 Orthogonal Point를 받아와서 전달.
+        FVector Location = FEditorManager::Get().GetOrthogonalPoint();
+        FVector Rotation = FVector::ZeroVector;
+        switch (OrthogonalDirection)
+        {
+        case EOrthogonalDirection::EOD_Top:
+            Rotation = FVector(0.f, 90.f, -90.f);
+            break;
+        case EOrthogonalDirection::EOD_Bottom:
+            Rotation = FVector(0.f, -90.f, 90.f);
+            break;
+        case EOrthogonalDirection::EOD_Left:
+            Rotation = FVector(0.f, 0.f, 90.f);
+            break;
+        case EOrthogonalDirection::EOD_Right:
+            Rotation = FVector(0.f, 0.f, -90.f);
+            break;
+        case EOrthogonalDirection::EOD_Front:
+            Rotation = FVector(0.f, 0.f, 180.f);
+            break;
+        case EOrthogonalDirection::EOD_Back:
+            Rotation = FVector(0.f, 0.f, 0.f);
+            break;
+        }
+        FTransform ViewTransform(Location, Rotation, FVector::OneVector);
+        ViewMatrix = ViewTransform.GetViewMatrix();
+    }
     Renderer->SetViewMatrix(ViewMatrix);
     Renderer->SetProjectionMatrix(ProjectionMatrix, EditorCamera->NearClip, EditorCamera->FarClip);
 
@@ -58,6 +87,14 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
     Renderer->RenderWorldGrid();
     
     // Render Objects
+    if (bIsOrthographic)
+    {
+        Renderer->SetRenderMode(EViewModeIndex::ERS_Wireframe);
+    }
+    else
+    {
+        Renderer->SetRenderMode(EViewModeIndex::ERS_Solid);
+    }
     UEngine::Get().GetWorld()->RenderMainTexture(*Renderer);
 
     UEngine::Get().GetWorld()->RenderBillboard(*Renderer);
@@ -77,12 +114,24 @@ void FViewportClient::Draw(const std::weak_ptr<FViewport>& InViewport)
 
 void FViewportClient::OnResize(int32 InWidth, int32 InHeight)
 {
-    ProjectionMatrix = FMatrix::PerspectiveFovLH(
-        EditorCamera->FOV,
-        static_cast<float>(InWidth) / static_cast<float>(InHeight),
-        EditorCamera->NearClip,
-        EditorCamera->FarClip
-    );
+    if (ProjectionMode == ECameraProjectionMode::ECP_Perspective)
+    {
+        ProjectionMatrix = FMatrix::PerspectiveFovLH(
+            EditorCamera->FOV,
+            static_cast<float>(InWidth) / static_cast<float>(InHeight),
+            EditorCamera->NearClip,
+            EditorCamera->FarClip
+        );
+    }
+    else
+    {
+        ProjectionMatrix = FMatrix::OrthoLH(
+            InWidth,
+            InHeight,
+            EditorCamera->NearClip,
+            EditorCamera->FarClip
+        );
+    }
 }
 
 void FViewportClient::HandleInput(const float DeltaTime)
@@ -163,6 +212,18 @@ void FViewportClient::HandleInput(const float DeltaTime)
     // TODO: update engine config
     
     ViewMatrix = EditorCamera->Transform.GetViewMatrix();
+
+    // UE_LOG("X: %f, Y: %f, Z: %f\n", NewRotation.X, NewRotation.Y, NewRotation.Z);
+}
+
+void FViewportClient::SetProjectionMode(ECameraProjectionMode InProjectionMode)
+{
+    ProjectionMode = InProjectionMode;
+}
+
+void FViewportClient::SetOrthogonalDirection(EOrthogonalDirection InOrthogonalDirection)
+{
+    OrthogonalDirection = InOrthogonalDirection;
 }
 
 FViewport::FViewport()
@@ -208,5 +269,39 @@ void FViewport::HandleInput(const float DeltaTime)
     if (ViewportClient)
     {
         ViewportClient->HandleInput(DeltaTime);
+    }
+}
+
+ECameraProjectionMode FViewport::GetProjectionMode() const
+{
+    if (ViewportClient)
+    {
+        return ViewportClient->GetProjectionMode();
+    }
+    return ECameraProjectionMode::ECP_Max;
+}
+
+void FViewport::SetProjectionMode(ECameraProjectionMode InProjectionMode)
+{
+    if (ViewportClient)
+    {
+        ViewportClient->SetProjectionMode(InProjectionMode);
+    }
+}
+
+EOrthogonalDirection FViewport::GetOrthogonalDirection() const
+{
+    if (ViewportClient)
+    {
+        return ViewportClient->GetOrthogonalDirection();
+    }
+    return EOrthogonalDirection::EOD_Max;
+}
+
+void FViewport::SetOrthogonalDirection(EOrthogonalDirection InOrthogonalDirection)
+{
+    if (ViewportClient)
+    {
+        ViewportClient->SetOrthogonalDirection(InOrthogonalDirection);
     }
 }

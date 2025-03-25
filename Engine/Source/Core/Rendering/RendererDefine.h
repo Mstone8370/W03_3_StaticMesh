@@ -39,5 +39,7 @@ struct FStaticMeshVertex
 enum class ECameraProjectionMode : uint8
 {
 	ECP_Perspective,
-	ECP_Orthographic
+	ECP_Orthographic,
+
+	ECP_Max
 };
