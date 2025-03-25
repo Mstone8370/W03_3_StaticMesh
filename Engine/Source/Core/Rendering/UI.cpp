@@ -282,6 +282,19 @@ void UI::RenderCameraSettings()
 
     ACamera* Camera = FEditorManager::Get().GetCamera();
 
+    bool bQuadView = FEditorManager::Get().IsQuadViewportActive();
+    if (ImGui::Checkbox("Quad view", &bQuadView))
+    {
+        if (bQuadView)
+        {
+            FEditorManager::Get().ActivateQuadViewport();
+        }
+        else
+        {
+            FEditorManager::Get().DeactivateQuadViewport();
+        }
+    }
+
     bool IsOrthogonal;
     if (Camera->GetProjectionMode() == ECameraProjectionMode::ECP_Orthographic)
     {

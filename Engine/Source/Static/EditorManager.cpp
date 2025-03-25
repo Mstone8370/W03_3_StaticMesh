@@ -134,6 +134,7 @@ void FEditorManager::ActivateQuadViewport()
     {
         return;
     }
+    ViewportMode = EViewportMode::EVM_Quad;
     
     if (EditorWindow)
     {
@@ -143,7 +144,7 @@ void FEditorManager::ActivateQuadViewport()
     EditorWindow = std::make_unique<SSplitterH>();
     EditorWindow->Init(MainRect);
 
-    // TODO: 하드 코딩으로 뷰포트 4개 생성
+    // 하드 코딩으로 뷰포트 4개 생성
     if (SSplitterH* Splitter = dynamic_cast<SSplitterH*>(EditorWindow.get()))
     {
         Splitter->Split();
@@ -166,6 +167,7 @@ void FEditorManager::DeactivateQuadViewport()
     {
         return;
     }
+    ViewportMode = EViewportMode::EVM_Single;
     
     if (EditorWindow)
     {

@@ -48,6 +48,8 @@ public:
 	void ActivateQuadViewport();
 
 	void DeactivateQuadViewport();
+
+	bool IsQuadViewportActive() const { return ViewportMode == EViewportMode::EVM_Quad; }
     
 private:
 	// 메인 에디터 윈도우

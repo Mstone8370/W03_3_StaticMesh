@@ -177,6 +177,7 @@ void SSplitterH::Split()
         Rect.Bottom - Padding.Bottom
     };
     SideLT = new SSplitterV();
+    SideLT->Padding.Right = 5;
     SideLT->Init(LeftRect);
 
     FRect RightRect = {
@@ -186,6 +187,7 @@ void SSplitterH::Split()
         Rect.Bottom - Padding.Bottom
     };
     SideRB = new SSplitterV();
+    SideRB->Padding.Left = 5;
     SideRB->Init(RightRect);
 }
 
@@ -209,6 +211,7 @@ void SSplitterV::Split()
         Rect.Top + HalfHeight - Padding.Bottom
     };
     SideLT = new SSplitterH();
+    SideLT->Padding.Bottom = 5;
     SideLT->Init(TopRect);
 
     FRect BottomRect = {
@@ -218,5 +221,6 @@ void SSplitterV::Split()
         Rect.Bottom - Padding.Bottom
     };
     SideRB = new SSplitterH();
+    SideRB->Padding.Top = 5;
     SideRB->Init(BottomRect);
 }
