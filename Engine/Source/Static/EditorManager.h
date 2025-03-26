@@ -42,6 +42,7 @@ public:
     void InitializeDefaultViewportCameras(UWorld* World);
     void RegisterViewportCamera(EEditorViewportType Type, ACamera* Camera);
     ACamera* GetViewportCamera(EEditorViewportType Type) const;
+    void SaveSplitterLayout(SSplitter* Root);
 
 private:
     ACamera* MainCamera = nullptr;

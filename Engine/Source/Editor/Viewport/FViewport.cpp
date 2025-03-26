@@ -68,6 +68,7 @@ void FViewport::Initialize(ID3D11Device* InDevice, float InWidth, float InHeight
     ViewportDesc.Height = InHeight;
     ViewportDesc.MinDepth = 0.0f;
     ViewportDesc.MaxDepth = 1.0f;
+    //ViewCamera->SetOrthoSize(InWidth / 360.f, InHeight / 360.f);
 }
 
 void FViewport::Release()
@@ -113,7 +114,7 @@ void FViewport::Resize(float NewWidth, float NewHeight)
 {
     Release(); // 기존 리소스 해제
     Initialize(Device, NewWidth, NewHeight); // 재생성 (Device는 멤버로 보관해두는 걸 권장)
-    ViewCamera->SetOrthoSize(NewWidth / 360.f, NewHeight / 360.f);
+    //ViewCamera->SetOrthoSize(NewWidth / 360.f, NewHeight / 360.f);
 }
 bool FViewport::IsInBounds(int32 X, int32 Y) const
 {

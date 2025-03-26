@@ -18,7 +18,7 @@ public:
     void Tick(float DeltaTime);
     void Render(const FRenderContext& Context);
 
-    void SetRect(const FRect& InRect) { Rect = InRect; }
+    void SetRect(const FRect& InRect);
     const FRect& GetRect() const { return Rect; }
 
     void SetFViewport(FViewport* InViewport);

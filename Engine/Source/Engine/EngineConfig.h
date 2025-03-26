@@ -10,181 +10,192 @@
 
 enum class EEngineConfigSectionType
 {
-	ECS_None,
+    ECS_None,
 
-	ECS_Screen,
-	ECS_Camera,
-	ECS_Max,
+    ECS_Screen,
+    ECS_Camera,
+    ECS_Splitter,
+    ECS_Max,
 };
 
 
 enum class EEngineConfigValueType
 {
-	EEC_None,
-	// 화면
-	EEC_ScreenWidth,
-	EEC_ScreenHeight,
+    EEC_None,
+    // 화면
+    EEC_ScreenWidth,
+    EEC_ScreenHeight,
+    // 에디터
+    EEC_EditorCameraPosX,
+    EEC_EditorCameraPosY,
+    EEC_EditorCameraPosZ,
 
-	// 에디터
-	EEC_EditorCameraPosX,
-	EEC_EditorCameraPosY,
-	EEC_EditorCameraPosZ,
+    EEC_EditorCameraRotX,
+    EEC_EditorCameraRotY,
+    EEC_EditorCameraRotZ,
+    EEC_EditorCameraRotW,
 
-	EEC_EditorCameraRotX,
-	EEC_EditorCameraRotY,
-	EEC_EditorCameraRotZ,
-	EEC_EditorCameraRotW,
+    EEC_EditorCameraSpeed,
+    EEC_EditorCameraSensitivity,
 
-	EEC_EditorCameraSpeed,
-	EEC_EditorCameraSensitivity,
+    EEC_SplitterVRatio,
+    EEC_SplitterHTopRatio,
+    EEC_SplitterHBottomRatio,
 
-	EEC_Max,
+    EEC_Max,
 };
 
 enum class EConfigValueType
 {
-	Int,
-	Float,
-	String,
+    Int,
+    Float,
+    String,
 };
 
 struct SectionMapping
 {
-	EEngineConfigSectionType Section;
-	const FString Key;
+    EEngineConfigSectionType Section;
+    const FString Key;
 };
 
 struct ConfigMapping
 {
-	EEngineConfigValueType Config;
-	const FString Key;
-	EConfigValueType ValueType;
-	EEngineConfigSectionType Section;
+    EEngineConfigValueType Config;
+    const FString Key;
+    EConfigValueType ValueType;
+    EEngineConfigSectionType Section;
 };
 
 static const SectionMapping SectionMappings[] =
 {
-	SECTION_MAPPING(ECS_None, "NONE"),
-	SECTION_MAPPING(ECS_Screen, "Screen"),
-	SECTION_MAPPING(ECS_Camera, "Camera")
-	// !TODO : EngineConfigSection 추가시 추가
+    SECTION_MAPPING(ECS_None, "NONE"),
+    SECTION_MAPPING(ECS_Screen, "Screen"),
+    SECTION_MAPPING(ECS_Camera, "Camera"),
+    SECTION_MAPPING(ECS_Splitter, "Splitter")
+    // !TODO : EngineConfigSection 추가시 추가
 };
 
 static const ConfigMapping ConfigMappings[] = {
-	CONFIG_MAPPING(EEC_None, "None", Int, ECS_None),
-	CONFIG_MAPPING(EEC_ScreenWidth, "ScreenWidth", Int, ECS_Screen),
-	CONFIG_MAPPING(EEC_ScreenHeight, "ScreenHeight", Int, ECS_Screen),
+    CONFIG_MAPPING(EEC_None, "None", Int, ECS_None),
+    CONFIG_MAPPING(EEC_ScreenWidth, "ScreenWidth", Int, ECS_Screen),
+    CONFIG_MAPPING(EEC_ScreenHeight, "ScreenHeight", Int, ECS_Screen),
 
-	CONFIG_MAPPING(EEC_EditorCameraPosX, "EditorCameraPosX", Float, ECS_Camera),
-	CONFIG_MAPPING(EEC_EditorCameraPosY, "EditorCameraPosY", Float, ECS_Camera),
-	CONFIG_MAPPING(EEC_EditorCameraPosZ, "EditorCameraPosZ", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraPosX, "EditorCameraPosX", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraPosY, "EditorCameraPosY", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraPosZ, "EditorCameraPosZ", Float, ECS_Camera),
 
-	CONFIG_MAPPING(EEC_EditorCameraRotX, "EditorCameraRotX", Float, ECS_Camera),
-	CONFIG_MAPPING(EEC_EditorCameraRotY, "EditorCameraRotY", Float, ECS_Camera),
-	CONFIG_MAPPING(EEC_EditorCameraRotZ, "EditorCameraRotZ", Float, ECS_Camera),
-	CONFIG_MAPPING(EEC_EditorCameraRotW, "EditorCameraRotW", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraRotX, "EditorCameraRotX", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraRotY, "EditorCameraRotY", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraRotZ, "EditorCameraRotZ", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraRotW, "EditorCameraRotW", Float, ECS_Camera),
 
-	CONFIG_MAPPING(EEC_EditorCameraSpeed, "EditorCameraSpeed", Float, ECS_Camera),
-	CONFIG_MAPPING(EEC_EditorCameraSensitivity, "EditorCameraSensitivity", Float, ECS_Camera)
-	// !TODO : EngineConfig 추가시 추가
+    CONFIG_MAPPING(EEC_EditorCameraSpeed, "EditorCameraSpeed", Float, ECS_Camera),
+    CONFIG_MAPPING(EEC_EditorCameraSensitivity, "EditorCameraSensitivity", Float, ECS_Camera),
+
+    CONFIG_MAPPING(EEC_SplitterVRatio, "SplitterV_Ratio", Float, ECS_Splitter),
+    CONFIG_MAPPING(EEC_SplitterHTopRatio, "SplitterH_Top_Ratio", Float, ECS_Splitter),
+    CONFIG_MAPPING(EEC_SplitterHBottomRatio, "SplitterH_Bottom_Ratio", Float, ECS_Splitter)
+
+    // !TODO : EngineConfig 추가시 추가
 };
 
 class UEngine;
 
 class FEngineConfig
 {
-	friend class UEngine;
+    friend class UEngine;
 
 private:
-	FEngineConfig();
-	~FEngineConfig();
+    FEngineConfig();
+    ~FEngineConfig();
 
 public:
-	void LoadEngineConfig();
-	
-	template<typename T>
-	void UpdateEngineConfig(EEngineConfigValueType InConfig, T InValue)
-	{
-		auto Section = FindSection(InConfig);
-		if (Section == EEngineConfigSectionType::ECS_None)
-		{
-			return;
-		}
-		EngineConfig[Section][InConfig] = FString::SanitizeFloat(InValue);
-	}
+    void LoadEngineConfig();
 
-	template<typename T>
-	T GetEngineConfigValue(EEngineConfigValueType InConfig, T DefaultValue = T()) const
-	{
-		auto Section = FindSection(InConfig);
-		if (Section == EEngineConfigSectionType::ECS_None)
-		{
-			return DefaultValue;
-		}
+    template <typename T>
+    void UpdateEngineConfig(EEngineConfigValueType InConfig, T InValue)
+    {
+        auto Section = FindSection(InConfig);
+        if (Section == EEngineConfigSectionType::ECS_None)
+        {
+            return;
+        }
+        EngineConfig[Section][InConfig] = FString::SanitizeFloat(InValue);
+    }
 
-		if(!EngineConfig.Contains(Section))
-		{
-			return DefaultValue;
-		}
+    template <typename T>
+    T GetEngineConfigValue(EEngineConfigValueType InConfig, T DefaultValue = T()) const
+    {
+        auto Section = FindSection(InConfig);
+        if (Section == EEngineConfigSectionType::ECS_None)
+        {
+            return DefaultValue;
+        }
 
-		if (!EngineConfig[Section].Contains(InConfig))
-		{
-			return DefaultValue;
-		}
+        if (!EngineConfig.Contains(Section))
+        {
+            return DefaultValue;
+        }
 
-		const FString& ValueStr = EngineConfig[Section][InConfig];
+        if (!EngineConfig[Section].Contains(InConfig))
+        {
+            return DefaultValue;
+        }
 
-		try
-		{
-			if constexpr (std::is_same_v<T, int>)
-			{
-				return std::stoi(*ValueStr);
-			}
-			else if constexpr (std::is_same_v<T, unsigned int>)
-			{
-				return std::stoul(*ValueStr);
-			}
-			else if constexpr (std::is_same_v<T, float>)
-			{
-				return std::stof(*ValueStr);
-			}
-			else if constexpr (std::is_same_v<T, double>)
-			{
-				return std::stod(*ValueStr);
-			}
-			else if constexpr (std::is_same_v<T, FString>)
-			{
-				return *ValueStr;
-			}
-			else
-			{
-				static_assert(!sizeof(T*), "Unsupported type for GetEngineConfigValue");
-				return DefaultValue;
-			}
-		}
-		catch (const std::invalid_argument& e)
-		{
-			return DefaultValue;
-		}
-		catch (const std::out_of_range& e)
-		{
-			return DefaultValue;
-		}
-	}
-	void SaveAllConfig();
+        const FString& ValueStr = EngineConfig[Section][InConfig];
+
+        try
+        {
+            if constexpr (std::is_same_v<T, int>)
+            {
+                return std::stoi(*ValueStr);
+            }
+            else if constexpr (std::is_same_v<T, unsigned int>)
+            {
+                return std::stoul(*ValueStr);
+            }
+            else if constexpr (std::is_same_v<T, float>)
+            {
+                return std::stof(*ValueStr);
+            }
+            else if constexpr (std::is_same_v<T, double>)
+            {
+                return std::stod(*ValueStr);
+            }
+            else if constexpr (std::is_same_v<T, FString>)
+            {
+                return *ValueStr;
+            }
+            else
+            {
+                static_assert(!sizeof(T*), "Unsupported type for GetEngineConfigValue");
+                return DefaultValue;
+            }
+        }
+        catch (const std::invalid_argument& e)
+        {
+            return DefaultValue;
+        }
+        catch (const std::out_of_range& e)
+        {
+            return DefaultValue;
+        }
+    }
+
+    void SaveAllConfig();
 
 private:
-	bool IsSectionExist(const EEngineConfigSectionType InSection);
-	
-	EEngineConfigSectionType FindSection(const EEngineConfigValueType& InValueType) const;
-	
-	TArray<ConfigMapping> GetConfigList(const EEngineConfigSectionType& InSectionType) const;
-	
-	FString GetPath();
-	
-private:
-	TMap<EEngineConfigSectionType, TMap<EEngineConfigValueType, FString>> EngineConfig;
+    bool IsSectionExist(const EEngineConfigSectionType InSection);
 
-	INI::File ft;
-	FString Path;
+    EEngineConfigSectionType FindSection(const EEngineConfigValueType& InValueType) const;
+
+    TArray<ConfigMapping> GetConfigList(const EEngineConfigSectionType& InSectionType) const;
+
+    FString GetPath();
+
+private:
+    TMap<EEngineConfigSectionType, TMap<EEngineConfigValueType, FString>> EngineConfig;
+
+    INI::File ft;
+    FString Path;
 };

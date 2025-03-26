@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "SSplitter.h"
 
+#include <complex.h>
+
 SSplitter::SSplitter(EOrientation InOrientation)
     : Orientation(InOrientation), SideLT(nullptr), SideRB(nullptr), Ratio(0.5f)
 {
@@ -22,9 +24,11 @@ SWindow* SSplitter::GetChild(int Index) const
     if (Index == 1) return SideRB;
     return nullptr;
 }
-void SSplitter::SetRatio(float InRatio)
+void SSplitter::SetRatio(float InRatio,bool IgnoreClamp)
 {
-    Ratio = FMath::Clamp(InRatio, 0.1f, 0.9f);
+    if (!IgnoreClamp)
+    Ratio = FMath::Clamp(InRatio, 0.01f, 0.99f);
+    else  Ratio = InRatio;
 }
 void SSplitter::SetViewportPadding(float InPadding)
 {
