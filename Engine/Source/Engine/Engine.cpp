@@ -23,7 +23,7 @@
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 UEngine::UEngine()
-    : TargetFPS(60)
+    : TargetFPS(0)
 {}
 
 LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -168,7 +168,7 @@ void UEngine::Run()
         }
         
         // ui Update
-        // ui.Update();
+        ui.Update();
 
         // UI입력을 우선으로 처리하므로, 여기에서 업데이트
         APlayerInput::Get().UpdateInput();
