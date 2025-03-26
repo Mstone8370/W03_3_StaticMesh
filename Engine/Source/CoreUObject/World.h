@@ -71,7 +71,7 @@ private:
 
 public:
 	// Linetrace
-	bool LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) const;
+	bool LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const;
 	
 	void DrawDebugLine(FVector Start, FVector End, FVector Color, float Time) const;
 

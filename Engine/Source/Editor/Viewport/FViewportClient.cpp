@@ -35,7 +35,7 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     
     // Prepare new layer for Gizmo
     Context.Renderer->ClearCurrentDepthSencilView();
-    Context.Renderer->SetRenderMode(EViewModeIndex::ERS_Solid);
+    Context.Renderer->GetDeviceContext()->RSSetState(Context.Renderer->RasterizerState_Solid);
     Context.Renderer->RenderGizmo(FEditorManager::Get().GetGizmoHandle());
 }
 
