@@ -13,7 +13,7 @@
 
 APlayerController::APlayerController()
     : CurrentSpeed(5.f)
-    , MaxSpeed(10.f)
+    , MaxSpeed(30.f)
     , MinSpeed(1.0f)
     , MouseSensitivity(0.2f)
     , MaxSensitivity(0.5f)
@@ -53,9 +53,11 @@ void APlayerController::HandleCameraMovement(ACamera* Camera, bool bIsPerspectiv
 		Transform.Translate(MoveDir * DeltaTime * CurrentSpeed);
 		Camera->SetActorTransform(Transform);
 	}
+
+	int32 WheelValue = APlayerInput::Get().GetMouseWheelDelta();
+	CurrentSpeed += static_cast<int>(WheelValue * 0.01f);
+	CurrentSpeed = FMath::Clamp(CurrentSpeed, MinSpeed, MaxSpeed);
 }
-
-
 
 void APlayerController::HandleCameraRotation(ACamera* Camera, bool bIsPerspective)
 {
@@ -123,9 +125,9 @@ void APlayerController::SaveCameraProperties(ACamera* Camera)
     float FarClip = Camera->GetFarClip();
     float CameraSpeed = CurrentSpeed;
 
-    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosX, CameraTransform.GetPosition().X);
-    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosY, CameraTransform.GetPosition().Y);
-    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosZ, CameraTransform.GetPosition().Z);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosX, CameraTransform.GetLocation().X);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosY, CameraTransform.GetLocation().Y);
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraPosZ, CameraTransform.GetLocation().Z);
 
     UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotX, CameraTransform.GetRotation().X);
     UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotY, CameraTransform.GetRotation().Y);

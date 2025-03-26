@@ -623,7 +623,7 @@ void URenderer::RenderWorldGrid()
     float GridGap = UEngine::Get().GetWorldGridGap();
 
     FTransform CameraTransform = CameraActor->GetActorTransform();
-    FVector CameraLocation = CameraTransform.GetPosition();
+    FVector CameraLocation = CameraTransform.GetLocation();
 
     int32 StepX = static_cast<int32>(CameraLocation.X / GridGap);
     int32 StepY = static_cast<int32>(CameraLocation.Y / GridGap);
@@ -1817,7 +1817,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
     if (FCbChangeOnCameraMove* Constants = static_cast<FCbChangeOnCameraMove*>(ConstantBufferMSR.pData))
     {
         Constants->ViewMatrix = FMatrix::Transpose(ViewMatrix);
-        Constants->ViewPosition = CameraTransform.GetPosition();
+        Constants->ViewPosition = CameraTransform.GetLocation();
     }
     // UnMap해서 GPU에 값이 전달 될 수 있게 함
     DeviceContext->Unmap(CbChangeOnCameraMove, 0);
@@ -2026,7 +2026,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
     if (ACamera* MainCamera = FEditorManager::Get().GetMainCamera())
     {
         UpdateViewMatrix(MainCamera->GetActorTransform());
-        UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetPosition());
+        UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetLocation());
 
         UpdateProjectionMatrix(MainCamera);
     }
