@@ -1866,8 +1866,10 @@ void URenderer::UpdateProjectionMatrixAspect(const ACamera* Camera, float Width,
     }
     else
     {
-        float SizeDivisor = 360.f;
-        ProjectionMatrix = FMatrix::OrthoLH(Width / SizeDivisor, Height / SizeDivisor, NearClip, FarClip);
+        //float SizeDivisor = 360.f;
+        //ProjectionMatrix = FMatrix::OrthoLH(Width / SizeDivisor, Height / SizeDivisor, NearClip, FarClip);
+        ProjectionMatrix = FMatrix::OrthoLH(Camera->GetOrthoWidth(), Camera->GetOrthoHeight(), NearClip, FarClip);
+
     }
 
     // Update constant buffer
@@ -2064,6 +2066,26 @@ void URenderer::InitializeViewports()
 
     RootWindow->SetRect({ 0, 0, ViewportInfo.Width, ViewportInfo.Height });
     RootWindow->Tick(0.f); // 초기 배치
+
+    // Splitter Ratio 불러오기
+    FEngineConfig* Config = UEngine::Get().GetEngineConfig();
+
+    SSplitter* RootSplitter = dynamic_cast<SSplitter*>(RootWindow);
+    if (RootSplitter)
+    {
+        RootSplitter->SetRatio(Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterVRatio, 0.5f));
+
+        if (SSplitter* TopSplitter = dynamic_cast<SSplitter*>(RootSplitter->GetChild(0)))
+        {
+            TopSplitter->SetRatio(Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHTopRatio, 0.5f));
+        }
+
+        if (SSplitter* BottomSplitter = dynamic_cast<SSplitter*>(RootSplitter->GetChild(1)))
+        {
+            BottomSplitter->SetRatio(Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHBottomRatio, 0.5f));
+        }
+    }
+
 }
 
 

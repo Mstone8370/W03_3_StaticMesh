@@ -21,6 +21,7 @@ public :
 	void HandleCameraMovement(ACamera* Camera, bool bIsPerspective, float DeltaTime);
 	void SaveCameraProperties(class ACamera* Camera);
 	void HandleCameraRotation(ACamera* Camera, bool bIsPerspective);
+	void HandleZoom();
 	FVector GetCameraMovementDirection(ACamera* Camera, bool bIsPerspective);
 
 	float GetCurrentSpeed() const { return CurrentSpeed; }
@@ -47,6 +48,8 @@ public :
 	bool HandleViewportDrag(float ViewportWidth, float ViewportHeight);
 	int32 GetClickedViewportIndex();
 	int32 GetActiveViewportIndex() const { return ClickedViewportIndex; }
+	int32 GetHoveredViewportIndex() const;
+
 	void UpdateViewportClickState();
 protected:
 	float CurrentSpeed;
