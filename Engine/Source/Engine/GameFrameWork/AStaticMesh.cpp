@@ -28,8 +28,6 @@ AStaticMesh::AStaticMesh()
     if (Mesh)
     {
         FString ObjPath = Mesh->GetAssetPathFileName();
-        OutputDebugString(ObjPath.c_wchar());
-        OutputDebugString(L"\n");
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
     }
 }

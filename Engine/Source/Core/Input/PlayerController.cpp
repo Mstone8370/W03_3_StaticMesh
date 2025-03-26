@@ -74,6 +74,52 @@ void APlayerController::HandleCameraRotation(ACamera* Camera, bool bIsPerspectiv
 	APlayerInput::Get().FixMouseCursor();
 }
 
+void APlayerController::HandleZoom()
+{
+	float WheelDelta = APlayerInput::Get().GetMouseWheelDelta();
+	if (FMath::Abs(WheelDelta) < KINDA_SMALL_NUMBER)
+		return;
+
+	int32 ViewportIndex = GetHoveredViewportIndex();
+	if (ViewportIndex == -1)
+		return;
+
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	if (!Renderer || ViewportIndex >= Renderer->Viewports.Num())
+		return;
+
+	SViewport* SView = Renderer->Viewports[ViewportIndex];
+	FViewport* FView = SView->GetFViewport();
+	if (!FView || !FView->GetCamera())
+		return;
+
+	ACamera* Camera = FView->GetCamera();
+	FTransform CameraTransform = Camera->GetActorTransform();
+
+	const float ZoomSpeed = 0.5f;
+	WheelDelta = FMath::Clamp(WheelDelta, -1.0f, 1.0f);
+	if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
+	{
+		// Perspective: 카메라 이동
+		FVector Forward = CameraTransform.GetForward();
+		CameraTransform.Translate(Forward * WheelDelta * ZoomSpeed);
+		Camera->SetActorTransform(CameraTransform);
+	}
+	else
+	{
+		// Ortho: 폭 조절
+		float Width = Camera->GetOrthoWidth();
+		float NewWidth = FMath::Clamp(Width * (1.f - WheelDelta * ZoomSpeed), 1.0f, 500.0f);
+		//float Aspect = SView->GetRect().Width/SView->GetRect().Height;
+		//float Height = NewWidth / Aspect;
+
+		Camera->SetOrthoSize(NewWidth, SView->GetRect());
+	}
+
+	// 카메라 변경 사항 반영
+	//FEditorManager::Get().SetMainCamera(Camera);
+	UEngine::Get().GetRenderer()->UpdateProjectionMatrix(Camera);
+}
 
 FVector APlayerController::GetCameraMovementDirection(ACamera* Camera, bool bIsPerspective)
 {
@@ -152,6 +198,7 @@ void APlayerController::ProcessPlayerInput(float DeltaTime)
 
 	UpdateViewportClickState();
 	HandleCursorLock();
+	HandleZoom();
 
 	int32 ViewportIndex = GetActiveViewportIndex();
 	if (ViewportIndex == -1)
@@ -248,8 +295,9 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 	float DragX_Bottom = ViewportWidth * Bottom->GetRatio();
 	float DragY = ViewportHeight * Root->GetRatio();
 
-	bool bHoverTop = abs(MouseX - DragX_Top) <= DragHandleSize && MouseY < DragY;
-	bool bHoverBottom = abs(MouseX - DragX_Bottom) <= DragHandleSize && MouseY >= DragY;
+	bool bHoverTop = abs(MouseX - DragX_Top) <= DragHandleSize && MouseY < DragY+DragHandleSize;
+	bool bHoverBottom = abs(MouseX - DragX_Bottom) <= DragHandleSize && MouseY >= DragY-DragHandleSize;
+
 	bool bHoverVertical = abs(MouseY - DragY) <= DragHandleSize;
 
 	if (APlayerInput::Get().IsMousePressed(false))
@@ -276,25 +324,30 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 
 	if (bDraggingTop)
 	{
-		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		float Ratio = static_cast<float>(MouseX) / ViewportWidth;
 		Top->SetRatio(Ratio);
 		bResult = true;
+		if (abs(Bottom->GetRatio() - Top->GetRatio())<=0.003f)Top->SetRatio(Bottom->GetRatio());
 	}
 
 	if (bDraggingBottom)
 	{
-		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		float Ratio = static_cast<float>(MouseX) / ViewportWidth;
 		Bottom->SetRatio(Ratio);
 		bResult = true;
+		if (abs(Bottom->GetRatio() - Top->GetRatio())<=0.003f)Bottom->SetRatio(Top->GetRatio());
 	}
 
 	if (bDraggingVertical)
 	{
-		float Ratio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
+		float Ratio = static_cast<float>(MouseY) / ViewportHeight;
 		Root->SetRatio(Ratio);
 		bResult = true;
 	}
-
+	if (bResult)
+	{
+		FEditorManager::Get().SaveSplitterLayout(Root);
+	}
 	return bResult;
 }
 
@@ -323,6 +376,31 @@ int32 APlayerController::GetClickedViewportIndex()
 	}
 
 	return -1; // 어떤 뷰포트도 클릭되지 않음
+}
+	
+int32 APlayerController::GetHoveredViewportIndex() const
+{
+	int32 MouseX, MouseY;
+	APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
+
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	if (!Renderer)
+		return -1;
+
+	const TArray<SViewport*>& Viewports = Renderer->Viewports;
+	for (int32 i = 0; i < Viewports.Num(); ++i)
+	{
+		const SViewport* SView = Viewports[i];
+		if (!SView) continue;
+
+		const FRect& Rect = SView->GetRect();
+		if (Rect.Contains(FPoint(MouseX, MouseY)))
+		{
+			return i;
+		}
+	}
+
+	return -1; // 호버된 뷰포트 없음
 }
 
 void APlayerController::UpdateViewportClickState()

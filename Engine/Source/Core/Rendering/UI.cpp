@@ -10,6 +10,8 @@
 #include "Editor/EditorDesigner.h"
 #include "Editor/Font/IconDefs.h"
 #include "Editor/Font/RawFonts.h"
+#include "Editor/Slate/SSplitter.h"
+#include "Editor/Viewport/FViewport.h"
 #include "Editor/Windows/ConsoleWindow.h"
 #include "Engine/GameFrameWork/Actor.h"
 #include "Engine/GameFrameWork/Camera.h"
@@ -28,6 +30,8 @@
 //@TODO: Replace with EditorWindow
 
 std::shared_ptr<ConsoleWindow> UI::ConsoleWindowInstance = nullptr;
+bool UI::bShowStatMemory;
+bool UI::bShowStatFPS;
 
 void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 InClientWidth, uint32 InClientHeight)
 {
@@ -88,7 +92,8 @@ void UI::Update()
 	RenderPropertyWindow();
 	Debug::ShowConsole(bWasWindowSizeUpdated, PreRatio, CurRatio);
 	RenderSceneManagerWindow();
-	//RenderOverlayStatWindow();
+	RenderOverlayStatWindow();
+	RenderFPSStat();
 	RenderViewportTestWindow();
 
 	// UI::RenderSomePanel 들에 대한 업데이트 완료 //
@@ -149,8 +154,8 @@ void UI::RenderControlPanelWindow()
 
 	ImGui::Separator();
 
-	ImGui::Text("FPS: %.3f (what is that ms)", ImGui::GetIO().Framerate);
-	RenderMemoryUsage();
+	//ImGui::Text("FPS: %.3f (what is that ms)", ImGui::GetIO().Framerate);
+	//RenderMemoryUsage();
 
 	ImGui::Separator();
 
@@ -476,7 +481,7 @@ void UI::RenderPropertyWindow()
 		}
 
 		ImGui::Separator();
-		const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj" };
+		const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj","Cat.obj"};
 
 		if (SelectedComponent != PrevSelectedComponent)
 		{
@@ -518,6 +523,40 @@ void UI::RenderPropertyWindow()
 	}
 
 	ImGui::End();
+}
+
+void UI::RenderFPSStat()
+{
+	if (!bShowStatFPS) return;
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+	// FPS 창 크기는 자동조절되므로, 윈도우 크기만큼 오프셋을 주려면 추정치를 사용할 수도 있지만
+	// 간단히 화면 우측 중앙에서 약간 안쪽으로 위치 조정
+	float offsetX = 10.0f; // 화면 오른쪽에서 10픽셀 안쪽
+	float posX = viewport->Pos.x + viewport->Size.x - offsetX;
+	float posY = viewport->Pos.y + viewport->Size.y * 0.5f;
+
+	ImGui::SetNextWindowPos(ImVec2(posX, posY), ImGuiCond_Always, ImVec2(1.0f, 0.5f));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoInputs;
+
+	ImGui::Begin("FPSOverlay", nullptr, windowFlags);
+	ImGui::SetWindowFontScale(1.5f);
+	ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "FPS: %.1f (%.1f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+	ImGui::SetWindowFontScale(1.0f);
+
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar();
 }
 
 void UI::RenderGridGap()
@@ -618,50 +657,48 @@ void UI::RenderSceneManagerWindow()
 
 void UI::RenderOverlayStatWindow()
 {
-	// 윈도우 크기 및 위치 계산
-	float controllWindowWidth = static_cast<float>(ClientSize.x) * 0.5f;
-	float controllWindowHeight = static_cast<float>(ClientSize.y) * 0.5f;
-	float controllWindowPosX = (static_cast<float>(ClientSize.x) - controllWindowWidth) * 0.5f;
-	float controllWindowPosY = (static_cast<float>(ClientSize.y) - controllWindowHeight) * 0.5f;
+	if (!bShowStatMemory) return;
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-	ImGui::SetNextWindowPos(ImVec2(controllWindowPosX, controllWindowPosY));
-	ImGui::SetNextWindowSize(ImVec2(controllWindowWidth, controllWindowHeight), ImGuiCond_Always);
-
-	// 윈도우 생성 (완전 투명 배경, 이동/크기 조절 불가)
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoScrollbar |
 		ImGuiWindowFlags_NoSavedSettings |
-		ImGuiWindowFlags_AlwaysAutoResize;
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoInputs;
+
+	// 스타일 적용 (테두리 제거 + 완전 투명 배경)
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+
 	ImGui::Begin("MemoryTableOverlay", nullptr, windowFlags);
 
-	// 테이블 셀 패딩 설정
-	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(50, 4));
+	// 폰트 스케일 키우기 (1.5배)
+	ImGui::SetWindowFontScale(1.5f);
 
-	// 5열 테이블 생성 (테두리 및 행 배경 활성화)
+	// 셀 패딩 최소화, 열은 자동 너비 조정
+	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(6, 4));
+
 	ImGuiTableFlags tableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
-	if (ImGui::BeginTable("MemoryTable", 5, tableFlags))
-	{
-		// 열 설정
-		ImGui::TableSetupColumn("메모리 타입");
-		ImGui::TableSetupColumn("할당 메모리 (MB)");
-		ImGui::TableSetupColumn("메모리 사용률 (%)");
-		ImGui::TableSetupColumn("메모리 풀");
-		ImGui::TableSetupColumn("할당 횟수");
 
-		// 헤더 데이터 정의 및 출력
-		static const char* headers[5] = { "메모리 타입", "할당 메모리 (MB)", "메모리 사용률 (%)", "메모리 풀", "할당 횟수" };
+	if (ImGui::BeginTable("MemoryTable", 3, tableFlags))
+	{
+		ImGui::TableSetupColumn("Memory Type");
+		ImGui::TableSetupColumn("Allocated Memory (MB)");
+		ImGui::TableSetupColumn("Allocation Count");
+
+		// Header row
+		const char* headers[3] = { "Memory Type", "Allocated Memory (MB)", "Allocation Count" };
 		ImGui::TableNextRow();
-		ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(0, 0, 0, 0));
-		for (int col = 0; col < 5; col++)
+		for (int col = 0; col < 3; col++)
 		{
 			ImGui::TableSetColumnIndex(col);
-			ImGui::TextColored(ImVec4(1.0f, 0.65f, 0.0f, 1.0f), "%s", headers[col]);
+			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%s", headers[col]);
 		}
 
-		// FPlatformMemory를 통해 메모리 할당 정보 계산
+		// 메모리 데이터 가져오기
 		const uint64 containerBytes = FPlatformMemory::GetAllocationBytes<EAT_Container>();
 		const uint64 containerCount = FPlatformMemory::GetAllocationCount<EAT_Container>();
 		const uint64 objectBytes = FPlatformMemory::GetAllocationBytes<EAT_Object>();
@@ -669,37 +706,38 @@ void UI::RenderOverlayStatWindow()
 
 		double containerMB = static_cast<double>(containerBytes) / (1024.0 * 1024.0);
 		double objectMB = static_cast<double>(objectBytes) / (1024.0 * 1024.0);
-		double totalBytes = static_cast<double>(containerBytes + objectBytes);
 
-		double containerUsage = (totalBytes > 0.0) ? (static_cast<double>(containerBytes) / totalBytes) * 100.0 : 0.0;
-		double objectUsage = (totalBytes > 0.0) ? (static_cast<double>(objectBytes) / totalBytes) * 100.0 : 0.0;
-
-		// 행 데이터 정의 (TArray<TArray<std::string>> 사용)
+		// 표 데이터 구성
 		TArray<TArray<std::string>> rows;
 		{
 			TArray<std::string> row;
-			row.Add("컨테이너");
+			row.Add("Container");
 			row.Add(std::to_string(containerMB));
-			row.Add(std::to_string(containerUsage));
-			row.Add("N/A");  // 메모리 풀 정보는 추후 제공
 			row.Add(std::to_string(containerCount));
 			rows.Add(row);
 		}
 		{
 			TArray<std::string> row;
-			row.Add("오브젝트");
+			row.Add("Object");
 			row.Add(std::to_string(objectMB));
-			row.Add(std::to_string(objectUsage));
-			row.Add("N/A");
 			row.Add(std::to_string(objectCount));
 			rows.Add(row);
 		}
+		{
+			TArray<std::string> row;
+			double totalMB = containerMB + objectMB;
+			uint64 totalCount = containerCount + objectCount;
+			row.Add("TotalAllocated");
+			row.Add(std::to_string(totalMB));
+			row.Add(std::to_string(totalCount));
+			rows.Add(row);
+		}
 
-		// 각 행 출력 (모든 셀은 좌측 정렬)
+		// 표 렌더링
 		for (const auto& row : rows)
 		{
 			ImGui::TableNextRow();
-			ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(0, 0, 0, 128));
+			ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(0, 0, 0, 160));
 			for (int col = 0; col < row.Num(); col++)
 			{
 				ImGui::TableSetColumnIndex(col);
@@ -710,9 +748,11 @@ void UI::RenderOverlayStatWindow()
 		ImGui::EndTable();
 	}
 
-	ImGui::PopStyleVar();
+	ImGui::PopStyleVar(); // CellPadding
+	ImGui::SetWindowFontScale(1.0f);
 	ImGui::End();
-	ImGui::PopStyleColor();
+	ImGui::PopStyleColor(); // WindowBg
+	ImGui::PopStyleVar();   // WindowBorderSize
 }
 
 
@@ -749,12 +789,50 @@ void UI::PreferenceStyle()
 }
 void UI::RenderViewportTestWindow()
 {
-    ImGui::Begin("Viewport Splitter");
-    URenderer* Renderer = UEngine::Get().GetRenderer();
-    //ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
-    //ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
-    ImGui::Checkbox("Render Picking",&Renderer->bRenderPicking);
-    ImGui::End();
+	ImGui::Begin("Viewport Splitter");
+
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	if (!Renderer)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Splitter On/Off 토글
+	if (ImGui::Checkbox("Use Splitter", &Renderer->bUseSplitter))
+	{
+		// 체크박스 변경 시 초기화 (뷰포트 구조 재구성)
+		Renderer->InitializeViewports();
+		if (!Renderer->bUseSplitter)
+		{
+			FViewport* FView = Renderer->MainViewport->GetFViewport();
+			SViewport* SView = Renderer->MainViewport;
+
+			// 1. Splitter 상태를 MainViewport만 남기도록 강제 설정
+			SSplitter* RootSplitter = dynamic_cast<SSplitter*>(Renderer->RootWindow);
+			if (RootSplitter)
+			{
+				RootSplitter->SetRatio(0,true); // 전체 Bottom 영역 사용
+				if (SSplitter* BottomSplitter = dynamic_cast<SSplitter*>(RootSplitter->GetChild(1)))
+				{
+					BottomSplitter->SetRatio(1,true); // 전체 Left 영역 사용
+				}
+				RootSplitter->UpdateChildRects(); // Rect 재계산
+			}
+
+			// 2. 전체 화면 기준으로 SViewport Rect 설정
+			FRect FullRect(0, 0, Renderer->ViewportInfo.Width, Renderer->ViewportInfo.Height);
+			SView->SetRect(FullRect);
+
+			// 3. FViewport의 사이즈 동기화
+			FView->Resize(FullRect.Width, FullRect.Height);
+		}
+		Renderer->ResizeViewports();
+	}
+
+	ImGui::Checkbox("Render Picking", &Renderer->bRenderPicking);
+
+	ImGui::End();
 }
 
 void UI::CreateUsingFont()
