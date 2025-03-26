@@ -21,13 +21,22 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
         Context.Renderer->GetDeviceContext()->RSSetState(*Context.Renderer->CurrentRasterizerState);
     }
     // 기본 월드 렌더링 루틴
-    Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
     Context.World->RenderWorldGrid(*Context.Renderer);
     Context.World->RenderMainTexture(*Context.Renderer);
     Context.World->RenderBillboard(*Context.Renderer);
     Context.World->RenderText(*Context.Renderer);
     Context.World->RenderMesh(*Context.Renderer);
     Context.World->RenderBoundingBoxes(*Context.Renderer);
+    Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
+
+    // Prepare new layer for Axis
+    Context.Renderer->ClearCurrentDepthSencilView();
+    Context.Renderer->RenderAxis();
+    
+    // Prepare new layer for Gizmo
+    Context.Renderer->ClearCurrentDepthSencilView();
+    Context.Renderer->SetRenderMode(EViewModeIndex::ERS_Solid);
+    Context.Renderer->RenderGizmo(FEditorManager::Get().GetGizmoHandle());
 }
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)

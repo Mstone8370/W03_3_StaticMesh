@@ -53,6 +53,8 @@ public:
 	FVector GetMin() const { return LocalMin; }
 	FVector GetMax() const { return LocalMax; }
 
+	void SetMin(FVector min) { LocalMin = min; }
+	void SetMax(FVector max) { LocalMax = max; }
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> VertexBuffer;
 	D3D_PRIMITIVE_TOPOLOGY Topology;

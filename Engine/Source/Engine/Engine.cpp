@@ -6,7 +6,6 @@
 #include "Core/Input/PlayerController.h"
 #include "CoreUObject/ObjectFactory.h"
 #include "CoreUObject/World.h"
-#include "Gizmo/Axis.h"
 #include "GameFrameWork/Camera.h"
 #include "Gizmo/GizmoHandle.h"
 #include "Core/Rendering/TextureLoader.h"
@@ -93,8 +92,8 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 
     InitWindow(ClientWidth, ClientHeight);
 
-    
     InitRenderer();
+    
     InitWorld();
 
     InitTextureLoader();
@@ -252,6 +251,8 @@ void UEngine::InitRenderer()
     Renderer->CreateConstantBuffer();
 
     Renderer->GenerateWorldGridVertices(WorldGridCellPerSide);
+
+    Renderer->GenerateAxis();
 }
 
 void UEngine::InitWorld()
@@ -272,7 +273,6 @@ void UEngine::InitWorld()
         InitEditorCameraWithEngineConfig(Camera);
     }
     */
-    World->SpawnActor<AAxis>();
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "URenderer.h"
 
+#include "GizmoHandle.h"
 #include "RenderContext.h"
 #include "Components/StaticMeshComponent.h"
 #include "Static/EditorManager.h"
@@ -128,7 +129,16 @@ void URenderer::CreateConstantBuffer()
     hr = Device->CreateBuffer(&MaterialConstantBufferDesc, nullptr, &cbMaterialInfo);
     if (FAILED(hr))
         return;
-
+    
+    D3D11_BUFFER_DESC LightConstantBufferDesc = {};
+    LightConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    LightConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    LightConstantBufferDesc.ByteWidth = sizeof(FLightingConstants) + 0xf & 0xfffffff0;
+    LightConstantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    hr = Device->CreateBuffer(&LightConstantBufferDesc, nullptr, &cbLightConstantBuffer);
+    if (FAILED(hr))
+        return;
+    
     /**
      * 여기에서 상수 버퍼를 쉐이더에 바인딩.
      * 현재는 각각 다른 레지스터에 바인딩 하므로 겹치지 않고 구분됨.
@@ -145,6 +155,7 @@ void URenderer::CreateConstantBuffer()
     DeviceContext->PSSetConstantBuffers(3, 1, &ConstantPickingBuffer);
     DeviceContext->PSSetConstantBuffers(4, 1, &cbMaterialInfo);
     DeviceContext->PSSetConstantBuffers(5, 1, &TextureConstantBuffer);
+    DeviceContext->PSSetConstantBuffers(6, 1, &cbLightConstantBuffer);
 }
 
 void URenderer::ReleaseConstantBuffer()
@@ -176,6 +187,11 @@ void URenderer::ReleaseConstantBuffer()
     {
         cbMaterialInfo->Release();
         cbMaterialInfo = nullptr;
+    }
+    if (cbLightConstantBuffer) 
+    {
+        cbLightConstantBuffer->Release();
+        cbLightConstantBuffer = nullptr;
     }
 }
 
@@ -492,6 +508,89 @@ void URenderer::PrepareMeshShader()
     DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("StaticMeshShader")), nullptr, 0);
 }
 
+void URenderer::ClearCurrentDepthSencilView(float Depth)
+{
+    ID3D11DepthStencilView* CurrentDSV = nullptr;
+    DeviceContext->OMGetRenderTargets(1, nullptr, &CurrentDSV);
+    
+    if (CurrentDSV)
+    {
+        DeviceContext->ClearDepthStencilView(CurrentDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, Depth, 0);
+
+        // Get을 통해 참조 카운트가 증가했으므로, release
+        CurrentDSV->Release();
+    }
+}
+
+HRESULT URenderer::GenerateAxis()
+{
+    HRESULT hr = S_OK;
+
+    TArray<FVertexSimple> AxisVertexData;
+    AxisVertexData.Add({0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f});
+    AxisVertexData.Add({1000.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f});
+    AxisVertexData.Add({0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 1.f});
+    AxisVertexData.Add({0.f, 1000.f, 0.f, 0.f, 1.f, 0.f, 1.f});
+    AxisVertexData.Add({0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f});
+    AxisVertexData.Add({0.f, 0.f, 1000.f, 0.f, 0.f, 1.f, 1.f});
+
+    D3D11_BUFFER_DESC AxisVertexBufferDesc = {};
+    ZeroMemory(&AxisVertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
+    AxisVertexBufferDesc.ByteWidth = sizeof(FVertexSimple) * AxisVertexNum;
+    AxisVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    AxisVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    AxisVertexBufferDesc.CPUAccessFlags = 0;
+    AxisVertexBufferDesc.MiscFlags = 0;
+    AxisVertexBufferDesc.StructureByteStride = 0;
+
+    D3D11_SUBRESOURCE_DATA AxisVertexInitData;
+    ZeroMemory(&AxisVertexInitData, sizeof(AxisVertexInitData));
+    AxisVertexInitData.pSysMem = AxisVertexData.GetData();
+
+    hr = Device->CreateBuffer(&AxisVertexBufferDesc, &AxisVertexInitData, &AxisVertexBuffer);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    return S_OK;
+}
+
+void URenderer::PrepareAxis()
+{
+    uint32 AxisStride = sizeof(FVertexSimple);
+    UINT Offset = 0;
+    DeviceContext->IASetVertexBuffers(0, 1, &AxisVertexBuffer, &AxisStride, &Offset);
+
+    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
+
+    DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    ID3D11VertexShader* ShaderVS = ShaderCache->GetVertexShader(TEXT("ShaderMain"));
+    ID3D11PixelShader* ShaderPS = ShaderCache->GetPixelShader(TEXT("ShaderMain"));
+    ID3D11InputLayout* InputLayout = ShaderCache->GetInputLayout(TEXT("ShaderMain"));
+
+    DeviceContext->VSSetShader(ShaderVS, nullptr, 0);
+    DeviceContext->PSSetShader(ShaderPS, nullptr, 0);
+    DeviceContext->IASetInputLayout(InputLayout);
+}
+
+void URenderer::RenderAxis()
+{
+    PrepareAxis();
+    
+    ConstantUpdateInfo UpdateInfo
+    {
+        FMatrix::Identity,
+        FVector4(),
+        true,
+    };
+
+    UpdateObjectConstantBuffer(UpdateInfo);
+
+    DeviceContext->Draw(AxisVertexNum, 0);
+}
+
 void URenderer::PrepareWorldGrid()
 {
     UINT Offset = 0;
@@ -548,6 +647,30 @@ void URenderer::RenderWorldGrid()
     // restore
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     // 나머지는 PrepareMainShader에서 작업중이므로, 생략
+}
+
+void URenderer::RenderGizmo(AGizmoHandle* Gizmo)
+{
+    for (auto& Comp : Gizmo->GetComponents())
+    {
+        if (UPrimitiveComponent* PrimitiveComp = dynamic_cast<UPrimitiveComponent*>(Comp))
+        {
+            PrimitiveComp->Render(this);
+        }
+    }
+}
+
+void URenderer::RenderGizmoPicking(AGizmoHandle* Gizmo)
+{
+    for (auto& Comp : Gizmo->GetComponents())
+    {
+        if (UPrimitiveComponent* PrimitiveComp = dynamic_cast<UPrimitiveComponent*>(Comp))
+        {
+            uint32 UUID = PrimitiveComp->GetUUID();
+            PrimitiveComp->UpdateConstantPicking(*this, APicker::EncodeUUID(UUID));
+            PrimitiveComp->Render(this);
+        }
+    }
 }
 
 ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FVertexSimple* Vertices, UINT ByteWidth) const
@@ -653,7 +776,7 @@ void URenderer::UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterial
     // D3D11_MAP_WRITE_DISCARD는 이전 내용을 무시하고 새로운 데이터로 덮어쓰기 위해 사용
     DeviceContext->Map(cbMaterialInfo, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
     // 매핑된 메모리를 FConstants 구조체로 캐스팅
-    if (FMaterialInfo* Constants = static_cast<FMaterialInfo*>(ConstantBufferMSR.pData))
+    if (FMaterialInfo* Constants = reinterpret_cast<FMaterialInfo*>(ConstantBufferMSR.pData))
     {
         Constants->ActiveTextureFlag = UpdateMaterialInfo.ActiveTextureFlag;
         Constants->d = UpdateMaterialInfo.d;
@@ -667,6 +790,21 @@ void URenderer::UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterial
     }
     // UnMap해서 GPU에 값이 전달 될 수 있게 함
     DeviceContext->Unmap(cbMaterialInfo, 0);
+}
+
+void URenderer::UpdateLightConstantBuffer(const FVector CameraPosition)
+{
+    D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
+    DeviceContext->Map(cbLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
+    FLightingConstants* Constants = reinterpret_cast<FLightingConstants*>(ConstantBufferMSR.pData);
+    if (Constants) {
+        Constants->LightDir = FVector(-0.707f, 0.0f, 0.707f);
+        Constants->LightColor = FVector(1.0f, 1.0f, 1.0f);
+        Constants->AmbientColor = FVector(0.1f, 0.1f, 0.1f);
+
+        Constants->CameraPosition = CameraPosition;
+    }
+    DeviceContext->Unmap(cbLightConstantBuffer, 0);
 }
 
 ID3D11Device* URenderer::GetDevice() const
@@ -1548,11 +1686,6 @@ void URenderer::ReleasePickingFrameBuffer()
     }
 }
 
-void URenderer::PrepareZIgnore()
-{
-    DeviceContext->OMSetDepthStencilState(IgnoreDepthStencilState, 0);
-}
-
 void URenderer::PreparePicking()
 {
     // 렌더 타겟 바인딩
@@ -1811,6 +1944,13 @@ void URenderer::GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FV
     OutMax = Info.GetMax();
 }
 
+void URenderer::GetStaticMeshLocalBounds(FName Type, FVector& OutMin, FVector& OutMax)
+{
+    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(Type);
+    OutMin = Info.VertexBufferInfo.GetMin();
+    OutMax = Info.VertexBufferInfo.GetMax();
+}
+
 void URenderer::RenderPickingTexture()
 {
     // Copy the picking texture to the back buffer
@@ -1875,6 +2015,8 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
     if (ACamera* MainCamera = FEditorManager::Get().GetMainCamera())
     {
         UpdateViewMatrix(MainCamera->GetActorTransform());
+        UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetPosition());
+
         UpdateProjectionMatrix(MainCamera);
     }
 }

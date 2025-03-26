@@ -61,10 +61,6 @@ void AGizmoHandle::InitTranslationGizmo()
     TranslationGizmos.Add(TranslationZ);
     TranslationZ->SetupAttachment(RootComponent);
 
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationX);
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationY);
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(TranslationZ);
-
     FString ObjPath = SM_Translation->GetAssetPathFileName();
     UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
 
@@ -99,10 +95,6 @@ void AGizmoHandle::InitRotationGizmo()
     AllGizmos.Add(RotationZ);
     RotationGizmos.Add(RotationZ);
     RotationZ->SetupAttachment(RootComponent);
-
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationZ);
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationX);
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(RotationY);
    
     FString ObjPath = SM_Rotation->GetAssetPathFileName();
     UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
@@ -137,10 +129,6 @@ void AGizmoHandle::InitScaleGizmo()
     AllGizmos.Add(ScaleZ);
     ScaleGizmos.Add(ScaleZ);
     ScaleZ->SetupAttachment(RootComponent);
-
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleZ);
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleX);
-    UEngine::Get().GetWorld()->AddZIgnoreComponent(ScaleY);
   
     FString ObjPath = SM_Scale->GetAssetPathFileName();
     UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
@@ -201,7 +189,7 @@ void AGizmoHandle::Tick(float DeltaTime)
         SetActorTransform(GizmoTr);
     }
 
-    SetScaleByDistance();
+    // SetScaleByDistance();
 
     AActor::Tick(DeltaTime);
 
@@ -283,7 +271,8 @@ void AGizmoHandle::SetScaleByDistance()
 
     // 액터의 월드 위치
     FVector actorWorldPos = MyTransform.GetPosition();
-
+	
+	// TODO: FViewportClient의 카메라 위치 가져오기
     FTransform CameraTransform = FEditorManager::Get().GetMainCamera()->GetActorTransform();
 
     // 카메라의 월드 위치

@@ -33,6 +33,7 @@ public:// UIWindows
 	void RenderGridGap();
 	void RenderDebugRaycast();
 	void RenderSceneManagerWindow();
+	void RenderOverlayStatWindow();
 	void RenderViewportTestWindow();
 
 private:

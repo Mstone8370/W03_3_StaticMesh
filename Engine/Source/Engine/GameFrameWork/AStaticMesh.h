@@ -17,6 +17,7 @@ public:
 		AssetName = newAssetName;
 		MeshComponent->ChangeStaticMesh(newAssetName);
 	}
+	void InitStaticMeshBoundingBox(UWorld* World);
 private:
 	UStaticMeshComponent* MeshComponent;
 	FString AssetName = "BT.obj";

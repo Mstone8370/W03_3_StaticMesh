@@ -9,7 +9,7 @@ public:
     UStaticMeshComponent() = default;
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
-
+    void InitStaticMeshBoundingBox(UWorld* World);
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
     void SetStaticMesh(UStaticMesh* InStaticMesh) { StaticMesh = InStaticMesh; }
     void ChangeStaticMesh(FString changeMeshPath);
