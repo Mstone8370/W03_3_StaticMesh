@@ -19,7 +19,7 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     Context.World->RenderBillboard(*Context.Renderer);
     Context.World->RenderText(*Context.Renderer);
     Context.World->RenderMesh(*Context.Renderer);
-    Context.World->RenderBoundingBoxes(*Context.Renderer);
+    Context.World->RenderBoundingBox(*Context.Renderer);
     Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
 
     // Prepare new layer for Axis

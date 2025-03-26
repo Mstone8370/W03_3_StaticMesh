@@ -14,7 +14,7 @@ void UStaticMeshComponent::Tick(float DeltaTime)
     UMeshComponent::Tick(DeltaTime);
 }
 
-void UStaticMeshComponent::InitStaticMeshBoundingBox(UWorld* World)
+void UStaticMeshComponent::InitStaticMeshBoundingBox()
 {
     FVector Min;
     FVector Max;
@@ -23,9 +23,6 @@ void UStaticMeshComponent::InitStaticMeshBoundingBox(UWorld* World)
 
     BoundingBox = std::make_shared<FBox>();
     BoundingBox->Init(this, Min, Max);
-    if(World)
-        World->AddBoundingBox(BoundingBox.get());
-
 }
 
 void UStaticMeshComponent::ChangeStaticMesh(FString changeMeshName)
@@ -41,6 +38,6 @@ void UStaticMeshComponent::ChangeStaticMesh(FString changeMeshName)
         FString NewObjPath = NewMesh->GetAssetPathFileName();
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(NewObjPath);
     }
-    InitStaticMeshBoundingBox(GetOwner()->GetWorld());
+    InitStaticMeshBoundingBox();
     UpdateBoundingBox();
 }

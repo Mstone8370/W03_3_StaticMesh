@@ -217,14 +217,15 @@ void UWorld::RenderMesh(URenderer& Renderer)
     */
 }
 
-void UWorld::RenderBoundingBoxes(URenderer& Renderer)
+void UWorld::RenderBoundingBox(URenderer& Renderer)
 {
-    Renderer.PrepareMain();
-    Renderer.PrepareMainShader();
-    for (FBox* Box : BoundingBoxes)
+    if (USceneComponent* SelectedSceneComp = FEditorManager::Get().GetSelectedComponent())
     {
-        if (Box && Box->bCanBeRendered && Box->IsValidBox())
+        if (FBox* Box = SelectedSceneComp->GetBoundingBox().get())
         {
+            Renderer.PrepareMain();
+            Renderer.PrepareMainShader();
+            
             Renderer.RenderBox(*Box);
         }
     }
@@ -387,7 +388,7 @@ void UWorld::LoadWorld(const char* InSceneName)
             {
                 AStaticMesh* MeshActor = static_cast<AStaticMesh*>(Actor);
                 MeshActor->SetAssetName(ObjectInfo->AssetName);
-                MeshActor->InitStaticMeshBoundingBox(this);
+                MeshActor->InitStaticMeshBoundingBox();
             }
         }
 
@@ -433,12 +434,23 @@ UWorldInfo UWorld::GetWorldInfo() const
 bool UWorld::LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) const
 {
     TArray<TPair<USceneComponent*, float>> Hits;
-    for (FBox* Box : BoundingBoxes)
+    for (TObjectIterator<UPrimitiveComponent> It; It; ++It)
     {
-        float Distance = 0.f;
-        if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
+        if (UPrimitiveComponent* PrimitiveComp = *It)
         {
-            Hits.Add({Box->GetOwner(), Distance});
+            if (!PrimitiveComp->bCanBeRendered)
+            {
+                continue;
+            }
+            
+            if (FBox* Box = PrimitiveComp->GetBoundingBox().get())
+            {
+                float Distance = 0.f;
+                if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
+                {
+                    Hits.Add({Box->GetOwner(), Distance});
+                }
+            }
         }
     }
     if (Hits.Num() == 0)

@@ -42,7 +42,7 @@ public:
 	void DisplayPickingTexture(URenderer& Renderer);
 	void RenderMainTexture(URenderer& Renderer);
 	void RenderMesh(URenderer& Renderer);
-	void RenderBoundingBoxes(URenderer& Renderer);
+	void RenderBoundingBox(URenderer& Renderer);
 	void RenderWorldGrid(URenderer& Renderer);
 	void RenderDebugLines(URenderer& Renderer, float DeltaTime);
 	void RenderBillboard(URenderer& Renderer);
@@ -70,13 +70,13 @@ private:
 	UWorldInfo GetWorldInfo() const;
 
 public:
-	// BoundingBox & Linetrace
+	// Linetrace
 	bool LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) const;
-	void AddBoundingBox(FBox* Box) { BoundingBoxes.Add(Box); }
-	void RemoveBoundingBox(FBox* Box) { BoundingBoxes.Remove(Box); }
-
+	
 	void DrawDebugLine(FVector Start, FVector End, FVector Color, float Time) const;
+
 	bool IsDebuggingRaycast() const { return bDebugRaycast; }
+
 	void SetDebugRaycast(bool bInDebugRaycast) { bDebugRaycast = bInDebugRaycast; }
 
 private:
@@ -93,7 +93,6 @@ protected:
 	TArray<AActor*> ActorsToSpawn;
 	TArray<AActor*> PendingDestroyActors; // TODO: 추후에 TQueue로 변경
 	TSet<UPrimitiveComponent*> RenderComponents;
-	TSet<class FBox*> BoundingBoxes;
 
 	TSet<FString> ActorNames;
 
