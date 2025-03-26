@@ -412,8 +412,8 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
     if (!MeshAsset) return;
 
     // 메시 키 생성 및 버퍼 정보 획득
-    FName meshKey = FObjImporter::GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
-    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(meshKey);
+    FName MeshKey = FObjImporter::GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
+    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(MeshKey);
 
     ID3D11Buffer* VertexBuffer = Info.VertexBufferInfo.GetVertexBuffer();
     ID3D11Buffer* IndexBuffer = Info.IndexBufferInfo.GetIndexBuffer();
@@ -2013,6 +2013,16 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
         RootSplitter->UpdateChildRects();
         RootWindow->Tick(DeltaTime);
         RootWindow->Render(Context); // 트리 구조로 렌더링
+        for (SViewport* SView : Viewports)
+        {
+            if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
+            {
+                if (FViewport* FView = SView->GetFViewport())
+                {
+                    RenderWorld->RenderPickingTextureForViewport(*this, *FView);
+                }
+            }
+        }
     }
     DeviceContext->RSSetState(RasterizerState_Solid);
     CompositeViewportsToBackBuffer();
@@ -2094,6 +2104,7 @@ void URenderer::InitializeViewports()
     RootSplitter->UpdateChildRects();
     RootWindow->Tick(0.f);
 }
+
 
 
 void URenderer::CreateCompositeConstantBuffer()

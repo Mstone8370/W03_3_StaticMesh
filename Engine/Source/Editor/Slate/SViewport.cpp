@@ -23,7 +23,7 @@ SViewport::~SViewport()
 void SViewport::Tick(float DeltaTime)
 {
     if (!Viewport)
-        return;
+        return; 
 
     // 여기에 더 필요한 Tick 동작이 있다면 추가 가능 (예: 애니메이션, Gizmo 등)
 }
