@@ -24,10 +24,10 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     Context.World->RenderWorldGrid(*Context.Renderer);
     Context.World->RenderMainTexture(*Context.Renderer);
     Context.World->RenderBillboard(*Context.Renderer);
-    Context.World->RenderText(*Context.Renderer);
     Context.World->RenderMesh(*Context.Renderer);
     Context.World->RenderBoundingBox(*Context.Renderer);
     Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
+    Context.World->RenderText(*Context.Renderer);
 
     // Prepare new layer for Axis
     Context.Renderer->ClearCurrentDepthSencilView();

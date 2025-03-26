@@ -33,7 +33,6 @@ void URenderer::Create(HWND hWindow)
 
     CreateTextureBuffer();
     CreateTextureSamplerState();
-    CreateTextureBlendState();
 
     AdjustDebugLineVertexBuffer(DebugLineNumStep);
     InitMatrix();
@@ -486,9 +485,9 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
         }
 
         // 서브메시 렌더링: 재질에 해당하는 인덱스 범위를 찾아 DrawIndexed 호출
-        if (FObjManager::MaterialSubmeshMap.Contains(materialName))
+        if (FObjManager::MaterialSubMeshMap.Contains(materialName))
         {
-            FSubMesh& subMesh = FObjManager::MaterialSubmeshMap[materialName];
+            FSubMesh& subMesh = FObjManager::MaterialSubMeshMap[materialName];
             UINT count = subMesh.endIndex - subMesh.startIndex + 1;
             DeviceContext->DrawIndexed(count, subMesh.startIndex, 0);
         }
@@ -498,7 +497,7 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
 void URenderer::PrepareMesh()
 {
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0); // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+    DeviceContext->OMSetBlendState(AlphaBlendBS, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("StaticMeshShader")));
 }
 
@@ -597,7 +596,7 @@ void URenderer::PrepareWorldGrid()
     DeviceContext->IASetVertexBuffers(0, 1, &GridVertexBuffer, &GridStride, &Offset);
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-    DeviceContext->OMSetBlendState(GridBlendState, nullptr, 0xFFFFFFFF);
+    DeviceContext->OMSetBlendState(AlphaBlendBS, nullptr, 0xFFFFFFFF);
 
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
@@ -623,7 +622,7 @@ void URenderer::RenderWorldGrid()
     float GridGap = UEngine::Get().GetWorldGridGap();
 
     FTransform CameraTransform = CameraActor->GetActorTransform();
-    FVector CameraLocation = CameraTransform.GetPosition();
+    FVector CameraLocation = CameraTransform.GetLocation();
 
     int32 StepX = static_cast<int32>(CameraLocation.X / GridGap);
     int32 StepY = static_cast<int32>(CameraLocation.Y / GridGap);
@@ -1040,19 +1039,6 @@ void URenderer::CreateDepthStencilState()
         MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
         return;
     }
-
-    D3D11_DEPTH_STENCIL_DESC IgnoreDepthStencilDesc = {};
-    IgnoreDepthStencilDesc.DepthEnable = TRUE;
-    IgnoreDepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    IgnoreDepthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-    result = Device->CreateDepthStencilState(&IgnoreDepthStencilDesc, &IgnoreDepthStencilState);
-    if (FAILED(result))
-    {
-        wchar_t errorMsg[256];
-        swprintf_s(errorMsg, TEXT("Failed to create Ignore Depth Stencil State! HRESULT: 0x%08X"), result);
-        MessageBox(hWnd, errorMsg, TEXT("Error"), MB_ICONERROR | MB_OK);
-        return;
-    }
 }
 
 void URenderer::ReleaseFrameBuffer()
@@ -1186,21 +1172,15 @@ void URenderer::CreateBlendState()
     BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
     BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
     BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    Device->CreateBlendState(&BlendState, &GridBlendState);
+    Device->CreateBlendState(&BlendState, &AlphaBlendBS);
 }
 
 void URenderer::ReleaseBlendState()
 {
-    if (GridBlendState)
+    if (AlphaBlendBS)
     {
-        GridBlendState->Release();
-        GridBlendState = nullptr;
-    }
-
-    if (TextureBlendState)
-    {
-        TextureBlendState->Release();
-        TextureBlendState = nullptr;
+        AlphaBlendBS->Release();
+        AlphaBlendBS = nullptr;
     }
 }
 
@@ -1363,21 +1343,6 @@ void URenderer::CreateTextureBuffer()
     Device->CreateBuffer(&TextureBufferDesc, &TextureBufferInitData, &TextureVertexBuffer);
 }
 
-void URenderer::CreateTextureBlendState()
-{
-    D3D11_BLEND_DESC BlendState;
-    ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
-    BlendState.RenderTarget[0].BlendEnable = TRUE;
-    BlendState.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    BlendState.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    BlendState.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    BlendState.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-    BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    Device->CreateBlendState(&BlendState, &TextureBlendState);
-}
-
 void URenderer::PrepareBillboard()
 {
     UINT Stride = sizeof(FVertexUV);
@@ -1390,7 +1355,7 @@ void URenderer::PrepareBillboard()
     DeviceContext->PSSetSamplers(0, 1, &SamplerState);
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
-    DeviceContext->OMSetBlendState(TextureBlendState, nullptr, 0xffffffff);
+    DeviceContext->OMSetBlendState(AlphaBlendBS, nullptr, 0xffffffff);
 }
 
 void URenderer::RenderBillboard()
@@ -1519,7 +1484,7 @@ void URenderer::PrepareTextBillboard()
     DeviceContext->PSSetSamplers(0, 1, &SamplerState);
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
-    DeviceContext->OMSetBlendState(TextureBlendState, nullptr, 0xffffffff);
+    DeviceContext->OMSetBlendState(AlphaBlendBS, nullptr, 0xffffffff);
 }
 
 FBufferCache* URenderer::GetBufferCache()
@@ -1726,7 +1691,7 @@ void URenderer::UpdateConstantPicking(FVector4 UUIDColor) const
 void URenderer::PrepareMain()
 {
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0); // DepthStencil 상태 설정. StencilRef: 스텐실 테스트 결과의 레퍼런스
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+    DeviceContext->OMSetBlendState(AlphaBlendBS, nullptr, 0xFFFFFFFF);
     DeviceContext->IASetInputLayout(ShaderCache->GetInputLayout(TEXT("ShaderMain")));
 }
 
@@ -1818,7 +1783,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
     if (FCbChangeOnCameraMove* Constants = static_cast<FCbChangeOnCameraMove*>(ConstantBufferMSR.pData))
     {
         Constants->ViewMatrix = FMatrix::Transpose(ViewMatrix);
-        Constants->ViewPosition = CameraTransform.GetPosition();
+        Constants->ViewPosition = CameraTransform.GetLocation();
     }
     // UnMap해서 GPU에 값이 전달 될 수 있게 함
     DeviceContext->Unmap(CbChangeOnCameraMove, 0);
@@ -2030,7 +1995,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
     if (ACamera* MainCamera = FEditorManager::Get().GetMainCamera())
     {
         UpdateViewMatrix(MainCamera->GetActorTransform());
-        UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetPosition());
+        UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetLocation());
 
         UpdateProjectionMatrix(MainCamera);
     }

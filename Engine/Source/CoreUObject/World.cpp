@@ -173,17 +173,6 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
-    /*
-    Renderer.PrepareZIgnore();
-    for (auto& RenderComponent : ZIgnoreRenderComponents)
-    {
-        if (RenderComponent->IsA<UMeshComponent>())
-        {
-            continue;
-        }
-        RenderComponent->Render(&Renderer);
-    }
-    */
 }
 
 void UWorld::RenderMesh(URenderer& Renderer)
@@ -204,17 +193,6 @@ void UWorld::RenderMesh(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
-    /*
-    Renderer.PrepareZIgnore();
-    for (auto& RenderComponent : ZIgnoreRenderComponents)
-    {
-        if (!RenderComponent->IsA<UMeshComponent>())
-        {
-            continue;
-        }
-        RenderComponent->Render(&Renderer);
-    }
-    */
 }
 
 void UWorld::RenderBoundingBox(URenderer& Renderer)
@@ -416,7 +394,7 @@ UWorldInfo UWorld::GetWorldInfo() const
         }
         WorldInfo.ObjctInfos[i] = new UObjectInfo();
         const FTransform& Transform = actor->GetActorTransform();
-        WorldInfo.ObjctInfos[i]->Location = Transform.GetPosition();
+        WorldInfo.ObjctInfos[i]->Location = Transform.GetLocation();
         WorldInfo.ObjctInfos[i]->Rotation = Transform.GetRotation().GetEuler();
         WorldInfo.ObjctInfos[i]->Scale = Transform.GetScale();
         WorldInfo.ObjctInfos[i]->ObjectType = actor->GetTypeName();

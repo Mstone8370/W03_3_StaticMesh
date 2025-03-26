@@ -133,8 +133,6 @@ public:
     // Texture
     void CreateTextureBuffer();
 
-    void CreateTextureBlendState();
-
     void PrepareBillboard();
 
     void RenderBillboard();
@@ -232,7 +230,6 @@ protected:
     ID3D11Texture2D* FrameBuffer = nullptr; // 화면 출력용 텍스처
 public:
     ID3D11RenderTargetView* FrameBufferRTV = nullptr; // 텍스처를 렌더 타겟으로 사용하는 뷰
-public:
     ID3D11RasterizerState* RasterizerState_Solid = nullptr; // Solid 레스터라이즈 상태
     ID3D11RasterizerState* RasterizerState_Wireframe = nullptr; // Wireframe 레스터라이즈 상태
     ID3D11RasterizerState** CurrentRasterizerState = nullptr; // 현재 사용중인 레스터라이즈 상태
@@ -247,10 +244,11 @@ protected:
 	
     //FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
     FLOAT ClearColor[4] = {1, 1, 1, 1.0f};
-    public:
+public:
     D3D11_VIEWPORT ViewportInfo = {}; // 렌더링 영역을 정의하는 뷰포트 정보
+
 protected:
-    ID3D11BlendState* GridBlendState = nullptr;
+    ID3D11BlendState* AlphaBlendBS = nullptr;
 
     uint32 Stride = 0; // Vertex 버퍼의 각 요소 크기
     uint32 GridStride = 0;
@@ -283,7 +281,6 @@ protected:
     ID3D11InputLayout* TextureInputLayout = nullptr; // 텍스처용 인풋 레이아웃
     ID3D11Buffer* TextureConstantBuffer = nullptr;
     ID3D11SamplerState* SamplerState = nullptr; // 텍스쳐 샘플러 스테이트
-    ID3D11BlendState* TextureBlendState = nullptr;
 
     // TextVertexBuffer
     ID3D11Buffer* TextVertexBuffer = nullptr;

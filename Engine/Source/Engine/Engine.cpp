@@ -23,7 +23,7 @@
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 UEngine::UEngine()
-    : TargetFPS(60)
+    : TargetFPS(0)
 {}
 
 LRESULT UEngine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -89,7 +89,7 @@ FRay FRay::GetRayByViewportPoint(ACamera* InCamera, const FRect& ViewRect)
 	}
 	else // Perspective
 	{
-		FVector RayStart = InCamera->GetActorTransform().GetPosition();
+		FVector RayStart = InCamera->GetActorTransform().GetLocation();
 		FVector RayEnd = FVector(WorldFar.X, WorldFar.Y, WorldFar.Z);
 		FVector Dir = (RayEnd - RayStart).GetSafeNormal();
 		return FRay(RayStart, Dir, (RayEnd - RayStart).Length());

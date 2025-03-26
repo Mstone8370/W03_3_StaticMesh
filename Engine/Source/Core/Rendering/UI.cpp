@@ -337,7 +337,7 @@ void UI::RenderCameraSettings()
 		Camera->SetFar(NearFar[1]);
 	}
 
-	FVector CameraPosition = Camera->GetActorTransform().GetPosition();
+	FVector CameraPosition = Camera->GetActorTransform().GetLocation();
 	if (ImGui::DragFloat3("Camera Location", reinterpret_cast<float*>(&CameraPosition), 0.1f))
 	{
 		FTransform Trans = Camera->GetActorTransform();
@@ -433,7 +433,7 @@ void UI::RenderPropertyWindow()
 		}
 
 		FTransform selectedTransform = SelectedComponent->GetComponentTransform();
-		float position[] = { selectedTransform.GetPosition().X, selectedTransform.GetPosition().Y, selectedTransform.GetPosition().Z };
+		float position[] = { selectedTransform.GetLocation().X, selectedTransform.GetLocation().Y, selectedTransform.GetLocation().Z };
 		float scale[] = { selectedTransform.GetScale().X, selectedTransform.GetScale().Y, selectedTransform.GetScale().Z };
 
 		if (ImGui::DragFloat3("Translation", position, 0.1f))

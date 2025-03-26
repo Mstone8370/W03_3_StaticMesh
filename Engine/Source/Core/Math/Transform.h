@@ -83,7 +83,7 @@ public:
 		Scale = {x, y, z};
 	}
 
-	FVector GetPosition() const
+	FVector GetLocation() const
 	{
 		return Position;
 	}

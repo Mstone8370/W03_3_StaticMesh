@@ -8,6 +8,7 @@
 #include "Static/EditorManager.h"
 #include "Static/ObjManager.h"
 #include "Components/StaticMeshComponent.h"
+#include "Input/PlayerController.h"
 
 AGizmoHandle::AGizmoHandle()
 {
@@ -173,11 +174,16 @@ void AGizmoHandle::HideAllGizmo()
 
 void AGizmoHandle::Tick(float DeltaTime)
 {
+	if (!bIsActive)
+	{
+		return;
+	}
+	
 	USceneComponent* SelectedComponent = FEditorManager::Get().GetSelectedComponent();
     if (SelectedComponent != nullptr && bIsActive)
     {
         FTransform GizmoTr = RootComponent->GetComponentTransform();
-        GizmoTr.SetPosition(SelectedComponent->GetWorldTransform().GetPosition());
+        GizmoTr.SetPosition(SelectedComponent->GetWorldTransform().GetLocation());
 		if (bIsLocal)
 		{
             GizmoTr.SetRotation(SelectedComponent->GetWorldTransform().GetRotation());
@@ -203,18 +209,10 @@ void AGizmoHandle::Tick(float DeltaTime)
         if (USceneComponent* SceneComp = FEditorManager::Get().GetSelectedComponent())
         {
             // 마우스의 커서 위치를 가져오기
-            POINT pt;
-            GetCursorPos(&pt);
-            ScreenToClient(UEngine::Get().GetWindowHandle(), &pt);
-
-            RECT Rect;
-            GetClientRect(UEngine::Get().GetWindowHandle(), &Rect);
-            int ScreenWidth = Rect.right - Rect.left;
-            int ScreenHeight = Rect.bottom - Rect.top;
-
-			float PosX = 2.0f * pt.x / ScreenWidth - 1.0f;
-			float PosY = -2.0f * pt.y / ScreenHeight + 1.0f;
-
+        	float PosX;
+        	float PosY;
+        	APlayerInput::Get().GetMousePositionNDC(PosX, PosY);
+        	
 			FVector4 RayOrigin{ PosX, PosY, 0.0f, 1.0f };
 			FVector4 RayEnd{ PosX, PosY, 1.0f, 1.0f };
 
@@ -232,7 +230,7 @@ void AGizmoHandle::Tick(float DeltaTime)
 			RayEnd /= RayEnd.W = 1;
 			FVector RayDir = (RayEnd - RayOrigin).GetSafeNormal();
 
-			float Distance = FVector::Distance(RayOrigin, SceneComp->GetComponentTransform().GetPosition());
+			float Distance = FVector::Distance(RayOrigin, SceneComp->GetComponentTransform().GetLocation());
 
             // 이전 프레임의 Result가 있어야 함
 			FVector Result = RayOrigin + RayDir * Distance;
@@ -255,7 +253,7 @@ void AGizmoHandle::Tick(float DeltaTime)
         }
 	}
 
-    if (APlayerInput::Get().IsKeyPressed(DirectX::Keyboard::Keys::Space))
+    if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsKeyPressed(DirectX::Keyboard::Keys::Space))
     {
         int type = static_cast<int>(GizmoType);
         type = (type + 1) % static_cast<int>(EGizmoType::Max);
@@ -270,25 +268,24 @@ void AGizmoHandle::SetScaleByDistance()
     FTransform MyTransform = GetActorTransform();
 
     // 액터의 월드 위치
-    FVector actorWorldPos = MyTransform.GetPosition();
+    FVector ActorWorldLocation = MyTransform.GetLocation();
 	
-	// TODO: FViewportClient의 카메라 위치 가져오기
     FTransform CameraTransform = FEditorManager::Get().GetMainCamera()->GetActorTransform();
 
     // 카메라의 월드 위치
-    FVector cameraWorldPos = CameraTransform.GetPosition();
+    FVector CameraWorldLocation = CameraTransform.GetLocation();
 
     // 거리 계산
-    float distance = (actorWorldPos - cameraWorldPos).Length();
+    float Distance = (ActorWorldLocation - CameraWorldLocation).Length();
 
-    float baseScale = 3.0f;    // 기본 스케일
-    float scaleFactor = distance * (1.f/baseScale); // 거리에 비례하여 스케일 증d가
+    float BaseScale = 3.0f;    // 기본 스케일
+    float ScaleFactor = Distance / BaseScale; // 거리에 비례하여 스케일 증d가
 
     // float minScale = 1.0f;     // 최소 스케일
     // float maxScale = 1.0f;     // 최대 스케일
     // float scaleFactor = clamp(1.0f / distance, minScale, maxScale);
 
-    MyTransform.SetScale(scaleFactor, scaleFactor, scaleFactor);
+    MyTransform.SetScale(ScaleFactor, ScaleFactor, ScaleFactor);
     SetActorTransform(MyTransform);
 }
 
@@ -315,7 +312,7 @@ void AGizmoHandle::DoTransform(FTransform& CompTransform, FVector Delta, USceneC
     FVector WorldDirection;
     FVector LocalDirection;
 
-	FVector CamToComp = (SceneComp->GetComponentTransform().GetPosition() - FEditorManager::Get().GetMainCamera()->GetActorTransform().GetPosition()).GetSafeNormal();
+	FVector CamToComp = (SceneComp->GetComponentTransform().GetLocation() - FEditorManager::Get().GetMainCamera()->GetActorTransform().GetLocation()).GetSafeNormal();
 	FVector RotationDelta = FVector::CrossProduct(Delta, CamToComp);
 
 	float DeltaLength = Delta.Length();

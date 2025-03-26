@@ -134,3 +134,9 @@ void APlayerInput::FixMouseCursor()
     CurrentMouseState.ScreenY = PrevMouseState.ScreenY;
     SetCursorPos(CachedMouseX, CachedMouseY);
 }
+
+void APlayerInput::GetClientSize(int32& OutClientWidth, int32& OutClientHeight) const
+{
+    OutClientWidth = ClientWidth;
+    OutClientHeight = ClientHeight;
+}

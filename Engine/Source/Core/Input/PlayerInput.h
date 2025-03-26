@@ -52,6 +52,8 @@ public:
 	 * SetCursorPos를 내부에서 사용하며, 이 함수는 스크린 포지션을 받음.
 	 */
 	void FixMouseCursor();
+
+	void GetClientSize(int32& OutClientWidth, int32& OutClientHeight) const;
 	
 private:
 	uint32 ClientWidth;
