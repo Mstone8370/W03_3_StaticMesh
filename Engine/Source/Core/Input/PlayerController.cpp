@@ -275,8 +275,9 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 	float DragX_Bottom = ViewportWidth * Bottom->GetRatio();
 	float DragY = ViewportHeight * Root->GetRatio();
 
-	bool bHoverTop = abs(MouseX - DragX_Top) <= DragHandleSize && MouseY < DragY;
-	bool bHoverBottom = abs(MouseX - DragX_Bottom) <= DragHandleSize && MouseY >= DragY;
+	bool bHoverTop = abs(MouseX - DragX_Top) <= DragHandleSize && MouseY < DragY+DragHandleSize;
+	bool bHoverBottom = abs(MouseX - DragX_Bottom) <= DragHandleSize && MouseY >= DragY-DragHandleSize;
+
 	bool bHoverVertical = abs(MouseY - DragY) <= DragHandleSize;
 
 	if (APlayerInput::Get().IsMousePressed(false))
@@ -297,6 +298,7 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 		float Ratio = static_cast<float>(MouseX) / ViewportWidth;
 		Top->SetRatio(Ratio);
 		bResult = true;
+		if (abs(Bottom->GetRatio() - Top->GetRatio())<=0.003f)Top->SetRatio(Bottom->GetRatio());
 	}
 
 	if (bDraggingBottom)
@@ -304,6 +306,7 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 		float Ratio = static_cast<float>(MouseX) / ViewportWidth;
 		Bottom->SetRatio(Ratio);
 		bResult = true;
+		if (abs(Bottom->GetRatio() - Top->GetRatio())<=0.003f)Bottom->SetRatio(Top->GetRatio());
 	}
 
 	if (bDraggingVertical)
