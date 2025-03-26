@@ -481,7 +481,7 @@ void UI::RenderPropertyWindow()
 		}
 
 		ImGui::Separator();
-		const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj","Cat.obj"};
+		const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj","Cat.obj", "tent.obj","raccoon.obj","pubg.obj","bshobj.obj","icg.obj","ksw.obj","giant.obj" };
 
 		if (SelectedComponent != PrevSelectedComponent)
 		{
