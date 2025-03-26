@@ -59,17 +59,19 @@ struct FVertexGrid
 struct FMaterialInfo
 {
 	int ActiveTextureFlag;
+	float Ns; // Specular exponent (광택 정도)
+	float d; // Dissolve (투명도; 1.0이면 불투명)
+	float illum; // Illumination model (조명 모델 번호)
+	float Ni; // Optical density 
+	FVector Ka; // Ambient color 
+	float pad0; // 패딩: float3 뒤에 float 1개 추가
+	FVector Kd; // Diffuse color 
+	float pad1;
+	FVector Ks; // Specular color 
+	float pad2;
+	FVector Ke; // Emissive color
+	float pad3;
 
-	float Ns;                // Specular exponent (광택 정도)
-	float d;                 // Dissolve (투명도; 1.0이면 불투명)
-	float illum;             // Illumination model (조명 모델 번호)
-	float Ni;                // Optical density 
-
-	FVector Ka;              // Ambient color 
-	FVector Kd;              // Diffuse color 
-	FVector Ks;              // Specular color 
-	FVector Ke;              // Emissive color
-	
 	FMaterialInfo()
 		: Ns(1.0f)
 		, Ka(1.0f, 1.0f, 1.0f)
@@ -81,6 +83,18 @@ struct FMaterialInfo
 		, illum()
 	{
 	}
+};
+
+struct FLightingConstants
+{
+	FVector LightDir;
+	float pad4;
+	FVector LightColor;
+	float pad5;
+	FVector AmbientColor;
+	float pad6;
+	FVector CameraPosition;
+	float pad7;
 };
 
 struct FCbComposite

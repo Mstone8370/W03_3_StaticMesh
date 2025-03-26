@@ -98,6 +98,7 @@ public:
     void UpdateObjectConstantBuffer(const ConstantUpdateInfo& UpdateInfo) const;
 
 	void UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterialInfo) const;
+	void UpdateLightConstantBuffer(const FVector CameraTransform);
 
     ID3D11Device* GetDevice() const;
     ID3D11DeviceContext* GetDeviceContext() const;
@@ -114,6 +115,7 @@ public:
 
     // 프리미티브의 바운딩 박스 크기를 Min, Max에 전달.
     void GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FVector& OutMax);
+    void GetStaticMeshLocalBounds(FName Type, FVector& OutMin, FVector& OutMax);
 
     void SetRenderMode(EViewModeIndex Type);
 
@@ -237,6 +239,7 @@ protected:
     ID3D11Buffer* CbChangeOnCameraMove = nullptr; // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
     ID3D11Buffer* CbChangeOnResizeAndFov = nullptr; // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
 	ID3D11Buffer* cbMaterialInfo = nullptr;
+	ID3D11Buffer* cbLightConstantBuffer = nullptr;
 	
     //FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
     FLOAT ClearColor[4] = {1, 1, 1, 1.0f};
