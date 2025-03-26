@@ -5,6 +5,7 @@
 #include "Gizmo/GizmoHandle.h"
 #include "Core/Math/Vector.h"
 #include "Core/Math/Transform.h"
+#include "Editor/Slate/SSplitter.h"
 #include "Engine/GameFrameWork/Camera.h"
 
 void FEditorManager::SelectActor(AActor* NewActor)
@@ -94,9 +95,9 @@ void FEditorManager::InitializeDefaultViewportCameras(UWorld* World)
     TArray<TPair<EEditorViewportType, FVector>> ViewInfos;
 
     ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Perspective, FVector(3.f, -2.f, 2.f)));
-    ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Top,         FVector(0.f, 0.f, 10.f)));
-    ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Front,       FVector(0.f, -10.f, 0.f)));
-    ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Right,       FVector(10.f, 0.f, 0.f)));
+    ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Top,         FVector(0.f, 0.f, 5.f)));
+    ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Front,       FVector(0.f, -5.f, 0.f)));
+    ViewInfos.Add(TPair<EEditorViewportType, FVector>(EEditorViewportType::Right,       FVector(5.f, 0.f, 0.f)));
 
     for (const TPair<EEditorViewportType, FVector>& Info : ViewInfos)
     {
@@ -133,4 +134,20 @@ ACamera* FEditorManager::GetViewportCamera(EEditorViewportType Type) const
         return *Found;
     }
     return nullptr;
+}
+void FEditorManager::SaveSplitterLayout(SSplitter* Root)
+{
+    if (!Root) return;
+
+    FEngineConfig* Config = UEngine::Get().GetEngineConfig();
+
+    Config->UpdateEngineConfig(EEngineConfigValueType::EEC_SplitterVRatio, Root->GetRatio());
+
+    if (SSplitter* Top = dynamic_cast<SSplitter*>(Root->GetChild(0)))
+        Config->UpdateEngineConfig(EEngineConfigValueType::EEC_SplitterHTopRatio, Top->GetRatio());
+
+    if (SSplitter* Bottom = dynamic_cast<SSplitter*>(Root->GetChild(1)))
+        Config->UpdateEngineConfig(EEngineConfigValueType::EEC_SplitterHBottomRatio, Bottom->GetRatio());
+
+    //Config->SaveAllConfig();
 }

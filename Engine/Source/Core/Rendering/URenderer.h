@@ -230,6 +230,7 @@ protected:
 
     // 렌더링에 필요한 리소스 및 상태를 관리하기 위한 변수들
     ID3D11Texture2D* FrameBuffer = nullptr; // 화면 출력용 텍스처
+public:
     ID3D11RenderTargetView* FrameBufferRTV = nullptr; // 텍스처를 렌더 타겟으로 사용하는 뷰
 public:
     ID3D11RasterizerState* RasterizerState_Solid = nullptr; // Solid 레스터라이즈 상태
@@ -246,8 +247,9 @@ protected:
 	
     //FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f }; // 화면을 초기화(clear)할 때 사용할 색상 (RGBA)
     FLOAT ClearColor[4] = {1, 1, 1, 1.0f};
+    public:
     D3D11_VIEWPORT ViewportInfo = {}; // 렌더링 영역을 정의하는 뷰포트 정보
-
+protected:
     ID3D11BlendState* GridBlendState = nullptr;
 
     uint32 Stride = 0; // Vertex 버퍼의 각 요소 크기
@@ -344,6 +346,7 @@ public:
 #pragma region Viewports
     SWindow* RootWindow = nullptr;
     TArray<SViewport*> Viewports;
+    SViewport* MainViewport;
     void InitializeViewports();
     void UpdateViewports(UWorld* RenderWorld,float Deltatime);
     void ResizeViewports();
@@ -396,5 +399,7 @@ public:
     //픽셀 피킹 호환
     //FVector4 GetPixelFromViewport(int32 X, int32 Y, const FViewport& View);
     bool bRenderPicking=false;
+    bool bUseSplitter = true; // 기본값 true
+    FViewport* SingleViewViewport = nullptr;
 #pragma endregion Viewports
 };
