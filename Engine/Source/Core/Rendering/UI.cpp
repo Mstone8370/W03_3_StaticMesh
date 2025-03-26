@@ -209,7 +209,7 @@ void UI::RenderMemoryUsage()
 
 void UI::RenderPrimitiveSelection()
 {
-	const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "TestStaticMesh" };
+	const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "StaticMesh" };
 
 	ImGui::Combo("Primitive", &currentItem, items, IM_ARRAYSIZE(items));
 
@@ -238,20 +238,16 @@ void UI::RenderPrimitiveSelection()
 			{
 				World->SpawnActor<AArrow>();
 			}
-			else if (strcmp(items[currentItem], "TestStaticMesh") == 0)
+			else if (strcmp(items[currentItem], "StaticMesh") == 0)
 			{
-				AActor* Actor =World->SpawnActor<AStaticMesh>();
-				if (Actor)
+				if (AActor* Actor = World->SpawnActor<AStaticMesh>())
 				{
-					AStaticMesh* MeshActor = static_cast<AStaticMesh*>(Actor);
-					MeshActor->InitStaticMeshBoundingBox(UEngine::Get().GetWorld());
+					if (AStaticMesh* MeshActor = dynamic_cast<AStaticMesh*>(Actor))
+					{
+						MeshActor->InitStaticMeshBoundingBox();
+					}
 				}
-
 			}
-			//else if (strcmp(items[currentItem], "Triangle") == 0)
-			//{
-			//    Actor->AddComponent<UTriangleComp>();   
-			//}
 		}
 	}
 	ImGui::SameLine();
