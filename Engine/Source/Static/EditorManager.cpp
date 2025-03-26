@@ -28,9 +28,10 @@ void FEditorManager::SelectActor(AActor* NewActor)
     GizmoHandle->SetActive(true);
 }
 
-void FEditorManager::SetCamera(ACamera* NewCamera)
+void FEditorManager::SetMainCamera(ACamera* NewCamera)
 {
-    Camera = NewCamera;
+    MainCamera = NewCamera;
+    ViewportCameras[EEditorViewportType::Perspective] = NewCamera;
 }
 
 void FEditorManager::ToggleGizmoHandleLocal(bool bIsLocal)
@@ -99,6 +100,12 @@ void FEditorManager::InitializeDefaultViewportCameras(UWorld* World)
 
     for (const TPair<EEditorViewportType, FVector>& Info : ViewInfos)
     {
+        if (Info.Key == EEditorViewportType::Perspective)
+        {
+            ACamera* Camera = World->SpawnActor<ACamera>();
+            SetMainCamera(Camera);
+            continue;
+        }
         ACamera* Camera = World->SpawnActor<ACamera>();
         FTransform Transform;
         Transform.SetPosition(Info.Value);

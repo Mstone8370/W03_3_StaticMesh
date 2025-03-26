@@ -4,6 +4,7 @@
 #include "Static/EditorManager.h"
 #include "PlayerInput.h"
 #include "Core/Math/Plane.h"
+#include "Editor/Slate/SSplitter.h"
 #include "Editor/Viewport/FViewport.h"
 #include "Engine/Engine.h"
 #include "Engine/GameFrameWork/Camera.h"
@@ -11,7 +12,7 @@
 #include "Rendering/URenderer.h"
 
 APlayerController::APlayerController()
-    : CurrentSpeed(3.f)
+    : CurrentSpeed(5.f)
     , MaxSpeed(10.f)
     , MinSpeed(1.0f)
     , MouseSensitivity(0.2f)
@@ -23,78 +24,71 @@ APlayerController::~APlayerController()
 {
 }
 
-void APlayerController::HandleCameraMovement(float DeltaTime)
+void APlayerController::HandleCameraMovement(ACamera* Camera, bool bIsPerspective, float DeltaTime)
 {
-	if (bUiCaptured)
-		return;
+	FVector MoveDir = FVector::Zero();
 
-	if (!APlayerInput::Get().IsMouseDown(true))
-	{
-		if (APlayerInput::Get().IsMouseReleased(true))
-			ShowCursor(true);
-		return;
-	}
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
+		MoveDir += bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
 
-	int32 ViewportIndex = GetClickedViewportIndex();
-	if (ViewportIndex == -1)
-		return;
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
+		MoveDir -= bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
 
-	URenderer* Renderer = UEngine::Get().GetRenderer();
-	if (!Renderer || ViewportIndex >= Renderer->Viewports.Num())
-		return;
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
+		MoveDir -= Camera->GetActorRightVector();
 
-	ACamera* Camera = Renderer->Viewports[ViewportIndex]->GetFViewport()->GetCamera();
-	if (!Camera)
-		return;
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
+		MoveDir += Camera->GetActorRightVector();
 
-	FTransform CameraTransform = Camera->GetActorTransform();
-	const bool bIsPerspective = Camera->GetProjectionMode() == ECameraProjectionMode::Perspective;
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::Q))
+		MoveDir -= FVector(0, 0, 1);
 
-	// 1. 마우스 회전 또는 패닝
-	HandleCameraRotation(Camera, CameraTransform, bIsPerspective);
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::E))
+		MoveDir += FVector(0, 0, 1);
 
-	// 2. 커서 고정
-	if (APlayerInput::Get().IsMousePressed(true))
-	{
-		APlayerInput::Get().CacheCursorPosition();
-		ShowCursor(false);
-	}
-	APlayerInput::Get().FixMouseCursor();
-
-	// 3. 이동 입력 처리 (WASDQE)
-	FVector MoveDir = GetCameraMovementDirection(Camera, bIsPerspective);
-
-	if (MoveDir.Length() > 0.001f)
+	if (MoveDir.Length() > SMALL_NUMBER)
 	{
 		MoveDir = MoveDir.GetSafeNormal();
-		CameraTransform.Translate(MoveDir * DeltaTime * CurrentSpeed);
+		FTransform Transform = Camera->GetActorTransform();
+		Transform.Translate(MoveDir * DeltaTime * CurrentSpeed);
+		Camera->SetActorTransform(Transform);
 	}
-
-	Camera->SetActorTransform(CameraTransform);
-	SaveCameraProperties(Camera);
 }
 
-void APlayerController::HandleCameraRotation(ACamera* Camera, FTransform& Transform, bool bIsPerspective)
+
+
+void APlayerController::HandleCameraRotation(ACamera* Camera, bool bIsPerspective)
 {
+	if (!APlayerInput::Get().IsMouseDown(true))
+		return;
+
 	int32 DeltaX = 0, DeltaY = 0;
 	APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
 
+	FTransform CameraTransform = Camera->GetActorTransform();
+
 	if (bIsPerspective)
 	{
-		FVector Euler = Transform.GetRotation().GetEuler();
-		Euler.Y += MouseSensitivity * static_cast<float>(DeltaY); // Pitch
-		Euler.Z += MouseSensitivity * static_cast<float>(DeltaX); // Yaw
+		FVector Euler = CameraTransform.GetRotation().GetEuler();
+		Euler.Z += DeltaX * MouseSensitivity; // Yaw
+		Euler.Y += DeltaY * MouseSensitivity; // Pitch
 		Euler.Y = FMath::Clamp(Euler.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
-		Transform.SetRotation(Euler);
+		CameraTransform.SetRotation(Euler);
 	}
 	else
 	{
+		// Ortho: 마우스 드래그 → 패닝
 		FVector Right = Camera->GetActorRightVector();
 		FVector Up = Camera->GetActorUpVector();
-		FVector PanOffset = (-Right * DeltaX + Up * DeltaY) * 0.01f;
-		Transform.Translate(PanOffset);
+		FVector Offset = (-Right * DeltaX + Up * DeltaY) * 0.01f;
+		CameraTransform.Translate(Offset);
 	}
+
+	Camera->SetActorTransform(CameraTransform);
+	APlayerInput::Get().FixMouseCursor();
 }
+
+
 FVector APlayerController::GetCameraMovementDirection(ACamera* Camera, bool bIsPerspective)
 {
 	FVector Dir = FVector::Zero();
@@ -137,6 +131,8 @@ void APlayerController::SaveCameraProperties(ACamera* Camera)
     UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotY, CameraTransform.GetRotation().Y);
     UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotZ, CameraTransform.GetRotation().Z);
     UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraRotW, CameraTransform.GetRotation().W);
+	
+    UEngine::Get().GetEngineConfig()->UpdateEngineConfig(EEngineConfigValueType::EEC_EditorCameraSpeed, CameraSpeed);
 }
 
 void APlayerController::SetCurrentSpeed(float InSpeed)
@@ -153,62 +149,127 @@ void APlayerController::SetMouseSensitivity(float InSensitivity)
 
 void APlayerController::ProcessPlayerInput(float DeltaTime)
 {
-    if (bUiInput)
-    {
-        if (APlayerInput::Get().IsMouseDown(true) || APlayerInput::Get().IsMouseDown(false))
-        {
-            bUiCaptured = true;
-        }
-        return;
-    }
-    if (bUiCaptured)
-    {
-        if (!APlayerInput::Get().IsMouseDown(true) && !APlayerInput::Get().IsMouseDown(false))
-        {
-            bUiCaptured = false;
-        }
-        return;
-    }
-    
-    // TODO: 기즈모 조작시에는 카메라 입력 무시
-    // HandleGizmoMovement(DeltaTime); // TODO: 의미없는 함수인듯
-    HandleCameraMovement(DeltaTime);
+	if (HandleUiCapture())
+		return;
+
+	UpdateViewportClickState();
+	HandleCursorLock();
+
+	int32 ViewportIndex = GetActiveViewportIndex();
+	if (ViewportIndex == -1) return;
+
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	if (!Renderer || ViewportIndex >= Renderer->Viewports.Num())
+		return;
+
+	SViewport* SView = Renderer->Viewports[ViewportIndex];
+	FViewport* FView = SView->GetFViewport();
+	if (!FView) return;
+
+	ACamera* Camera = FView->GetCamera();
+	if (!Camera) return;
+	
+	bool bIsPerspective = Camera->GetProjectionMode() == ECameraProjectionMode::Perspective;
+
+	HandleCameraRotation(Camera, bIsPerspective);
+	HandleCameraMovement(Camera, bIsPerspective, DeltaTime);
+
+	if (bIsPerspective)
+		SaveCameraProperties(Camera);
 }
+bool APlayerController::HandleUiCapture()
+{
+	if (bUiInput)
+	{
+		if (APlayerInput::Get().IsMouseDown(true) || APlayerInput::Get().IsMouseDown(false))
+			bUiCaptured = true;
+		return true;
+	}
+
+	if (bUiCaptured)
+	{
+		if (!APlayerInput::Get().IsMouseDown(true) && !APlayerInput::Get().IsMouseDown(false))
+			bUiCaptured = false;
+		return true;
+	}
+
+	return false;
+}
+void APlayerController::HandleCursorLock()
+{
+	if (APlayerInput::Get().IsMousePressed(true))
+	{
+		APlayerInput::Get().CacheCursorPosition();
+		ShowCursor(false);
+	}
+
+	if (APlayerInput::Get().IsMouseReleased(true))
+	{
+		ShowCursor(true);
+	}
+}
+
 bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHeight)
 {
-    bool result = false;
-    int32 MouseX, MouseY;
-    APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
-    URenderer *Renderer = UEngine::Get().GetRenderer();
-    float DragX = ViewportWidth * Renderer->HorizontalSplitRatio;
-    float DragY = ViewportHeight * Renderer->VerticalSplitRatio;
+	bool bResult = false;
+	int32 MouseX, MouseY;
+	APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
 
-    bool bHoverHorizontal = abs(MouseX - DragX) <= DragHandleSize;
-    bool bHoverVertical = abs(MouseY - DragY) <= DragHandleSize;
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	SSplitter* Root = dynamic_cast<SSplitter*>(Renderer->RootWindow);
+	if (!Root) return false;
 
-    if (APlayerInput::Get().IsMousePressed(false))
-    {
-        if (bHoverHorizontal) bDraggingHorizontal = true;
-        if (bHoverVertical) bDraggingVertical = true;
-    }
-    else if (!APlayerInput::Get().IsMouseDown(false))
-    {
-        bDraggingHorizontal = false;
-        bDraggingVertical = false;
-    }
+	// Get Top and Bottom horizontal splitters
+	SSplitter* Top = dynamic_cast<SSplitter*>(Root->GetChild(0));
+	SSplitter* Bottom = dynamic_cast<SSplitter*>(Root->GetChild(1));
+	if (!Top || !Bottom) return false;
 
-    if (bDraggingHorizontal)
-    {
-        Renderer->HorizontalSplitRatio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
-        result = true;
-    }
-    if (bDraggingVertical)
-    {
-        Renderer->VerticalSplitRatio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
-        result = true;
-    }
-    return result;
+	// 스플리터 기준 분할 위치
+	float DragX_Top = ViewportWidth * Top->GetRatio();
+	float DragX_Bottom = ViewportWidth * Bottom->GetRatio();
+	float DragY = ViewportHeight * Root->GetRatio();
+
+	bool bHoverTop = abs(MouseX - DragX_Top) <= DragHandleSize && MouseY < DragY;
+	bool bHoverBottom = abs(MouseX - DragX_Bottom) <= DragHandleSize && MouseY >= DragY;
+	bool bHoverVertical = abs(MouseY - DragY) <= DragHandleSize;
+
+	if (APlayerInput::Get().IsMousePressed(false))
+	{
+		if (bHoverTop)      bDraggingTop = true;
+		if (bHoverBottom)   bDraggingBottom = true;
+		if (bHoverVertical) bDraggingVertical = true;
+	}
+	else if (!APlayerInput::Get().IsMouseDown(false))
+	{
+		bDraggingTop = false;
+		bDraggingBottom = false;
+		bDraggingVertical = false;
+	}
+
+	if (bDraggingTop)
+	{
+		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		Top->SetRatio(Ratio);
+		bResult = true;
+	}
+
+	if (bDraggingBottom)
+	{
+		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		Bottom->SetRatio(Ratio);
+		bResult = true;
+	}
+
+	if (bDraggingVertical)
+	{
+		float Ratio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
+		Root->SetRatio(Ratio);
+		bResult = true;
+	}
+
+	return bResult;
 }
+
 int32 APlayerController::GetClickedViewportIndex()
 {
 	int32 MouseX, MouseY;
@@ -234,4 +295,16 @@ int32 APlayerController::GetClickedViewportIndex()
 	}
 
 	return -1; // 어떤 뷰포트도 클릭되지 않음
+}
+void APlayerController::UpdateViewportClickState()
+{
+	if (APlayerInput::Get().IsMousePressed(true) || APlayerInput::Get().IsMousePressed(false)) // 우클릭 or 좌클릭
+	{
+		ClickedViewportIndex = GetClickedViewportIndex();
+	}
+
+	if (APlayerInput::Get().IsMouseReleased(true) || APlayerInput::Get().IsMouseReleased(false))
+	{
+		ClickedViewportIndex = -1;
+	}
 }

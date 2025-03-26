@@ -22,13 +22,7 @@ SViewport::~SViewport()
 void SViewport::Tick(float DeltaTime)
 {
     if (!Viewport)
-        return;
-
-    FViewportClient* Client = Viewport->GetClient();
-    if (Client)
-    {
-        Client->ProcessInput(Viewport, DeltaTime);
-    }
+        return; 
 
     // 여기에 더 필요한 Tick 동작이 있다면 추가 가능 (예: 애니메이션, Gizmo 등)
 }
@@ -73,6 +67,5 @@ void SViewport::UpdateFViewportSize()
 
     const float NewWidth = Rect.Width;
     const float NewHeight = Rect.Height;
-
     Viewport->Resize(NewWidth, NewHeight);
 }

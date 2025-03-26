@@ -3,6 +3,7 @@
 #include "Core/AbstractClass/Singleton.h"
 #include "Math/Vector.h"
 
+class ACamera;
 struct FTransform;
 
 class APlayerController : public TSingleton<APlayerController>
@@ -14,10 +15,12 @@ public :
 	~APlayerController();
 
 	void ProcessPlayerInput(float DeltaTime);
+	bool HandleUiCapture();
+	void HandleCursorLock();
 
-	void HandleCameraMovement(float DeltaTime);
+	void HandleCameraMovement(ACamera* Camera, bool bIsPerspective, float DeltaTime);
 	void SaveCameraProperties(class ACamera* Camera);
-	void HandleCameraRotation(ACamera* Camera, FTransform& Transform, bool bIsPerspective);
+	void HandleCameraRotation(ACamera* Camera, bool bIsPerspective);
 	FVector GetCameraMovementDirection(ACamera* Camera, bool bIsPerspective);
 
 	float GetCurrentSpeed() const { return CurrentSpeed; }
@@ -37,12 +40,14 @@ public :
 	void SetIsUiInput(bool bInUiInput) { bUiInput = bInUiInput; }
 
 	//ViewPort 관련
+    int32 ClickedViewportIndex = -1;
 	float DragHandleSize = 10.f;
 	bool bDraggingHorizontal = false;
-	bool bDraggingVertical = false;
+	//bool bDraggingVertical = false;
 	bool HandleViewportDrag(float ViewportWidth, float ViewportHeight);
 	int32 GetClickedViewportIndex();
-
+	int32 GetActiveViewportIndex() const { return ClickedViewportIndex; }
+	void UpdateViewportClickState();
 protected:
 	float CurrentSpeed;
 	float MaxSpeed;
@@ -56,4 +61,8 @@ protected:
 
 	bool bUiInput = false;
 	bool bUiCaptured = false;
+
+	bool bDraggingTop = false;
+	bool bDraggingBottom = false;
+	bool bDraggingVertical = false;
 };

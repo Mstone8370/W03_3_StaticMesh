@@ -225,7 +225,7 @@ void AGizmoHandle::Tick(float DeltaTime)
 			RayEnd *= 1000.0f;  
 			RayEnd.W = 1;
 
-			FMatrix InvViewMat = FEditorManager::Get().GetCamera()->GetViewMatrix().Inverse();
+			FMatrix InvViewMat = FEditorManager::Get().GetMainCamera()->GetViewMatrix().Inverse();
 			RayOrigin = InvViewMat.TransformVector4(RayOrigin);
 			RayOrigin /= RayOrigin.W = 1;
 			RayEnd = InvViewMat.TransformVector4(RayEnd);
@@ -271,9 +271,9 @@ void AGizmoHandle::SetScaleByDistance()
 
     // 액터의 월드 위치
     FVector actorWorldPos = MyTransform.GetPosition();
-
+	
 	// TODO: FViewportClient의 카메라 위치 가져오기
-    FTransform CameraTransform = FEditorManager::Get().GetCamera()->GetActorTransform();
+    FTransform CameraTransform = FEditorManager::Get().GetMainCamera()->GetActorTransform();
 
     // 카메라의 월드 위치
     FVector cameraWorldPos = CameraTransform.GetPosition();
@@ -315,7 +315,7 @@ void AGizmoHandle::DoTransform(FTransform& CompTransform, FVector Delta, USceneC
     FVector WorldDirection;
     FVector LocalDirection;
 
-	FVector CamToComp = (SceneComp->GetComponentTransform().GetPosition() - FEditorManager::Get().GetCamera()->GetActorTransform().GetPosition()).GetSafeNormal();
+	FVector CamToComp = (SceneComp->GetComponentTransform().GetPosition() - FEditorManager::Get().GetMainCamera()->GetActorTransform().GetPosition()).GetSafeNormal();
 	FVector RotationDelta = FVector::CrossProduct(Delta, CamToComp);
 
 	float DeltaLength = Delta.Length();

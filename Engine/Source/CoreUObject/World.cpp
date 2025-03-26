@@ -431,7 +431,7 @@ UWorldInfo UWorld::GetWorldInfo() const
     return WorldInfo;
 }
 
-bool UWorld::LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) const
+bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const
 {
     TArray<TPair<USceneComponent*, float>> Hits;
     for (TObjectIterator<UPrimitiveComponent> It; It; ++It)
@@ -468,21 +468,26 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) cons
     float MinDistance = FLT_MAX;
     for (const auto& [SceneComp, Dist] : Hits)
     {
-        if (Dist < MinDistance)
+        if (!SceneComp)
+        {
+            
+        }
+        if (Dist < MinDistance&&SceneComp)
         {
             MinDistance = Dist;
-            FirstHitComponent = SceneComp;
+            *FirstHitComponent = SceneComp;
         }
     }
     if (bDebugRaycast)
     {
         FVector Start = Ray.Origin;
-        FVector End = Ray.Origin + Ray.Direction * MinDistance;
-        DrawDebugLine(Start, End, FVector(1.f, 0.f, 0.f), 5.f);
+        FVector Mid = Ray.Origin + Ray.Direction * MinDistance;
+        FVector End = Ray.Origin + Ray.Direction * Ray.Length;
 
-        Start = End;
-        End = Start + Ray.Direction * (Ray.Length - MinDistance);
-        DrawDebugLine(Start, End, FVector(0.f, 1.f, 0.f), 5.f);
+        DrawDebugLine(Start, Mid, FVector(1.f, 0.f, 0.f), 5.f);  // Hit 구간: 빨강
+        DrawDebugLine(Mid, End, FVector(0.f, 1.f, 0.f), 5.f);    // 잔여 구간: 초록
+
+        //UE_LOG("Ray Hit: %s | Distance: %.2f", *(*FirstHitComponent)->GetName(), MinDistance);
     }
 
     return true;

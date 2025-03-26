@@ -286,7 +286,7 @@ void UI::RenderCameraSettings()
 {
 	ImGui::Text("Camera");
 
-	ACamera* Camera = FEditorManager::Get().GetCamera();
+    ACamera* Camera = FEditorManager::Get().GetMainCamera();
 
 	bool IsOrthogonal;
 	if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
@@ -749,12 +749,12 @@ void UI::PreferenceStyle()
 }
 void UI::RenderViewportTestWindow()
 {
-	ImGui::Begin("Viewport Splitter");
-	URenderer* Renderer = UEngine::Get().GetRenderer();
-	ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
-	ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
-	ImGui::Checkbox("Render Picking", &Renderer->bRenderPicking);
-	ImGui::End();
+    ImGui::Begin("Viewport Splitter");
+    URenderer* Renderer = UEngine::Get().GetRenderer();
+    //ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
+    //ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
+    ImGui::Checkbox("Render Picking",&Renderer->bRenderPicking);
+    ImGui::End();
 }
 
 void UI::CreateUsingFont()

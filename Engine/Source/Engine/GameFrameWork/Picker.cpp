@@ -133,12 +133,14 @@ bool APicker::PickByRay()
     FViewport* FView = SView->GetFViewport();
     if (!FView || !FView->GetCamera())
         return false;
-
     const FRect& Rect = SView->GetRect();
+    //Renderer->UpdateViewMatrix(FView->GetCamera()->GetActorTransform());
+    //Renderer->UpdateProjectionMatrixAspect(FView->GetCamera(), Rect.Width, Rect.Height);
+
     FRay Ray = FRay::GetRayByViewportPoint(FView->GetCamera(), Rect);
 
     USceneComponent* FirstHitComponent = nullptr;
-    if (GetWorld()->LineTrace(Ray, FirstHitComponent))
+    if (GetWorld()->LineTrace(Ray, &FirstHitComponent))
     {
         if (FirstHitComponent)
         {

@@ -39,11 +39,19 @@ public:
     ECameraProjectionMode::Type GetProjectionMode() const { return ProjectionMode; }
 
     FMatrix GetViewMatrix() const { return GetActorTransform().GetViewMatrix(); }
-
+    
     OnCameraMovedSignature OnCameraMoved;
     OnCameraProjectionChangedSignature OnCameraProjectionChanged;
     
-    
+    float GetOrthoWidth() const { return OrthoWidth; }
+    float GetOrthoHeight() const { return OrthoHeight; }
+    void SetOrthoSize(float Width, float Height)
+    {
+        OrthoWidth = Width;
+        OrthoHeight = Height;
+    }
+    FMatrix GetProjectionMatrix(float AspectRatio) const;
+
 private:    
     float NearClip;
     
@@ -52,7 +60,8 @@ private:
     float FieldOfView; // 화면각
     
     float MaxPitch;
-    
+    float OrthoWidth = 5.0f;  // 기본값
+    float OrthoHeight = 5.0f;
     // 투영 타입 - Perspective, Orthographic
     ECameraProjectionMode::Type ProjectionMode;
 };

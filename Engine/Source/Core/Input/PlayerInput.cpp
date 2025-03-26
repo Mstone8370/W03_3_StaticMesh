@@ -39,6 +39,7 @@ void APlayerInput::UpdateInput()
     GetCursorPos(&p);
     CurrentMouseState.ScreenX = p.x;
     CurrentMouseState.ScreenY = p.y;
+
 }
 
 bool APlayerInput::IsKeyPressed(DirectX::Keyboard::Keys InKey) const

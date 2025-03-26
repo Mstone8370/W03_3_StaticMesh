@@ -9,6 +9,7 @@
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "World.h"
+#include "Editor/Slate/SSplitter.h"
 #include "Editor/Viewport/FViewport.h"
 #include "Editor/Viewport/FViewportClient.h"
 #include "GameFrameWork/Picker.h"
@@ -182,7 +183,7 @@ void URenderer::ReleaseConstantBuffer()
         ConstantPickingBuffer->Release();
         ConstantPickingBuffer = nullptr;
     }
-    if (cbMaterialInfo) 
+    if (cbMaterialInfo)
     {
         cbMaterialInfo->Release();
         cbMaterialInfo = nullptr;
@@ -376,22 +377,23 @@ void URenderer::RenderBox(const FBox& Box, const FVector4& Color)
 // 활성 텍스처 플래그 계산 함수
 int GetActiveTextureFlags(const FObjMaterialInfo& materialInfo)
 {
-    enum TextureFlag {
-        TEX_Ka = 1   << 0,
-        TEX_Kd = 1   << 1,
-        TEX_Ks = 1   << 2,
-        TEX_Ns = 1   << 3,
-        TEX_d =  1   << 4,
+    enum TextureFlag
+    {
+        TEX_Ka = 1 << 0,
+        TEX_Kd = 1 << 1,
+        TEX_Ks = 1 << 2,
+        TEX_Ns = 1 << 3,
+        TEX_d = 1 << 4,
         TEX_bump = 1 << 5,
         TEX_refl = 1 << 6
     };
 
     int flags = 0;
-    if (!materialInfo.map_Ka.empty())   flags |= TEX_Ka;
-    if (!materialInfo.map_Kd.empty())   flags |= TEX_Kd;
-    if (!materialInfo.map_Ks.empty())   flags |= TEX_Ks;
-    if (!materialInfo.map_Ns.empty())   flags |= TEX_Ns;
-    if (!materialInfo.map_d.empty())    flags |= TEX_d;
+    if (!materialInfo.map_Ka.empty()) flags |= TEX_Ka;
+    if (!materialInfo.map_Kd.empty()) flags |= TEX_Kd;
+    if (!materialInfo.map_Ks.empty()) flags |= TEX_Ks;
+    if (!materialInfo.map_Ns.empty()) flags |= TEX_Ns;
+    if (!materialInfo.map_d.empty()) flags |= TEX_d;
     if (!materialInfo.map_bump.empty()) flags |= TEX_bump;
     if (!materialInfo.map_refl.empty()) flags |= TEX_refl;
     return flags;
@@ -433,19 +435,20 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
     UpdateObjectConstantBuffer(ConstantInfo);
 
     // 텍스처 바인딩 정보 정의
-    struct TextureBinding {
-        int slot;         // PS에서 사용할 텍스처 슬롯 번호
-        FName suffix;     // 텍스처 타입 접미사
+    struct TextureBinding
+    {
+        int slot; // PS에서 사용할 텍스처 슬롯 번호
+        FName suffix; // 텍스처 타입 접미사
     };
 
     const TextureBinding textureBindings[] = {
-        { 0, TEXT("map_Ka") },
-        { 1, TEXT("map_Kd") },
-        { 2, TEXT("map_Ks") },
-        { 3, TEXT("map_Ns") },
-        { 4, TEXT("map_d")  },
-        { 5, TEXT("map_bump") },
-        { 6, TEXT("map_refl") }
+        {0, TEXT("map_Ka")},
+        {1, TEXT("map_Kd")},
+        {2, TEXT("map_Ks")},
+        {3, TEXT("map_Ns")},
+        {4, TEXT("map_d")},
+        {5, TEXT("map_bump")},
+        {6, TEXT("map_refl")}
     };
 
     // 각 재질에 대해 렌더링 처리
@@ -471,7 +474,7 @@ void URenderer::RenderMesh(UMeshComponent* MeshComp)
             matBuffer.Kd = materialInfo.Kd;
             matBuffer.Ks = materialInfo.Ks;
             matBuffer.Ke = materialInfo.Ke;
-              
+
             UpdateMaterialConstantBuffer(matBuffer);
 
             // 텍스처가 존재하면 PS에 설정
@@ -611,7 +614,7 @@ void URenderer::RenderWorldGrid()
 {
     PrepareWorldGrid();
 
-    AActor* CameraActor = FEditorManager::Get().GetCamera();
+    AActor* CameraActor = FEditorManager::Get().GetMainCamera();
     if (CameraActor == nullptr)
     {
         return;
@@ -778,7 +781,7 @@ void URenderer::UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterial
         Constants->ActiveTextureFlag = UpdateMaterialInfo.ActiveTextureFlag;
         Constants->d = UpdateMaterialInfo.d;
         Constants->illum = UpdateMaterialInfo.illum;
-        Constants->Ka= UpdateMaterialInfo.Ka;
+        Constants->Ka = UpdateMaterialInfo.Ka;
         Constants->Kd = UpdateMaterialInfo.Kd;
         Constants->Ke = UpdateMaterialInfo.Ke;
         Constants->Ks = UpdateMaterialInfo.Ks;
@@ -1759,7 +1762,8 @@ FVector4 URenderer::GetPixel(int32 X, int32 Y)
         srcBox.top >= originalDesc.Height || srcBox.bottom > originalDesc.Height)
     {
         // srcBox가 원본 텍스처의 범위를 벗어남
-        MessageBox(hWnd, TEXT("srcBox coordinates are out of the original texture bounds."), TEXT("Error"), MB_ICONERROR | MB_OK);
+        MessageBox(hWnd, TEXT("srcBox coordinates are out of the original texture bounds."), TEXT("Error"),
+                   MB_ICONERROR | MB_OK);
         return FVector4();
     }
 
@@ -1822,7 +1826,7 @@ void URenderer::UpdateViewMatrix(const FTransform& CameraTransform)
 void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
 {
     float AspectRatio = UEngine::Get().GetClientRatio();
-
+    AspectRatio *= 2.0f;
     float FOV = FMath::DegreesToRadians(Camera->GetFieldOfView());
     float NearClip = Camera->GetNearClip();
     float FarClip = Camera->GetFarClip();
@@ -1847,7 +1851,8 @@ void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
     ChangesOnResizeAndFov.NearClip = NearClip;
     DeviceContext->UpdateSubresource(CbChangeOnResizeAndFov, 0, NULL, &ChangesOnResizeAndFov, 0, 0);
 }
-void URenderer::UpdateProjectionMatrixAspect(const ACamera* Camera,float Width,float Height)
+
+void URenderer::UpdateProjectionMatrixAspect(const ACamera* Camera, float Width, float Height)
 {
     float AspectRatio = Width / Height;
 
@@ -1916,7 +1921,7 @@ void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InC
         CreatePickingFrameBuffer();
     }
 
-    if (ACamera* Camera = FEditorManager::Get().GetCamera())
+    if (ACamera* Camera = FEditorManager::Get().GetMainCamera())
     {
         UpdateProjectionMatrix(Camera);
     }
@@ -1986,7 +1991,7 @@ void URenderer::UpdateViewports(UWorld* RenderWorld, float DeltaTime)
 
 void URenderer::ResizeViewports()
 {
-    ComputeViewportRects();
+    //ComputeViewportRects();
 
     for (SViewport* View : Viewports)
     {
@@ -1996,39 +2001,18 @@ void URenderer::ResizeViewports()
 
 void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
 {
-    if (!RenderWorld) return;
-
-    switch (CurrentRasterizerStateType)
-    {
-    case EViewModeIndex::ERS_Solid:
-        CurrentRasterizerState = &RasterizerState_Solid;
-        break;
-    case EViewModeIndex::ERS_Wireframe:
-        CurrentRasterizerState = &RasterizerState_Wireframe;
-        break;
-    }
-
-    DeviceContext->RSSetState(*CurrentRasterizerState);
+    if (!RenderWorld || !RootWindow)
+        return;
 
     FRenderContext Context{ this, RenderWorld, DeltaTime };
 
-    for (SViewport* SView : Viewports)
-    {
-        SView->Render(Context);
+    RootWindow->Tick(DeltaTime);
+    RootWindow->Render(Context); // 트리 구조로 렌더링
 
-        if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
-        {
-            FViewport* FView = SView->GetFViewport();
-            if (FView)
-            {
-                RenderWorld->RenderPickingTextureForViewport(*this, *FView);
-            }
-        }
-    }
-
+    DeviceContext->RSSetState(RasterizerState_Solid);
     CompositeViewportsToBackBuffer();
 
-    if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
+    if (ACamera* MainCamera = FEditorManager::Get().GetMainCamera())
     {
         UpdateViewMatrix(MainCamera->GetActorTransform());
         UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetPosition());
@@ -2041,42 +2025,47 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
 void URenderer::InitializeViewports()
 {
     Viewports.Empty();
-
     CreateCompositeConstantBuffer();
     CreateScreenConstantBuffer();
     CreateFullscreenQuadVertexBuffer();
 
-    const float HalfWidth = ViewportInfo.Width * 0.5f;
-    const float HalfHeight = ViewportInfo.Height * 0.5f;
+    // 트리 생성
+    SSplitterV* Root = new SSplitterV();
+    SSplitterH* Top = new SSplitterH();
+    SSplitterH* Bottom = new SSplitterH();
 
-    for (int Row = 0; Row < 2; ++Row)
+    Root->SetChildren(Top, Bottom);
+    Root->SetViewportPadding(2.f); // 선택
+
+    RootWindow = Root;
+
+    for (int i = 0; i < 4; ++i)
     {
-        for (int Col = 0; Col < 2; ++Col)
-        {
-            int Index = Row * 2 + Col;
-            EEditorViewportType ViewType = static_cast<EEditorViewportType>(Index);
+        EEditorViewportType ViewType = static_cast<EEditorViewportType>(i);
 
-            float X = Col * HalfWidth;
-            float Y = Row * HalfHeight;
+        SViewport* SView = new SViewport();
+        FViewport* FView = new FViewport();
+        FView->SetCamera(FEditorManager::Get().GetViewportCamera(ViewType));
+        FView->SetClient(new FViewportClient());
+        FView->index = i;
+        FView->Initialize(Device, ViewportInfo.Width * 0.5f, ViewportInfo.Height * 0.5f); // 일단 임시 사이즈
 
-            FRect Rect(X, Y, HalfWidth, HalfHeight);
+        SView->SetFViewport(FView);
+        SWindow* Window = new SWindow();
+        Window->SetViewport(SView);
 
-            // 생성
-            SViewport* SView = new SViewport();
-            SView->SetRect(Rect);
 
-            FViewport* FView = new FViewport();
-            FView->SetCamera(FEditorManager::Get().GetViewportCamera(ViewType));
-            SView->SetFViewport(FView);
+        if (i < 2) Top->SetChild(i, Window);
+        else       Bottom->SetChild(i - 2, Window);
 
-            FView->Initialize(Device, Rect.Width, Rect.Height);
-            FView->SetClient(new FViewportClient());
-            Viewports.Add(SView);
-        }
+
+        Viewports.Add(SView);
     }
 
-    ComputeViewportRects();
+    RootWindow->SetRect({ 0, 0, ViewportInfo.Width, ViewportInfo.Height });
+    RootWindow->Tick(0.f); // 초기 배치
 }
+
 
 
 void URenderer::CreateCompositeConstantBuffer()
@@ -2093,6 +2082,7 @@ void URenderer::CreateCompositeConstantBuffer()
         UE_LOG("Failed to create CompositeConstantBuffer");
     }
 }
+
 void URenderer::UpdateCompositeConstantBuffer(const FRect& Rect)
 {
     D3D11_MAPPED_SUBRESOURCE Mapped;
@@ -2134,8 +2124,8 @@ void URenderer::CompositeViewportsToBackBuffer()
         if (!FView) continue;
 
         ID3D11ShaderResourceView* SRV = !bRenderPicking
-            ? FView->ShaderResourceView
-            : FView->PixelShaderResourceView;
+                                            ? FView->ShaderResourceView
+                                            : FView->PixelShaderResourceView;
 
         if (!SRV) continue;
 
@@ -2160,6 +2150,7 @@ void URenderer::CreateScreenConstantBuffer()
 
     Device->CreateBuffer(&Desc, nullptr, &ScreenConstantBuffer);
 }
+
 void URenderer::UpdateScreenConstantBuffer(const FVector2D& ScreenSize)
 {
     D3D11_MAPPED_SUBRESOURCE Mapped;
@@ -2190,6 +2181,7 @@ void URenderer::CreateFullscreenQuadVertexBuffer()
         UE_LOG("Failed to create TextureVertexBuffer");
     }
 }
+/*
 void URenderer::ComputeViewportRects()
 {
     const float TotalWidth = ViewportInfo.Width;
@@ -2210,10 +2202,11 @@ void URenderer::ComputeViewportRects()
         const bool bTop = (i / 2 == 0);
 
         float X = bLeft ? 0.0f : LeftWidth + ViewportPadding;
-        float Y = bTop  ? 0.0f : TopHeight + ViewportPadding;
+        float Y = bTop ? 0.0f : TopHeight + ViewportPadding;
         float W = bLeft ? LeftWidth : RightWidth;
-        float H = bTop  ? TopHeight : BottomHeight;
+        float H = bTop ? TopHeight : BottomHeight;
 
-        View->SetRect({ X, Y, W, H });
+        View->SetRect({X, Y, W, H});
     }
 }
+*/

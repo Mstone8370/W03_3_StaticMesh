@@ -5,6 +5,7 @@
 #include "FViewport.h"
 #include "World.h"
 #include "GameFrameWork/Camera.h"
+#include "Input/PlayerController.h"
 #include "Input/PlayerInput.h"
 #include "Rendering/RenderContext.h"
 
@@ -12,7 +13,13 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
 {
     if (!Viewport || !Context.Renderer || !Context.World)
         return;
-
+    if (Viewport->GetCamera()->GetProjectionMode()==ECameraProjectionMode::Orthographic)
+    {
+        Context.Renderer->GetDeviceContext()->RSSetState(Context.Renderer->RasterizerState_Wireframe);
+    }else
+    {
+        Context.Renderer->GetDeviceContext()->RSSetState(*Context.Renderer->CurrentRasterizerState);
+    }
     // 기본 월드 렌더링 루틴
     Context.World->RenderWorldGrid(*Context.Renderer);
     Context.World->RenderMainTexture(*Context.Renderer);
@@ -28,24 +35,38 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     
     // Prepare new layer for Gizmo
     Context.Renderer->ClearCurrentDepthSencilView();
-    Context.Renderer->SetRenderMode(EViewModeIndex::ERS_Solid);
+    Context.Renderer->GetDeviceContext()->RSSetState(Context.Renderer->RasterizerState_Solid);
     Context.Renderer->RenderGizmo(FEditorManager::Get().GetGizmoHandle());
 }
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)
 {
+    /*
+    if (APlayerInput::Get().IsMousePressed(true))
+    {
+        APlayerInput::Get().CacheCursorPosition();
+        ShowCursor(false);
+    }
+    if (APlayerInput::Get().IsMouseReleased(true))
+    {
+        ShowCursor(true);
+    }
     if (!Viewport || !Viewport->GetCamera())
         return;
 
+    if (Viewport->index != APlayerController::Get().GetActiveViewportIndex())return;
+    
     ACamera* Camera = Viewport->GetCamera();
+    FTransform CameraTransform = Camera->GetActorTransform();
+    bool bIsOrtho = (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic);
 
     // 기본 WASDQE 입력 처리
     FVector MoveDirection = FVector::Zero();
 
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
-        MoveDirection += Camera->GetActorForwardVector();
+        MoveDirection += bIsOrtho ? Camera->GetActorUpVector() : Camera->GetActorForwardVector();
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
-        MoveDirection -= Camera->GetActorForwardVector();
+        MoveDirection -= bIsOrtho ? Camera->GetActorUpVector() : Camera->GetActorForwardVector();
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
         MoveDirection -= Camera->GetActorRightVector();
     if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
@@ -68,25 +89,26 @@ void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)
     {
         int32 DeltaX = 0, DeltaY = 0;
         APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
+        CameraTransform = Camera->GetActorTransform();
 
-        FTransform Transform = Camera->GetActorTransform();
-        FVector Euler = Transform.GetRotation().GetEuler();
-        Euler.Z += DeltaX * 0.2f;
-        Euler.Y += DeltaY * 0.2f;
-        Euler.Y = FMath::Clamp(Euler.Y, -89.0f, 89.0f);
-        Transform.SetRotation(Euler);
-        Camera->SetActorTransform(Transform);
+        if (!bIsOrtho)
+        {
+            FVector Euler = CameraTransform.GetRotation().GetEuler();
+            Euler.Z += DeltaX * 0.3f;
+            Euler.Y += DeltaY * 0.3f;
+            Euler.Y = FMath::Clamp(Euler.Y, -89.0f, 89.0f);
+            CameraTransform.SetRotation(Euler);
+        }
+        else
+        {
+            FVector Right = Camera->GetActorRightVector();
+            FVector Up = Camera->GetActorUpVector();
 
+            FVector Offset = (-Right * DeltaX + Up * DeltaY) * 0.01f; // 스케일은 상황에 따라 조절
+            CameraTransform.Translate(Offset);
+        }
+
+        Camera->SetActorTransform(CameraTransform);
         APlayerInput::Get().FixMouseCursor();
-    }
-
-    if (APlayerInput::Get().IsMousePressed(true))
-    {
-        APlayerInput::Get().CacheCursorPosition();
-        ShowCursor(false);
-    }
-    if (APlayerInput::Get().IsMouseReleased(true))
-    {
-        ShowCursor(true);
-    }
+    }*/
 }
