@@ -649,8 +649,8 @@ void UI::RenderViewportTestWindow()
 {
     ImGui::Begin("Viewport Splitter");
     URenderer* Renderer = UEngine::Get().GetRenderer();
-    ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
-    ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
+    //ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
+    //ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
     ImGui::Checkbox("Render Picking",&Renderer->bRenderPicking);
     ImGui::End();
 }

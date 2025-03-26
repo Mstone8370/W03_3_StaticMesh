@@ -13,7 +13,13 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
 {
     if (!Viewport || !Context.Renderer || !Context.World)
         return;
-
+    if (Viewport->GetCamera()->GetProjectionMode()==ECameraProjectionMode::Orthographic)
+    {
+        Context.Renderer->GetDeviceContext()->RSSetState(Context.Renderer->RasterizerState_Wireframe);
+    }else
+    {
+        Context.Renderer->GetDeviceContext()->RSSetState(*Context.Renderer->CurrentRasterizerState);
+    }
     // 기본 월드 렌더링 루틴
     Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
     Context.World->RenderWorldGrid(*Context.Renderer);

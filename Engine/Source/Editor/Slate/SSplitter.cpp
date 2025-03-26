@@ -11,16 +11,29 @@ void SSplitter::SetChildren(SWindow* InSideLT, SWindow* InSideRB)
     SideLT = InSideLT;
     SideRB = InSideRB;
 }
-
+void SSplitter::SetChild(int Index, SWindow* Child)
+{
+    if (Index == 0) SideLT = Child;
+    else if (Index == 1) SideRB = Child;
+}
+SWindow* SSplitter::GetChild(int Index) const
+{
+    if (Index == 0) return SideLT;
+    if (Index == 1) return SideRB;
+    return nullptr;
+}
 void SSplitter::SetRatio(float InRatio)
 {
     Ratio = FMath::Clamp(InRatio, 0.1f, 0.9f);
 }
-
+void SSplitter::SetViewportPadding(float InPadding)
+{
+    ViewportPadding = InPadding;
+}
 void SSplitter::Tick(float DeltaTime)
 {
     UpdateChildRects();
-
+    
     if (SideLT) SideLT->Tick(DeltaTime);
     if (SideRB) SideRB->Tick(DeltaTime);
 }
@@ -38,23 +51,32 @@ void SSplitter::UpdateChildRects()
     if (!SideLT || !SideRB) return;
 
     const FRect& MyRect = GetRect();
+    const float HalfPad = ViewportPadding * 0.5f;
 
     if (Orientation == EOrientation::Horizontal)
     {
-        float SplitX = MyRect.X + MyRect.Width * Ratio;
+        float TotalWidth = MyRect.Width;
+        float SplitX = MyRect.X + TotalWidth * Ratio;
 
-        FRect LeftRect(MyRect.X, MyRect.Y, MyRect.Width * Ratio, MyRect.Height);
-        FRect RightRect(SplitX, MyRect.Y, MyRect.Width * (1.f - Ratio), MyRect.Height);
+        float LeftW  = TotalWidth * Ratio - HalfPad;
+        float RightW = TotalWidth * (1.f - Ratio) - HalfPad;
+
+        FRect LeftRect(MyRect.X, MyRect.Y, LeftW, MyRect.Height);
+        FRect RightRect(SplitX + HalfPad, MyRect.Y, RightW, MyRect.Height);
 
         SideLT->SetRect(LeftRect);
         SideRB->SetRect(RightRect);
     }
     else // Vertical
     {
-        float SplitY = MyRect.Y + MyRect.Height * Ratio;
+        float TotalHeight = MyRect.Height;
+        float SplitY = MyRect.Y + TotalHeight * Ratio;
 
-        FRect TopRect(MyRect.X, MyRect.Y, MyRect.Width, MyRect.Height * Ratio);
-        FRect BottomRect(MyRect.X, SplitY, MyRect.Width, MyRect.Height * (1.f - Ratio));
+        float TopH    = TotalHeight * Ratio - HalfPad;
+        float BottomH = TotalHeight * (1.f - Ratio) - HalfPad;
+
+        FRect TopRect(MyRect.X, MyRect.Y, MyRect.Width, TopH);
+        FRect BottomRect(MyRect.X, SplitY + HalfPad, MyRect.Width, BottomH);
 
         SideLT->SetRect(TopRect);
         SideRB->SetRect(BottomRect);

@@ -4,6 +4,7 @@
 #include "Static/EditorManager.h"
 #include "PlayerInput.h"
 #include "Core/Math/Plane.h"
+#include "Editor/Slate/SSplitter.h"
 #include "Editor/Viewport/FViewport.h"
 #include "Engine/Engine.h"
 #include "Engine/GameFrameWork/Camera.h"
@@ -210,39 +211,65 @@ void APlayerController::HandleCursorLock()
 
 bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHeight)
 {
-    bool result = false;
-    int32 MouseX, MouseY;
-    APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
-    URenderer *Renderer = UEngine::Get().GetRenderer();
-    float DragX = ViewportWidth * Renderer->HorizontalSplitRatio;
-    float DragY = ViewportHeight * Renderer->VerticalSplitRatio;
+	bool bResult = false;
+	int32 MouseX, MouseY;
+	APlayerInput::Get().GetMousePositionClient(MouseX, MouseY);
 
-    bool bHoverHorizontal = abs(MouseX - DragX) <= DragHandleSize;
-    bool bHoverVertical = abs(MouseY - DragY) <= DragHandleSize;
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	SSplitter* Root = dynamic_cast<SSplitter*>(Renderer->RootWindow);
+	if (!Root) return false;
 
-    if (APlayerInput::Get().IsMousePressed(false))
-    {
-        if (bHoverHorizontal) bDraggingHorizontal = true;
-        if (bHoverVertical) bDraggingVertical = true;
-    }
-    else if (!APlayerInput::Get().IsMouseDown(false))
-    {
-        bDraggingHorizontal = false;
-        bDraggingVertical = false;
-    }
+	// Get Top and Bottom horizontal splitters
+	SSplitter* Top = dynamic_cast<SSplitter*>(Root->GetChild(0));
+	SSplitter* Bottom = dynamic_cast<SSplitter*>(Root->GetChild(1));
+	if (!Top || !Bottom) return false;
 
-    if (bDraggingHorizontal)
-    {
-        Renderer->HorizontalSplitRatio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
-        result = true;
-    }
-    if (bDraggingVertical)
-    {
-        Renderer->VerticalSplitRatio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
-        result = true;
-    }
-    return result;
+	// 스플리터 기준 분할 위치
+	float DragX_Top = ViewportWidth * Top->GetRatio();
+	float DragX_Bottom = ViewportWidth * Bottom->GetRatio();
+	float DragY = ViewportHeight * Root->GetRatio();
+
+	bool bHoverTop = abs(MouseX - DragX_Top) <= DragHandleSize && MouseY < DragY;
+	bool bHoverBottom = abs(MouseX - DragX_Bottom) <= DragHandleSize && MouseY >= DragY;
+	bool bHoverVertical = abs(MouseY - DragY) <= DragHandleSize;
+
+	if (APlayerInput::Get().IsMousePressed(false))
+	{
+		if (bHoverTop)      bDraggingTop = true;
+		if (bHoverBottom)   bDraggingBottom = true;
+		if (bHoverVertical) bDraggingVertical = true;
+	}
+	else if (!APlayerInput::Get().IsMouseDown(false))
+	{
+		bDraggingTop = false;
+		bDraggingBottom = false;
+		bDraggingVertical = false;
+	}
+
+	if (bDraggingTop)
+	{
+		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		Top->SetRatio(Ratio);
+		bResult = true;
+	}
+
+	if (bDraggingBottom)
+	{
+		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		Bottom->SetRatio(Ratio);
+		bResult = true;
+	}
+
+	if (bDraggingVertical)
+	{
+		float Ratio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
+		Root->SetRatio(Ratio);
+		bResult = true;
+	}
+
+	return bResult;
 }
+
 int32 APlayerController::GetClickedViewportIndex()
 {
 	int32 MouseX, MouseY;

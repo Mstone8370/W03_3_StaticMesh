@@ -11,6 +11,8 @@
 #include "Constants.h"
 #include "Editor/Slate/SViewport.h"
 
+class SSplitter;
+class SWindow;
 struct FVertexSimple;
 struct FVector4;
 class UWorld;
@@ -214,10 +216,11 @@ protected:
     // 렌더링에 필요한 리소스 및 상태를 관리하기 위한 변수들
     ID3D11Texture2D* FrameBuffer = nullptr; // 화면 출력용 텍스처
     ID3D11RenderTargetView* FrameBufferRTV = nullptr; // 텍스처를 렌더 타겟으로 사용하는 뷰
+public:
     ID3D11RasterizerState* RasterizerState_Solid = nullptr; // Solid 레스터라이즈 상태
     ID3D11RasterizerState* RasterizerState_Wireframe = nullptr; // Wireframe 레스터라이즈 상태
-
     ID3D11RasterizerState** CurrentRasterizerState = nullptr; // 현재 사용중인 레스터라이즈 상태
+protected:
     EViewModeIndex CurrentRasterizerStateType = EViewModeIndex::ERS_Solid; // 현재 사용중인 레스터라이즈 상태 타입
 
     ID3D11Buffer* CbChangeEveryObject = nullptr; // 쉐이더에 데이터를 전달하기 위한 상수 버퍼
@@ -318,20 +321,21 @@ public:
 
 #pragma endregion picking
 #pragma region Viewports
+    SWindow* RootWindow = nullptr;
     TArray<SViewport*> Viewports;
     void InitializeViewports();
     void UpdateViewports(UWorld* RenderWorld,float Deltatime);
     void ResizeViewports();
-    void ComputeViewportRects();
+    //void ComputeViewportRects();
     //void RecreateAllViewportRTVs();
     
     void RenderViewports(UWorld* RenderWorld,float Deltatime);
     //void RenderViewport(FViewport& View, UWorld* RenderWorld,float Deltatime);
-    float HorizontalSplitRatio = 0.5f; // 수평 분할 비율 (0.0 ~ 1.0)
-    float VerticalSplitRatio = 0.5f; // 수직 분할 비율 (0.0 ~ 1.0)
+    //float HorizontalSplitRatio = 0.5f; // 수평 분할 비율 (0.0 ~ 1.0)
+    //float VerticalSplitRatio = 0.5f; // 수직 분할 비율 (0.0 ~ 1.0)
 
     //다중 RTV 관련
-    float ViewportPadding = 2.f; // in pixels
+    //float ViewportPadding = 2.f; // in pixels
 
     ID3D11Buffer* CompositeConstantBuffer = nullptr;
     

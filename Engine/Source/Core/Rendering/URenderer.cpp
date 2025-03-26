@@ -8,6 +8,7 @@
 #include "Engine/GameFrameWork/Camera.h"
 #include "CoreUObject/Components/PrimitiveComponent.h"
 #include "World.h"
+#include "Editor/Slate/SSplitter.h"
 #include "Editor/Viewport/FViewport.h"
 #include "Editor/Viewport/FViewportClient.h"
 #include "GameFrameWork/Picker.h"
@@ -1850,7 +1851,7 @@ void URenderer::UpdateViewports(UWorld* RenderWorld, float DeltaTime)
 
 void URenderer::ResizeViewports()
 {
-    ComputeViewportRects();
+    //ComputeViewportRects();
 
     for (SViewport* View : Viewports)
     {
@@ -1860,38 +1861,13 @@ void URenderer::ResizeViewports()
 
 void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
 {
-    if (!RenderWorld) return;
+    if (!RenderWorld || !RootWindow)
+        return;
 
-    switch (CurrentRasterizerStateType)
-    {
-    case EViewModeIndex::ERS_Solid:
-        CurrentRasterizerState = &RasterizerState_Solid;
-        break;
-    case EViewModeIndex::ERS_Wireframe:
-        CurrentRasterizerState = &RasterizerState_Wireframe;
-        break;
-    }
-    DeviceContext->RSSetState(*CurrentRasterizerState);
+    FRenderContext Context{ this, RenderWorld, DeltaTime };
 
-    FRenderContext Context{this, RenderWorld, DeltaTime};
-
-    for (SViewport* SView : Viewports)
-    {
-        if (FEditorManager::Get().IsMainCamera(SView->GetFViewport()->GetCamera()))
-            DeviceContext->RSSetState(*CurrentRasterizerState);
-        else
-            DeviceContext->RSSetState(RasterizerState_Wireframe);
-        SView->Render(Context);
-
-        if (!APlayerController::Get().IsUiInput() && APlayerInput::Get().IsMousePressed(false))
-        {
-            FViewport* FView = SView->GetFViewport();
-            if (FView)
-            {
-                RenderWorld->RenderPickingTextureForViewport(*this, *FView);
-            }
-        }
-    }
+    RootWindow->Tick(DeltaTime);
+    RootWindow->Render(Context); // 트리 구조로 렌더링
 
     DeviceContext->RSSetState(RasterizerState_Solid);
     CompositeViewportsToBackBuffer();
@@ -1907,43 +1883,47 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
 void URenderer::InitializeViewports()
 {
     Viewports.Empty();
-
     CreateCompositeConstantBuffer();
     CreateScreenConstantBuffer();
     CreateFullscreenQuadVertexBuffer();
 
-    const float HalfWidth = ViewportInfo.Width * 0.5f;
-    const float HalfHeight = ViewportInfo.Height * 0.5f;
+    // 트리 생성
+    SSplitterV* Root = new SSplitterV();
+    SSplitterH* Top = new SSplitterH();
+    SSplitterH* Bottom = new SSplitterH();
 
-    for (int Row = 0; Row < 2; ++Row)
+    Root->SetChildren(Top, Bottom);
+    Root->SetViewportPadding(2.f); // 선택
+
+    RootWindow = Root;
+
+    for (int i = 0; i < 4; ++i)
     {
-        for (int Col = 0; Col < 2; ++Col)
-        {
-            int Index = Row * 2 + Col;
-            EEditorViewportType ViewType = static_cast<EEditorViewportType>(Index);
+        EEditorViewportType ViewType = static_cast<EEditorViewportType>(i);
 
-            float X = Col * HalfWidth;
-            float Y = Row * HalfHeight;
+        SViewport* SView = new SViewport();
+        FViewport* FView = new FViewport();
+        FView->SetCamera(FEditorManager::Get().GetViewportCamera(ViewType));
+        FView->SetClient(new FViewportClient());
+        FView->index = i;
+        FView->Initialize(Device, ViewportInfo.Width * 0.5f, ViewportInfo.Height * 0.5f); // 일단 임시 사이즈
 
-            FRect Rect(X, Y, HalfWidth, HalfHeight);
+        SView->SetFViewport(FView);
+        SWindow* Window = new SWindow();
+        Window->SetViewport(SView);
 
-            // 생성
-            SViewport* SView = new SViewport();
-            SView->SetRect(Rect);
 
-            FViewport* FView = new FViewport();
-            FView->SetCamera(FEditorManager::Get().GetViewportCamera(ViewType));
-            SView->SetFViewport(FView);
+        if (i < 2) Top->SetChild(i, Window);
+        else       Bottom->SetChild(i - 2, Window);
 
-            FView->Initialize(Device, Rect.Width, Rect.Height);
-            FView->SetClient(new FViewportClient());
-            FView->index = Viewports.Len();
-            Viewports.Add(SView);
-        }
+
+        Viewports.Add(SView);
     }
 
-    ComputeViewportRects();
+    RootWindow->SetRect({ 0, 0, ViewportInfo.Width, ViewportInfo.Height });
+    RootWindow->Tick(0.f); // 초기 배치
 }
+
 
 
 void URenderer::CreateCompositeConstantBuffer()
@@ -2059,7 +2039,7 @@ void URenderer::CreateFullscreenQuadVertexBuffer()
         UE_LOG("Failed to create TextureVertexBuffer");
     }
 }
-
+/*
 void URenderer::ComputeViewportRects()
 {
     const float TotalWidth = ViewportInfo.Width;
@@ -2087,3 +2067,4 @@ void URenderer::ComputeViewportRects()
         View->SetRect({X, Y, W, H});
     }
 }
+*/

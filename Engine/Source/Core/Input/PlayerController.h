@@ -43,7 +43,7 @@ public :
     int32 ClickedViewportIndex = -1;
 	float DragHandleSize = 10.f;
 	bool bDraggingHorizontal = false;
-	bool bDraggingVertical = false;
+	//bool bDraggingVertical = false;
 	bool HandleViewportDrag(float ViewportWidth, float ViewportHeight);
 	int32 GetClickedViewportIndex();
 	int32 GetActiveViewportIndex() const { return ClickedViewportIndex; }
@@ -61,4 +61,8 @@ protected:
 
 	bool bUiInput = false;
 	bool bUiCaptured = false;
+
+	bool bDraggingTop = false;
+	bool bDraggingBottom = false;
+	bool bDraggingVertical = false;
 };
