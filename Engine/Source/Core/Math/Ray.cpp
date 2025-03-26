@@ -3,8 +3,11 @@
 
 #include "Editor/Viewport/FViewport.h"
 #include "GameFramework/Camera.h"
+#include "Input/PlayerInput.h"
+
 FRay FRay::GetRayByMousePoint(ACamera* InCamera)
 {
+	//뷰포트 추가 후 사용 안함
     if(InCamera == nullptr)
 	{
 		return FRay();
@@ -49,31 +52,46 @@ FRay FRay::GetRayByViewportPoint(ACamera* InCamera, const FRect& ViewRect)
 		return FRay();
 
 	// 1. 마우스 → Viewport 로컬 좌표
-	POINT pt;
-	GetCursorPos(&pt);
-	ScreenToClient(UEngine::Get().GetWindowHandle(), &pt);
+	int X, Y;
+	APlayerInput::Get().GetMousePositionClient(X, Y);
+	FPoint pt(X, Y);
 
-	float LocalX = static_cast<float>(pt.x) - ViewRect.X;
-	float LocalY = static_cast<float>(pt.y) - ViewRect.Y;
+	float LocalX = pt.X - ViewRect.X;
+	float LocalY = pt.Y - ViewRect.Y;
 
-	// 2. 로컬 → NDC
+	// 2. 유효 영역 체크
+	if (LocalX < 0 || LocalY < 0 || LocalX > ViewRect.Width || LocalY > ViewRect.Height)
+		return FRay();
+
+	// 3. 로컬 → NDC (-1 ~ +1)
 	float NDCX = 2.0f * LocalX / ViewRect.Width - 1.0f;
 	float NDCY = -2.0f * LocalY / ViewRect.Height + 1.0f;
 
-	FVector4 RayOriginNDC(NDCX, NDCY, 0.0f, 1.0f);
-	FVector4 RayEndNDC(NDCX, NDCY, 1.0f, 1.0f);
+	FVector4 RayClipNear(NDCX, NDCY, 0.0f, 1.0f);
+	FVector4 RayClipFar (NDCX, NDCY, 1.0f, 1.0f);
 
-	// 3. Projection → View
-	FMatrix InvProj = UEngine::Get().GetRenderer()->GetProjectionMatrix().Inverse();
-	FVector4 RayOriginView = InvProj.TransformVector4(RayOriginNDC);
-	FVector4 RayEndView = InvProj.TransformVector4(RayEndNDC);
-	RayEndView *= 1000.f;
-	
-	// 4. View → World
+	// 4. Projection / View Matrix 역변환
+	float AspectRatio = ViewRect.Width / ViewRect.Height;
+	FMatrix InvProj = InCamera->GetProjectionMatrix(AspectRatio).Inverse();
 	FMatrix InvView = InCamera->GetViewMatrix().Inverse();
-	FVector4 RayOriginWorld = InvView.TransformVector4(RayOriginView);
-	FVector4 RayEndWorld = InvView.TransformVector4(RayEndView);
 
-	FVector Delta = RayEndWorld - RayOriginWorld;
-	return FRay(RayOriginWorld, Delta.GetSafeNormal(), Delta.Length());
+	// 5. NDC → View → World
+	FVector4 WorldNear = InvView.TransformVector4(InvProj.TransformVector4(RayClipNear));
+	FVector4 WorldFar  = InvView.TransformVector4(InvProj.TransformVector4(RayClipFar));
+	WorldFar *= 1000.f;
+
+	// 6. 카메라 모드에 따른 Ray 구성
+	if (InCamera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
+	{
+		FVector Origin = FVector(WorldNear.X, WorldNear.Y, WorldNear.Z);
+		FVector Dir = InCamera->GetActorTransform().GetForward();
+		return FRay(Origin, Dir, 10000.f);
+	}
+	else // Perspective
+	{
+		FVector RayStart = InCamera->GetActorTransform().GetPosition();
+		FVector RayEnd = FVector(WorldFar.X, WorldFar.Y, WorldFar.Z);
+		FVector Dir = (RayEnd - RayStart).GetSafeNormal();
+		return FRay(RayStart, Dir, (RayEnd - RayStart).Length());
+	}
 }

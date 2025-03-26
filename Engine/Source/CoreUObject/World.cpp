@@ -449,13 +449,18 @@ UWorldInfo UWorld::GetWorldInfo() const
 
 bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) const
 {
+    if (FirstHitComponent)
+        *FirstHitComponent = nullptr;
     TArray<TPair<USceneComponent*, float>> Hits;
     for (FBox* Box : BoundingBoxes)
     {
         float Distance = 0.f;
         if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
         {
-            Hits.Add({Box->GetOwner(), Distance});
+            if (USceneComponent* Owner = Box->GetOwner())
+            {
+                Hits.Add({Owner, Distance});
+            }
         }
     }
     if (Hits.Num() == 0)
@@ -473,7 +478,11 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) con
     float MinDistance = FLT_MAX;
     for (const auto& [SceneComp, Dist] : Hits)
     {
-        if (Dist < MinDistance)
+        if (!SceneComp)
+        {
+            
+        }
+        if (Dist < MinDistance&&SceneComp)
         {
             MinDistance = Dist;
             *FirstHitComponent = SceneComp;
@@ -482,12 +491,13 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent** FirstHitComponent) con
     if (bDebugRaycast)
     {
         FVector Start = Ray.Origin;
-        FVector End = Ray.Origin + Ray.Direction * MinDistance;
-        DrawDebugLine(Start, End, FVector(1.f, 0.f, 0.f), 5.f);
+        FVector Mid = Ray.Origin + Ray.Direction * MinDistance;
+        FVector End = Ray.Origin + Ray.Direction * Ray.Length;
 
-        Start = End;
-        End = Start + Ray.Direction * (Ray.Length - MinDistance);
-        DrawDebugLine(Start, End, FVector(0.f, 1.f, 0.f), 5.f);
+        DrawDebugLine(Start, Mid, FVector(1.f, 0.f, 0.f), 5.f);  // Hit 구간: 빨강
+        DrawDebugLine(Mid, End, FVector(0.f, 1.f, 0.f), 5.f);    // 잔여 구간: 초록
+
+        UE_LOG("Ray Hit: %s | Distance: %.2f", *(*FirstHitComponent)->GetName(), MinDistance);
     }
 
     return true;

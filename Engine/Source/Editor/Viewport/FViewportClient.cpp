@@ -15,13 +15,13 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
         return;
 
     // 기본 월드 렌더링 루틴
+    Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
     Context.World->RenderWorldGrid(*Context.Renderer);
     Context.World->RenderMainTexture(*Context.Renderer);
     Context.World->RenderBillboard(*Context.Renderer);
     Context.World->RenderText(*Context.Renderer);
     Context.World->RenderMesh(*Context.Renderer);
     Context.World->RenderBoundingBoxes(*Context.Renderer);
-    Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
 }
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)

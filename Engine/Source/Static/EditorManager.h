@@ -6,10 +6,10 @@ class AGizmoHandle;
 
 enum class EEditorViewportType : uint8
 {
-    Perspective,
-    Top,
     Front,
     Right,
+    Perspective,
+    Top,
     MAX
 };
 

@@ -67,6 +67,5 @@ void SViewport::UpdateFViewportSize()
 
     const float NewWidth = Rect.Width;
     const float NewHeight = Rect.Height;
-
     Viewport->Resize(NewWidth, NewHeight);
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector.h"
 
+class SViewport;
 struct FRect;
 struct FViewport;
 

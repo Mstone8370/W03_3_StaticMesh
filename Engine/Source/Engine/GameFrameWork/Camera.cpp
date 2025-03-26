@@ -51,3 +51,15 @@ void ACamera::SetProjectionMode(ECameraProjectionMode::Type InProjectionMode)
     ProjectionMode = InProjectionMode;
     OnCameraProjectionChanged.Broadcast(this);
 }
+FMatrix ACamera::GetProjectionMatrix(float AspectRatio) const
+{
+    if (ProjectionMode == ECameraProjectionMode::Perspective)
+    {
+        float FOVRad = FMath::DegreesToRadians(FieldOfView);
+        return FMatrix::PerspectiveFovLH(FOVRad, AspectRatio, NearClip, FarClip);
+    }
+    else // Orthographic
+    {
+        return FMatrix::OrthoLH(OrthoWidth, OrthoHeight, NearClip, FarClip);
+    }
+}
