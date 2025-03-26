@@ -69,10 +69,6 @@ void USceneComponent::Pick(bool bPicked)
 void USceneComponent::EndPlay(const EEndPlayReason::Type Reason)
 {
 	Super::EndPlay(Reason);
-    if (BoundingBox)
-    {
-        GetOwner()->GetWorld()->RemoveBoundingBox(BoundingBox.get());
-    }
 }
 
 void USceneComponent::SetupAttachment(USceneComponent* InParent, bool bUpdateChildTransform)
