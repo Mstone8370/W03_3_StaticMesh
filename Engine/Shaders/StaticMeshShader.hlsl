@@ -35,17 +35,30 @@ cbuffer UUIDColor : register(b3)
 cbuffer MaterialInfo : register(b4)
 {
     int ActiveTextureFlag;
-    float Ns;               // Specular exponent (광택 정도)
-    float d;                // Dissolve (투명도; 1.0이면 불투명)
-    float illum;            // Illumination model (조명 모델 번호)
-    float Ni;               // Optical density 
-    float3 Ka;              // Ambient color 
-    float3 Kd;              // Diffuse color 
-    float3 Ks;              // Specular color 
-    float3 Ke;              // Emissive color
-    
+    float Ns; // Specular exponent (광택 정도)
+    float d; // Dissolve (투명도; 1.0이면 불투명)
+    float illum; // Illumination model (조명 모델 번호)
+    float Ni; // Optical density 
+    float3 Ka; // Ambient color 
+    float pad0; // 패딩: float3 뒤에 float 1개 추가
+    float3 Kd; // Diffuse color 
+    float pad1;
+    float3 Ks; // Specular color 
+    float pad2;
+    float3 Ke; // Emissive color
+    float pad3;
 }
-
+cbuffer LightingConstants : register(b6)
+{
+    float3 LightDir;
+    float pad4;
+    float3 LightColor;
+    float pad5;
+    float3 AmbientColor;
+    float pad6;
+    float3 CameraPosition;
+    float pad7;
+}
 ////////
 /// Input, Output Structures
 ////////
@@ -64,6 +77,7 @@ struct PS_INPUT
     float3 Normal : NORMAL;
     float2 UV : TEXCOORD0; // 텍스처 좌표
     float4 Color : COLOR; // 전달된 색상
+    float3 WorldPos : TEXCOORD1; // 텍스처 좌표
 };
 
 ////////
@@ -73,6 +87,8 @@ PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
     output.Position = float4(input.Position, 1.0f);
+    output.WorldPos = output.Position;
+    
     output.Position = mul(output.Position, WorldMatrix);
     output.Position = mul(output.Position, ViewMatrix);
     output.Position = mul(output.Position, ProjectionMatrix);
@@ -97,7 +113,7 @@ float4 SampleTexture(int index, float2 uv)
 
 ////////
 /// Pixel Shader (텍스처 매핑, 조명 연산)
-////////
+///////
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
     if (ActiveTextureFlag == 0)
@@ -114,52 +130,54 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     float4 bumpTex = SampleTexture(6, input.UV);
     float4 reflectionTex = SampleTexture(7, input.UV);
 
-    // MaterialInfo에 정의된 머티리얼 컬러 값들을 텍스처에 곱하여 각 성분 구성
+    // 머티리얼 컬러와 텍스처 결합 (Ka, Kd, Ks, Ke 값을 그대로 사용)
     float4 ambient = ambientTex * float4(Ka, 1.0);
     float4 diffuse = diffuseTex * float4(Kd, 1.0);
     float4 specular = specularTex * float4(Ks, 1.0);
     float4 emissive = float4(Ke, 1.0);
-
-    // 각 텍스처와 머티리얼 값들을 가중치로 혼합
-    float4 textureColor = diffuse * 0.5 +
-                          ambient * 0.1 +
-                          specular * 0.1 +
-                          specularHighlightTex * 0.1 +
-                          bumpTex * 0.05 +
-                          reflectionTex * 0.8 +
-                          emissive;
     
-     // 하드코딩된 흰색 조명 적용
-    float3 gLightDir = normalize(float3(-1.0, 0.0, 1.0)); // 빛의 방향 (위쪽과 약간 전방)
-    float3 gLightColor = float3(1.0, 1.0, 1.0); // 조명 색상: 흰색
-    float3 gAmbientColor = float3(0.1, 0.1, 0.1); // 주변광
-
-    // 노멀 벡터 정규화
+    // 모든 텍스처와 머티리얼 효과를 단순 합산
+    float4 textureColor = diffuse + ambient + specular +
+                          specularHighlightTex + bumpTex +
+                          reflectionTex + emissive;
+   
+    // 법선 정규화
     float3 norm = normalize(input.Normal);
     
-    // Diffuse 조명 계산: 노멀과 빛 방향의 내적
-    float diff = saturate(dot(norm, -gLightDir));
+    // Diffuse 연산 (기존 방식)
+    float diffIntensity = saturate(dot(norm, -LightDir));
+    float3 ambientLight = AmbientColor * Ka;
+    float3 diffuseLight = diffIntensity * LightColor * Kd;
     
-    // 그림자 효과를 위한 shadow factor 계산 (내적 값에 따라 부드럽게 전환)
-    float shadowFactor = smoothstep(0.3, 0.6, diff);
+    // 반사 기반 스펙큘러 연산
+    // 반사 벡터 계산 (LightDir: 빛의 입사 방향)
+    float3 reflectionLight = LightDir - (2.0 * norm * dot(LightDir, norm));
+    reflectionLight = normalize(reflectionLight);
     
-    // Ambient 조명 (머티리얼의 Ka 값 반영)
-    float3 ambientLight = gAmbientColor * Ka;
+    // 카메라 위치와 픽셀의 월드 좌표를 이용해 뷰 벡터 계산
+    float3 viewDir = normalize(CameraPosition - input.WorldPos);
     
-    // Diffuse 조명: 내적값에 shadow factor를 곱해 조명 강도를 조절 (강조 효과)
-    float3 diffuseLight = diff * gLightColor * Kd * (0.2 + 1.0 * shadowFactor);
+    // 반사 벡터와 뷰 벡터 내적을 통해 스펙큘러 강도 산출
+    float specValue = saturate(dot(reflectionLight, viewDir));
     
-    // 최종 조명 결과: Ambient + Diffuse
-    float3 lighting = ambientLight + diffuseLight;
+    // Ns(스펙큘러 지수)를 사용하여 스펙큘러 값 계산
+    float spec = pow(specValue, Ns);
+    spec = smoothstep(0.0, 1.0, spec);
     
-    // 텍스처 컬러에 조명 효과 적용
+    // Ks를 곱해 최종 스펙큘러 색상 산출 (LightColor 적용)
+    float3 specularLight = LightColor * Ks * spec;
+    
+    // 최종 조명 연산: ambient, diffuse, 스펙큘러 항 합산
+    float3 lighting = ambientLight + diffuseLight + specularLight;
+    
+    // 최종 색상에 조명 결과 적용 및 투명도 처리
     float4 finalColor = float4(textureColor.rgb * lighting, textureColor.a);
-    
     finalColor.a *= d;
-   
-
-    return finalColor;
+    
+    return diffuseTex;
 }
+
+
 
 
 ////////

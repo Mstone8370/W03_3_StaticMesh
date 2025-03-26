@@ -136,7 +136,25 @@ struct FObjImporter
         FString key = (dotPos == std::string::npos) ? ObjPath : ObjPath.Substr(0, dotPos);
         return FName(*key);
     }
+    static void CalculateBoundingBox(const TArray<FStaticMeshVertex>& Vertices, FVector& OutMin, FVector& OutMax)
+    {
+        // 초기값 설정
+        OutMin = { FLT_MAX, FLT_MAX, FLT_MAX };
+        OutMax = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
+        // 모든 정점 순회
+        for (const FStaticMeshVertex& Vertex : Vertices)
+        {
+            OutMin.X = std::min(OutMin.X, Vertex.Position.X);
+            OutMin.Y = std::min(OutMin.Y, Vertex.Position.Y);
+            OutMin.Z = std::min(OutMin.Z, Vertex.Position.Z);
+
+            OutMax.X = std::max(OutMax.X, Vertex.Position.X);
+            OutMax.Y = std::max(OutMax.Y, Vertex.Position.Y);
+            OutMax.Z = std::max(OutMax.Z, Vertex.Position.Z);
+        }
+    }
+   
 
 };
 

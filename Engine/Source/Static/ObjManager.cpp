@@ -46,11 +46,10 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
 {
     FString BinaryPath = ObjPath + TEXT(".bin");
     FStaticMesh* StaticMesh = LoadStaticMeshFromBinary(BinaryPath.c_char());
-    
     if (StaticMesh) {
         return StaticMesh;
     }
-
+        
     TArray<FSubMesh> SubMeshes;
     TArray<FStaticMeshVertex> CookedVertices;
     TArray<uint32> CookedIndices;

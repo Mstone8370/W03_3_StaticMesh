@@ -10,7 +10,7 @@ AStaticMesh::AStaticMesh()
 {
     bCanEverTick = true;
     bUseBoundingBox = true;
-    bRenderBoundingBox = false;
+    bRenderBoundingBox = true;
 
     // 루트 컴포넌트 생성
     USceneComponent* Root = AddComponent<USceneComponent>();
@@ -36,6 +36,7 @@ AStaticMesh::AStaticMesh()
         OutputDebugString(L"\n");
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
     }
+ 
 }
 
 void AStaticMesh::BeginPlay(){}
@@ -47,4 +48,10 @@ void AStaticMesh::Tick(float DeltaTime)
 const char* AStaticMesh::GetTypeName()
 {
     return "AStaticMesh";
+}
+
+void AStaticMesh::InitStaticMeshBoundingBox(UWorld* World)
+{
+    MeshComponent->InitStaticMeshBoundingBox(World);
+
 }

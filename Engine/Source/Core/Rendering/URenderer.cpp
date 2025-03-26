@@ -129,6 +129,15 @@ void URenderer::CreateConstantBuffer()
     if (FAILED(hr))
         return;
     
+    D3D11_BUFFER_DESC LightConstantBufferDesc = {};
+    LightConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    LightConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    LightConstantBufferDesc.ByteWidth = sizeof(FLightingConstants) + 0xf & 0xfffffff0;
+    LightConstantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    hr = Device->CreateBuffer(&LightConstantBufferDesc, nullptr, &cbLightConstantBuffer);
+    if (FAILED(hr))
+        return;
+    
     /**
      * 여기에서 상수 버퍼를 쉐이더에 바인딩.
      * 현재는 각각 다른 레지스터에 바인딩 하므로 겹치지 않고 구분됨.
@@ -145,6 +154,7 @@ void URenderer::CreateConstantBuffer()
     DeviceContext->PSSetConstantBuffers(3, 1, &ConstantPickingBuffer);
     DeviceContext->PSSetConstantBuffers(4, 1, &cbMaterialInfo);
     DeviceContext->PSSetConstantBuffers(5, 1, &TextureConstantBuffer);
+    DeviceContext->PSSetConstantBuffers(6, 1, &cbLightConstantBuffer);
 }
 
 void URenderer::ReleaseConstantBuffer()
@@ -176,6 +186,11 @@ void URenderer::ReleaseConstantBuffer()
     {
         cbMaterialInfo->Release();
         cbMaterialInfo = nullptr;
+    }
+    if (cbLightConstantBuffer) 
+    {
+        cbLightConstantBuffer->Release();
+        cbLightConstantBuffer = nullptr;
     }
 }
 
@@ -758,7 +773,7 @@ void URenderer::UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterial
     // D3D11_MAP_WRITE_DISCARD는 이전 내용을 무시하고 새로운 데이터로 덮어쓰기 위해 사용
     DeviceContext->Map(cbMaterialInfo, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
     // 매핑된 메모리를 FConstants 구조체로 캐스팅
-    if (FMaterialInfo* Constants = static_cast<FMaterialInfo*>(ConstantBufferMSR.pData))
+    if (FMaterialInfo* Constants = reinterpret_cast<FMaterialInfo*>(ConstantBufferMSR.pData))
     {
         Constants->ActiveTextureFlag = UpdateMaterialInfo.ActiveTextureFlag;
         Constants->d = UpdateMaterialInfo.d;
@@ -772,6 +787,21 @@ void URenderer::UpdateMaterialConstantBuffer(const FMaterialInfo& UpdateMaterial
     }
     // UnMap해서 GPU에 값이 전달 될 수 있게 함
     DeviceContext->Unmap(cbMaterialInfo, 0);
+}
+
+void URenderer::UpdateLightConstantBuffer(const FVector CameraPosition)
+{
+    D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
+    DeviceContext->Map(cbLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
+    FLightingConstants* Constants = reinterpret_cast<FLightingConstants*>(ConstantBufferMSR.pData);
+    if (Constants) {
+        Constants->LightDir = FVector(-0.707f, 0.0f, 0.707f);
+        Constants->LightColor = FVector(1.0f, 1.0f, 1.0f);
+        Constants->AmbientColor = FVector(0.1f, 0.1f, 0.1f);
+
+        Constants->CameraPosition = CameraPosition;
+    }
+    DeviceContext->Unmap(cbLightConstantBuffer, 0);
 }
 
 ID3D11Device* URenderer::GetDevice() const
@@ -1909,6 +1939,13 @@ void URenderer::GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FV
     OutMax = Info.GetMax();
 }
 
+void URenderer::GetStaticMeshLocalBounds(FName Type, FVector& OutMin, FVector& OutMax)
+{
+    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(Type);
+    OutMin = Info.VertexBufferInfo.GetMin();
+    OutMax = Info.VertexBufferInfo.GetMax();
+}
+
 void URenderer::RenderPickingTexture()
 {
     // Copy the picking texture to the back buffer
@@ -1994,6 +2031,8 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
     if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
     {
         UpdateViewMatrix(MainCamera->GetActorTransform());
+        UpdateLightConstantBuffer(MainCamera->GetActorTransform().GetPosition());
+
         UpdateProjectionMatrix(MainCamera);
     }
 }
