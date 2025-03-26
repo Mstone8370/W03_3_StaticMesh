@@ -18,8 +18,8 @@ void UStaticMeshComponent::InitStaticMeshBoundingBox()
 {
     FVector Min;
     FVector Max;
-    FName meshKey = FObjImporter::GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
-    UEngine::Get().GetRenderer()->GetStaticMeshLocalBounds(meshKey, Min, Max);
+    FName MeshKey = FObjImporter::GetNormalizedMeshKey(StaticMesh->GetAssetPathFileName());
+    UEngine::Get().GetRenderer()->GetStaticMeshLocalBounds(MeshKey, Min, Max);
 
     BoundingBox = std::make_shared<FBox>();
     BoundingBox->Init(this, Min, Max);

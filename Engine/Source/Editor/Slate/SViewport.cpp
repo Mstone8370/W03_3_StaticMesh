@@ -35,8 +35,6 @@ void SViewport::Render(const FRenderContext& Context)
     }
 }
 
-
-
 void SViewport::SetFViewport(FViewport* InViewport)
 {
     Viewport = InViewport;

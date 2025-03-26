@@ -98,6 +98,11 @@ bool APicker::PickByColor()
     SViewport* SView = Renderer->Viewports[ViewportIndex];
     if (!SView) return false;
 
+    // SView의 정보를 통해 마우스 XY 좌표 보정
+    FRect WidgetRect = SView->GetRect();
+    X -= static_cast<int32>(WidgetRect.X);
+    Y -= static_cast<int32>(WidgetRect.Y);
+
     FViewport* FView = SView->GetFViewport();
     if (!FView) return false;
 
@@ -169,6 +174,11 @@ void APicker::HandleGizmo()
     FViewport* FView = SView->GetFViewport();
     if (!FView)
         return;
+
+    // SView의 정보를 통해 마우스 XY 좌표 보정
+    FRect WidgetRect = SView->GetRect();
+    X -= static_cast<int32>(WidgetRect.X);
+    Y -= static_cast<int32>(WidgetRect.Y);
 
     FVector4 Color = FView->GetPickingPixel(Renderer->GetDeviceContext(), X, Y);
     uint32 UUID = DecodeUUID(Color);
