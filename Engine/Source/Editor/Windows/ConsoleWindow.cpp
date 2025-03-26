@@ -34,6 +34,7 @@ ConsoleWindow::ConsoleWindow()
     UE_LOG("Welcome to Engine !");
 
     bWasOpen = false;
+
 }
 
 ConsoleWindow::~ConsoleWindow()
@@ -370,18 +371,24 @@ void ConsoleWindow::ProcessCommand(const FString& cmd)
         for (int i = First > 0 ? First : 0; i < static_cast<int>(History.size()); i++)
             UE_LOG("%3d: %s", i, *History[i]);
     }
-    else if (cmd == static_cast<FString>("stat"))
+
+    // TODO: 현재 static bool로 바꾸고 있는 상황.
+    // UEditorDesigner를 통해 변경돼야함.
+    else if (cmd == static_cast<FString>("stat memory") || cmd == static_cast<FString>("Stat Memory"))
     {
-        auto Window = UEditorDesigner::Get().GetWindow("StatWindow");
-        if (Window)
-        {
-            // dynamic_cast를 통해 MyWindow 타입으로 변환 후 setter 호출
-            if (auto Stat = dynamic_cast<ISwitchable*>(Window.get()))
-            {
-                Stat->Toggle();
-            }
-        }
+      
+        UI::bShowStatMemory = (!UI::bShowStatMemory);
     }
+    else if (cmd == static_cast<FString>("stat fps") || cmd == static_cast<FString>("Stat Fps"))
+    {
+        UI::bShowStatFPS = (!UI::bShowStatFPS);
+    }
+    else if (cmd == static_cast<FString>("stat none") || cmd == static_cast<FString>("Stat None"))
+    {
+        UI::bShowStatMemory = false;
+        UI::bShowStatFPS = false;
+    }
+
     else if (cmd.Strnicmp("spawn ", 6) == 0)
     {
         // "spawn " 이후 문자열 추출
