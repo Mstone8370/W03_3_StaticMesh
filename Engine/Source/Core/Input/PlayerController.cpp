@@ -25,6 +25,7 @@ APlayerController::~APlayerController()
 
 void APlayerController::HandleCameraMovement(float DeltaTime)
 {
+	//각 뷰포트 client의 ProcessInput에서 담당
 	if (bUiCaptured)
 		return;
 

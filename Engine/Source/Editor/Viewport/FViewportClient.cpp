@@ -95,7 +95,4 @@ void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)
         Camera->SetActorTransform(CameraTransform);
         APlayerInput::Get().FixMouseCursor();
     }
-
-
-
 }

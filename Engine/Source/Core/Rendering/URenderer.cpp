@@ -1927,7 +1927,7 @@ void URenderer::InitializeViewports()
             FViewport* FView = new FViewport();
             FView->SetCamera(FEditorManager::Get().GetViewportCamera(ViewType));
             SView->SetFViewport(FView);
-
+            
             FView->Initialize(Device, Rect.Width, Rect.Height);
             FView->SetClient(new FViewportClient());
             FView->index=Viewports.Len();

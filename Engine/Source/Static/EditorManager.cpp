@@ -31,6 +31,7 @@ void FEditorManager::SelectActor(AActor* NewActor)
 void FEditorManager::SetCamera(ACamera* NewCamera)
 {
     Camera = NewCamera;
+    ViewportCameras[EEditorViewportType::Perspective]=NewCamera;
 }
 
 void FEditorManager::ToggleGizmoHandleLocal(bool bIsLocal)
@@ -99,6 +100,12 @@ void FEditorManager::InitializeDefaultViewportCameras(UWorld* World)
 
     for (const TPair<EEditorViewportType, FVector>& Info : ViewInfos)
     {
+        if (Info.Key==EEditorViewportType::Perspective)
+        {
+            ACamera* NewCamera = Camera;
+            RegisterViewportCamera(Info.Key, Camera);
+            continue;
+        }
         ACamera* Camera = World->SpawnActor<ACamera>();
         FTransform Transform;
         Transform.SetPosition(Info.Value);

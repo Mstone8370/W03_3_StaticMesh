@@ -19,7 +19,7 @@ public:
     
     void SelectActor(AActor* NewActor);
 
-    inline ACamera* GetCamera() const {return Camera;}
+    inline ACamera* GetCamera() const {return ViewportCameras[EEditorViewportType::Perspective];}
 
     void SetCamera(ACamera* NewCamera);
 
