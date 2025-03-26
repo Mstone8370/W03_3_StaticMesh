@@ -21,7 +21,13 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     Context.World->RenderMesh(*Context.Renderer);
     Context.World->RenderBoundingBoxes(*Context.Renderer);
     Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
+
+    // Prepare new layer
+    Context.Renderer->ClearCurrentDepthSencilView();
+    
     Context.Renderer->RenderAxis();
+
+    // TODO: render gizmo here
 }
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)

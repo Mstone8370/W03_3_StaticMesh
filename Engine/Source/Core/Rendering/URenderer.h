@@ -60,7 +60,7 @@ public:
 
     void PrepareMeshShader();
 
-    void ClearDepthSencil(float Depth = 1.f);
+    void ClearCurrentDepthSencilView(float Depth = 1.f);
 
     HRESULT GenerateAxis();
 

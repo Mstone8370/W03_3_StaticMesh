@@ -489,7 +489,7 @@ void URenderer::PrepareMeshShader()
     DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("StaticMeshShader")), nullptr, 0);
 }
 
-void URenderer::ClearDepthSencil(float Depth)
+void URenderer::ClearCurrentDepthSencilView(float Depth)
 {
     ID3D11DepthStencilView* CurrentDSV = nullptr;
     DeviceContext->OMGetRenderTargets(1, nullptr, &CurrentDSV);
@@ -544,7 +544,6 @@ void URenderer::PrepareAxis()
     DeviceContext->IASetVertexBuffers(0, 1, &AxisVertexBuffer, &AxisStride, &Offset);
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-    ClearDepthSencil();
 
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
