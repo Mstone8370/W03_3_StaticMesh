@@ -149,7 +149,8 @@ void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& Vie
         Component->Render(&Renderer);
     }
 
-    // 5. ZIgnore 오브젝트 렌더링 (깊이 무시)
+    // 5. 기즈모 렌더링 (깊이 무시)
+    Renderer.ClearCurrentDepthSencilView();
     Renderer.RenderGizmoPicking(FEditorManager::Get().GetGizmoHandle());
 }
 

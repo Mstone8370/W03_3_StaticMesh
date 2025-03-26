@@ -189,7 +189,7 @@ void AGizmoHandle::Tick(float DeltaTime)
         SetActorTransform(GizmoTr);
     }
 
-    SetScaleByDistance();
+    // SetScaleByDistance();
 
     AActor::Tick(DeltaTime);
 
