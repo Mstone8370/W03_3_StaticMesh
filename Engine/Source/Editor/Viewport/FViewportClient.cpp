@@ -21,6 +21,7 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     Context.World->RenderMesh(*Context.Renderer);
     Context.World->RenderBoundingBoxes(*Context.Renderer);
     Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
+    Context.Renderer->RenderAxis();
 }
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)

@@ -60,6 +60,18 @@ public:
 
     void PrepareMeshShader();
 
+    void ClearDepthSencil(float Depth = 1.f);
+
+    HRESULT GenerateAxis();
+
+    ID3D11Buffer* AxisVertexBuffer;
+
+    uint32 AxisVertexNum = 6; // 라인 개수 * 정점 개수
+
+    void PrepareAxis();
+    
+    void RenderAxis();
+
     void PrepareWorldGrid();
 
     void RenderWorldGrid();

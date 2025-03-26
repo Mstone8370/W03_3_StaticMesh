@@ -489,6 +489,85 @@ void URenderer::PrepareMeshShader()
     DeviceContext->PSSetShader(ShaderCache->GetPixelShader(TEXT("StaticMeshShader")), nullptr, 0);
 }
 
+void URenderer::ClearDepthSencil(float Depth)
+{
+    ID3D11RenderTargetView* CurrentRTV = nullptr;
+    ID3D11DepthStencilView* CurrentDSV = nullptr;
+    DeviceContext->OMGetRenderTargets(1, &CurrentRTV, &CurrentDSV);
+    
+    DeviceContext->ClearDepthStencilView(CurrentDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, Depth, 0);
+}
+
+HRESULT URenderer::GenerateAxis()
+{
+    HRESULT hr = S_OK;
+
+    TArray<FVertexSimple> AxisVertexData;
+    AxisVertexData.Add({0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f});
+    AxisVertexData.Add({1000.f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f});
+    AxisVertexData.Add({0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 1.f});
+    AxisVertexData.Add({0.f, 1000.f, 0.f, 0.f, 1.f, 0.f, 1.f});
+    AxisVertexData.Add({0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f});
+    AxisVertexData.Add({0.f, 0.f, 1000.f, 0.f, 0.f, 1.f, 1.f});
+
+    D3D11_BUFFER_DESC AxisVertexBufferDesc = {};
+    ZeroMemory(&AxisVertexBufferDesc, sizeof(D3D11_BUFFER_DESC));
+    AxisVertexBufferDesc.ByteWidth = sizeof(FVertexSimple) * AxisVertexNum;
+    AxisVertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    AxisVertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    AxisVertexBufferDesc.CPUAccessFlags = 0;
+    AxisVertexBufferDesc.MiscFlags = 0;
+    AxisVertexBufferDesc.StructureByteStride = 0;
+
+    D3D11_SUBRESOURCE_DATA AxisVertexInitData;
+    ZeroMemory(&AxisVertexInitData, sizeof(AxisVertexInitData));
+    AxisVertexInitData.pSysMem = AxisVertexData.GetData();
+
+    hr = Device->CreateBuffer(&AxisVertexBufferDesc, &AxisVertexInitData, &AxisVertexBuffer);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    return S_OK;
+}
+
+void URenderer::PrepareAxis()
+{
+    uint32 AxisStride = sizeof(FVertexSimple);
+    UINT Offset = 0;
+    DeviceContext->IASetVertexBuffers(0, 1, &AxisVertexBuffer, &AxisStride, &Offset);
+
+    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
+    ClearDepthSencil();
+
+    DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    ID3D11VertexShader* ShaderVS = ShaderCache->GetVertexShader(TEXT("ShaderMain"));
+    ID3D11PixelShader* ShaderPS = ShaderCache->GetPixelShader(TEXT("ShaderMain"));
+    ID3D11InputLayout* InputLayout = ShaderCache->GetInputLayout(TEXT("ShaderMain"));
+
+    DeviceContext->VSSetShader(ShaderVS, nullptr, 0);
+    DeviceContext->PSSetShader(ShaderPS, nullptr, 0);
+    DeviceContext->IASetInputLayout(InputLayout);
+}
+
+void URenderer::RenderAxis()
+{
+    PrepareAxis();
+    
+    ConstantUpdateInfo UpdateInfo
+    {
+        FMatrix::Identity,
+        FVector4(),
+        true,
+    };
+
+    UpdateObjectConstantBuffer(UpdateInfo);
+
+    DeviceContext->Draw(AxisVertexNum, 0);
+}
+
 void URenderer::PrepareWorldGrid()
 {
     UINT Offset = 0;

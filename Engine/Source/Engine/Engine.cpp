@@ -252,6 +252,8 @@ void UEngine::InitRenderer()
     Renderer->CreateConstantBuffer();
 
     Renderer->GenerateWorldGridVertices(WorldGridCellPerSide);
+
+    Renderer->GenerateAxis();
 }
 
 void UEngine::InitWorld()
@@ -272,7 +274,6 @@ void UEngine::InitWorld()
         InitEditorCameraWithEngineConfig(Camera);
     }
     
-    World->SpawnActor<AAxis>();
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
