@@ -133,8 +133,6 @@ public:
     // Texture
     void CreateTextureBuffer();
 
-    void CreateTextureBlendState();
-
     void PrepareBillboard();
 
     void RenderBillboard();
@@ -248,7 +246,7 @@ protected:
     FLOAT ClearColor[4] = {1, 1, 1, 1.0f};
     D3D11_VIEWPORT ViewportInfo = {}; // 렌더링 영역을 정의하는 뷰포트 정보
 
-    ID3D11BlendState* GridBlendState = nullptr;
+    ID3D11BlendState* AlphaBlendBS = nullptr;
 
     uint32 Stride = 0; // Vertex 버퍼의 각 요소 크기
     uint32 GridStride = 0;
@@ -281,7 +279,6 @@ protected:
     ID3D11InputLayout* TextureInputLayout = nullptr; // 텍스처용 인풋 레이아웃
     ID3D11Buffer* TextureConstantBuffer = nullptr;
     ID3D11SamplerState* SamplerState = nullptr; // 텍스쳐 샘플러 스테이트
-    ID3D11BlendState* TextureBlendState = nullptr;
 
     // TextVertexBuffer
     ID3D11Buffer* TextVertexBuffer = nullptr;

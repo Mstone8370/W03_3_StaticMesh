@@ -100,7 +100,7 @@ PS_INPUT mainVS(VS_INPUT input)
     return output;
 }
 
-// 텍스처 샘플러 헬퍼 함수: index가 ActiveTextureCount 미만이면 샘플링, 아니면 기본 흰색 반환.
+// 텍스처 샘플러 헬퍼 함수: index가 ActiveTextureCount 미만이면 샘플링, 아니면 검은색 반환.
 float4 SampleTexture(int index, float2 uv)
 {
     if (ActiveTextureFlag & (1 << (index - 1)))
@@ -174,7 +174,7 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     float4 finalColor = float4(textureColor.rgb * lighting, textureColor.a);
     finalColor.a *= d;
     
-    return diffuseTex;
+    return finalColor;
 }
 
 

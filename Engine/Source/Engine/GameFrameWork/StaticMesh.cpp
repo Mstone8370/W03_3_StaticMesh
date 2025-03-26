@@ -4,7 +4,6 @@
 
 void UStaticMesh::SetStaticMeshAsset(FStaticMesh* InStaticMesh)
 {
-    // TODO:
     StaticMeshAsset = InStaticMesh;
 }
 

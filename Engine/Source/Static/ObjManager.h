@@ -47,16 +47,14 @@ struct FObjMaterialInfo
         , Ni(1.f)
         , d(1.0f)
         , illum()
-        , map_Ka(L"")
-        , map_Kd(L"")
-        , map_Ks(L"")
-        , map_Ns(L"")
-        , map_d(L"")
-        , map_bump(L"")
-        , map_refl(L"")
-    {
-    }
-
+        , map_Ka(TEXT(""))
+        , map_Kd(TEXT(""))
+        , map_Ks(TEXT(""))
+        , map_Ns(TEXT(""))
+        , map_d(TEXT(""))
+        , map_bump(TEXT(""))
+        , map_refl(TEXT(""))
+    {}
 };
 
 //Raw Data
@@ -72,7 +70,6 @@ struct FObjInfo
     TArray<std::wstring> TextureList;
 };
 
-
 struct FSubMesh
 {
     uint32 startIndex; // 전체 인덱스 버퍼에서 이 서브메시가 사용하는 시작 인덱스
@@ -80,11 +77,9 @@ struct FSubMesh
 };
 
 
-
 // TMap<MaterialName, Tmap<StaticMeshName, TArray<SubMesh>>> t
 // StaticMeshName은 Resources/..에 있지만 하위폴더가 존재가능하기 떄문에
 // 파일 이름이 같아도 하위 폴더가 다르면 다른걸로 취급 하도록 StaticMeshName에 값을 저장해야함.
-
 
 struct FObjImporter
 {
@@ -162,7 +157,7 @@ struct FObjImporter
 class FObjManager
 {
 public:
-    static TMap<FName,FSubMesh> MaterialSubmeshMap;
+    static TMap<FName,FSubMesh> MaterialSubMeshMap;
     static TMap<FName,FObjMaterialInfo> MaterialMap;
     static FStaticMesh* LoadObjStaticMeshAsset(const FString& PathFileName);
     static UStaticMesh* LoadObjStaticMesh(const FString& PathFileName);

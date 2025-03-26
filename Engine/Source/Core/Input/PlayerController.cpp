@@ -26,26 +26,7 @@ APlayerController::~APlayerController()
 
 void APlayerController::HandleCameraMovement(ACamera* Camera, bool bIsPerspective, float DeltaTime)
 {
-	FVector MoveDir = FVector::Zero();
-
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
-		MoveDir += bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
-
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
-		MoveDir -= bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
-
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
-		MoveDir -= Camera->GetActorRightVector();
-
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
-		MoveDir += Camera->GetActorRightVector();
-
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::Q))
-		MoveDir -= FVector(0, 0, 1);
-
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::E))
-		MoveDir += FVector(0, 0, 1);
-
+	FVector MoveDir = GetCameraMovementDirection(Camera, bIsPerspective);
 	if (MoveDir.Length() > SMALL_NUMBER)
 	{
 		MoveDir = MoveDir.GetSafeNormal();
@@ -62,9 +43,12 @@ void APlayerController::HandleCameraMovement(ACamera* Camera, bool bIsPerspectiv
 void APlayerController::HandleCameraRotation(ACamera* Camera, bool bIsPerspective)
 {
 	if (!APlayerInput::Get().IsMouseDown(true))
+	{
 		return;
+	}
 
-	int32 DeltaX = 0, DeltaY = 0;
+	int32 DeltaX = 0;
+	int32 DeltaY = 0;
 	APlayerInput::Get().GetMouseDelta(DeltaX, DeltaY);
 
 	FTransform CameraTransform = Camera->GetActorTransform();
@@ -95,20 +79,30 @@ FVector APlayerController::GetCameraMovementDirection(ACamera* Camera, bool bIsP
 {
 	FVector Dir = FVector::Zero();
 
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
-		Dir -= Camera->GetActorRightVector();
-	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
-		Dir += Camera->GetActorRightVector();
-
 	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::W))
+	{
 		Dir += bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
+	}
 	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::S))
+	{
 		Dir -= bIsPerspective ? Camera->GetActorForwardVector() : Camera->GetActorUpVector();
-
+	}
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::D))
+	{
+		Dir += Camera->GetActorRightVector();
+	}
+	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::A))
+	{
+		Dir -= Camera->GetActorRightVector();
+	}
 	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::Q))
+	{
 		Dir -= FVector(0, 0, 1);
+	}
 	if (APlayerInput::Get().IsKeyDown(DirectX::Keyboard::Keys::E))
+	{
 		Dir += FVector(0, 0, 1);
+	}
 
 	return Dir;
 }
@@ -152,24 +146,37 @@ void APlayerController::SetMouseSensitivity(float InSensitivity)
 void APlayerController::ProcessPlayerInput(float DeltaTime)
 {
 	if (HandleUiCapture())
+	{
 		return;
+	}
 
 	UpdateViewportClickState();
 	HandleCursorLock();
 
 	int32 ViewportIndex = GetActiveViewportIndex();
-	if (ViewportIndex == -1) return;
+	if (ViewportIndex == -1)
+	{
+		return;
+	}
 
 	URenderer* Renderer = UEngine::Get().GetRenderer();
 	if (!Renderer || ViewportIndex >= Renderer->Viewports.Num())
+	{
 		return;
+	}
 
 	SViewport* SView = Renderer->Viewports[ViewportIndex];
 	FViewport* FView = SView->GetFViewport();
-	if (!FView) return;
+	if (!FView)
+	{
+		return;
+	}
 
 	ACamera* Camera = FView->GetCamera();
-	if (!Camera) return;
+	if (!Camera)
+	{
+		return;
+	}
 	
 	bool bIsPerspective = Camera->GetProjectionMode() == ECameraProjectionMode::Perspective;
 
@@ -177,8 +184,11 @@ void APlayerController::ProcessPlayerInput(float DeltaTime)
 	HandleCameraMovement(Camera, bIsPerspective, DeltaTime);
 
 	if (bIsPerspective)
+	{
 		SaveCameraProperties(Camera);
+	}
 }
+
 bool APlayerController::HandleUiCapture()
 {
 	if (bUiInput)
@@ -197,6 +207,7 @@ bool APlayerController::HandleUiCapture()
 
 	return false;
 }
+
 void APlayerController::HandleCursorLock()
 {
 	if (APlayerInput::Get().IsMousePressed(true))
@@ -219,12 +230,18 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 
 	URenderer* Renderer = UEngine::Get().GetRenderer();
 	SSplitter* Root = dynamic_cast<SSplitter*>(Renderer->RootWindow);
-	if (!Root) return false;
+	if (!Root)
+	{
+		return false;
+	}
 
 	// Get Top and Bottom horizontal splitters
 	SSplitter* Top = dynamic_cast<SSplitter*>(Root->GetChild(0));
 	SSplitter* Bottom = dynamic_cast<SSplitter*>(Root->GetChild(1));
-	if (!Top || !Bottom) return false;
+	if (!Top || !Bottom)
+	{
+		return false;
+	}
 
 	// 스플리터 기준 분할 위치
 	float DragX_Top = ViewportWidth * Top->GetRatio();
@@ -237,9 +254,18 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 
 	if (APlayerInput::Get().IsMousePressed(false))
 	{
-		if (bHoverTop)      bDraggingTop = true;
-		if (bHoverBottom)   bDraggingBottom = true;
-		if (bHoverVertical) bDraggingVertical = true;
+		if (bHoverTop)
+		{
+			bDraggingTop = true;
+		}
+		if (bHoverBottom)
+		{
+			bDraggingBottom = true;
+		}
+		if (bHoverVertical)
+		{
+			bDraggingVertical = true;
+		}
 	}
 	else if (!APlayerInput::Get().IsMouseDown(false))
 	{
@@ -298,6 +324,7 @@ int32 APlayerController::GetClickedViewportIndex()
 
 	return -1; // 어떤 뷰포트도 클릭되지 않음
 }
+
 void APlayerController::UpdateViewportClickState()
 {
 	if (APlayerInput::Get().IsMousePressed(true) || APlayerInput::Get().IsMousePressed(false)) // 우클릭 or 좌클릭

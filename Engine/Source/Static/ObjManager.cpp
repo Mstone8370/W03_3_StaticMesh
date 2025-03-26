@@ -11,8 +11,8 @@ TMap<FString, FStaticMesh*> FObjManager::ObjStaticMeshMap;
 TMap<FName, FObjMaterialInfo> FObjManager::MaterialMap;
 FObjImporter FObjManager::Importer;
 
-// MaterialSubmeshMap: 머티리얼 이름 -> 서브메쉬 
-TMap<FName, FSubMesh> FObjManager::MaterialSubmeshMap;
+// MaterialSubMeshMap: 머티리얼 이름 -> 서브메쉬 
+TMap<FName, FSubMesh> FObjManager::MaterialSubMeshMap;
 
 FStaticMesh* FObjManager::LoadObjStaticMeshAsset(const FString& PathFileName)
 {
@@ -31,7 +31,8 @@ UStaticMesh* FObjManager::LoadObjStaticMesh(const FString& PathFileName)
     for (TObjectIterator<UStaticMesh> It; It; ++It)
     {
         UStaticMesh* StaticMesh = *It;
-        if (StaticMesh->GetAssetPathFileName() == PathFileName) {
+        if (StaticMesh->GetAssetPathFileName() == PathFileName)
+        {
             return *It;
         }
     }
@@ -132,9 +133,9 @@ FStaticMesh* FObjImporter::BuildMeshFromObj(const FString& ObjPath)
     {
         const FName& MaterialName = MaterialsName[i];
         const FSubMesh& CurrentSubMesh = SubMeshes[i];
-        if (!FObjManager::MaterialSubmeshMap.Contains(MaterialName))
+        if (!FObjManager::MaterialSubMeshMap.Contains(MaterialName))
         {
-            FObjManager::MaterialSubmeshMap[MaterialName] = CurrentSubMesh;
+            FObjManager::MaterialSubMeshMap[MaterialName] = CurrentSubMesh;
         }
     }
     
@@ -188,9 +189,9 @@ void FObjImporter::SaveStaticMeshToBinary(const std::string& BinaryPath, FStatic
     }
 
     // 4. MaterialSubmeshMap 저장
-    uint32_t submeshMapCount = static_cast<uint32_t>(FObjManager::MaterialSubmeshMap.Num());
+    uint32_t submeshMapCount = static_cast<uint32_t>(FObjManager::MaterialSubMeshMap.Num());
     out.write(reinterpret_cast<char*>(&submeshMapCount), sizeof(submeshMapCount));
-    for (auto& pair : FObjManager::MaterialSubmeshMap)
+    for (auto& pair : FObjManager::MaterialSubMeshMap)
     {
         // 키(FName)를 문자열로 저장
         std::string keyStr = pair.Key.ToString().c_char();
@@ -329,7 +330,7 @@ FStaticMesh* FObjImporter::LoadStaticMeshFromBinary(const std::string& BinaryPat
         FName keyFName(keyStr.c_str());
         FSubMesh submesh;
         in.read(reinterpret_cast<char*>(&submesh), sizeof(FSubMesh));
-        FObjManager::MaterialSubmeshMap.Add(keyFName, submesh);
+        FObjManager::MaterialSubMeshMap.Add(keyFName, submesh);
     }
 
     // 5. MaterialMap 로드 (전역 머티리얼 정보)

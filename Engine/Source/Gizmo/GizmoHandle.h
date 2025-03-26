@@ -55,14 +55,17 @@ private:
 	TArray<UStaticMeshComponent*> ScaleGizmos;
 
 	ESelectedAxis SelectedAxis = ESelectedAxis::None;
+	
 	EGizmoType GizmoType = EGizmoType::Translate;
 
 public:
 	virtual const char* GetTypeName() override;
 
 	bool bIsLocal = false;
+	
 private:
 	void DoTransform(FTransform& CompTransform, FVector Result, USceneComponent* SceneComp);
+
 	FVector CachedRayResult = FVector::ZeroVector;
 };
 
