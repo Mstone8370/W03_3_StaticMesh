@@ -11,7 +11,7 @@ public:
     void SetChildren(SWindow* First, SWindow* Second);
     void SetChild(int Index, SWindow* Child);
     SWindow* GetChild(int Index) const;
-    void SetRatio(float InRatio);
+    void SetRatio(float InRatio,bool IgnoreClamp=false);
     float GetRatio(){return Ratio;};
     void SetViewportPadding(float InPadding);
 

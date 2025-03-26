@@ -294,21 +294,21 @@ bool APlayerController::HandleViewportDrag(float ViewportWidth, float ViewportHe
 
 	if (bDraggingTop)
 	{
-		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		float Ratio = static_cast<float>(MouseX) / ViewportWidth;
 		Top->SetRatio(Ratio);
 		bResult = true;
 	}
 
 	if (bDraggingBottom)
 	{
-		float Ratio = FMath::Clamp(static_cast<float>(MouseX) / ViewportWidth, 0.1f, 0.9f);
+		float Ratio = static_cast<float>(MouseX) / ViewportWidth;
 		Bottom->SetRatio(Ratio);
 		bResult = true;
 	}
 
 	if (bDraggingVertical)
 	{
-		float Ratio = FMath::Clamp(static_cast<float>(MouseY) / ViewportHeight, 0.1f, 0.9f);
+		float Ratio = static_cast<float>(MouseY) / ViewportHeight;
 		Root->SetRatio(Ratio);
 		bResult = true;
 	}

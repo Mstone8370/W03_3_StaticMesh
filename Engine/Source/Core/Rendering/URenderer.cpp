@@ -129,7 +129,7 @@ void URenderer::CreateConstantBuffer()
     hr = Device->CreateBuffer(&MaterialConstantBufferDesc, nullptr, &cbMaterialInfo);
     if (FAILED(hr))
         return;
-    
+
     D3D11_BUFFER_DESC LightConstantBufferDesc = {};
     LightConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     LightConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -138,7 +138,7 @@ void URenderer::CreateConstantBuffer()
     hr = Device->CreateBuffer(&LightConstantBufferDesc, nullptr, &cbLightConstantBuffer);
     if (FAILED(hr))
         return;
-    
+
     /**
      * 여기에서 상수 버퍼를 쉐이더에 바인딩.
      * 현재는 각각 다른 레지스터에 바인딩 하므로 겹치지 않고 구분됨.
@@ -188,7 +188,7 @@ void URenderer::ReleaseConstantBuffer()
         cbMaterialInfo->Release();
         cbMaterialInfo = nullptr;
     }
-    if (cbLightConstantBuffer) 
+    if (cbLightConstantBuffer)
     {
         cbLightConstantBuffer->Release();
         cbLightConstantBuffer = nullptr;
@@ -512,7 +512,7 @@ void URenderer::ClearCurrentDepthSencilView(float Depth)
 {
     ID3D11DepthStencilView* CurrentDSV = nullptr;
     DeviceContext->OMGetRenderTargets(1, nullptr, &CurrentDSV);
-    
+
     if (CurrentDSV)
     {
         DeviceContext->ClearDepthStencilView(CurrentDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, Depth, 0);
@@ -578,7 +578,7 @@ void URenderer::PrepareAxis()
 void URenderer::RenderAxis()
 {
     PrepareAxis();
-    
+
     ConstantUpdateInfo UpdateInfo
     {
         FMatrix::Identity,
@@ -797,7 +797,8 @@ void URenderer::UpdateLightConstantBuffer(const FVector CameraPosition)
     D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR;
     DeviceContext->Map(cbLightConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
     FLightingConstants* Constants = reinterpret_cast<FLightingConstants*>(ConstantBufferMSR.pData);
-    if (Constants) {
+    if (Constants)
+    {
         Constants->LightDir = FVector(-0.707f, 0.0f, 0.707f);
         Constants->LightColor = FVector(1.0f, 1.0f, 1.0f);
         Constants->AmbientColor = FVector(0.1f, 0.1f, 0.1f);
@@ -1868,7 +1869,6 @@ void URenderer::UpdateProjectionMatrixAspect(const ACamera* Camera, float Width,
         //float SizeDivisor = 360.f;
         //ProjectionMatrix = FMatrix::OrthoLH(Width / SizeDivisor, Height / SizeDivisor, NearClip, FarClip);
         ProjectionMatrix = FMatrix::OrthoLH(Camera->GetOrthoWidth(), Camera->GetOrthoHeight(), NearClip, FarClip);
-
     }
 
     // Update constant buffer
@@ -1976,7 +1976,7 @@ FMatrix URenderer::GetProjectionMatrix() const
 
 void URenderer::UpdateViewports(UWorld* RenderWorld, float DeltaTime)
 {
-    if (APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
+    if (bUseSplitter&&APlayerController::Get().HandleViewportDrag(ViewportInfo.Width, ViewportInfo.Height))
     {
         ResizeViewports();
     }
@@ -2005,11 +2005,15 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
     if (!RenderWorld || !RootWindow)
         return;
 
-    FRenderContext Context{ this, RenderWorld, DeltaTime };
+    FRenderContext Context{this, RenderWorld, DeltaTime};
 
-    RootWindow->Tick(DeltaTime);
-    RootWindow->Render(Context); // 트리 구조로 렌더링
-
+    if (RootWindow)
+    {
+        SSplitter* RootSplitter = dynamic_cast<SSplitter*>(RootWindow);
+        RootSplitter->UpdateChildRects();
+        RootWindow->Tick(DeltaTime);
+        RootWindow->Render(Context); // 트리 구조로 렌더링
+    }
     DeviceContext->RSSetState(RasterizerState_Solid);
     CompositeViewportsToBackBuffer();
 
@@ -2047,6 +2051,7 @@ void URenderer::InitializeViewports()
         SViewport* SView = new SViewport();
         FViewport* FView = new FViewport();
         FView->SetCamera(FEditorManager::Get().GetViewportCamera(ViewType));
+        if (FView->GetCamera() == FEditorManager::Get().GetMainCamera())MainViewport = SView;
         FView->SetClient(new FViewportClient());
         FView->index = i;
         FView->Initialize(Device, ViewportInfo.Width * 0.5f, ViewportInfo.Height * 0.5f); // 일단 임시 사이즈
@@ -2057,13 +2062,13 @@ void URenderer::InitializeViewports()
 
 
         if (i < 2) Top->SetChild(i, Window);
-        else       Bottom->SetChild(i - 2, Window);
+        else Bottom->SetChild(i - 2, Window);
 
 
         Viewports.Add(SView);
     }
 
-    RootWindow->SetRect({ 0, 0, ViewportInfo.Width, ViewportInfo.Height });
+    RootWindow->SetRect({0, 0, ViewportInfo.Width, ViewportInfo.Height});
     RootWindow->Tick(0.f); // 초기 배치
 
     // Splitter Ratio 불러오기
@@ -2076,18 +2081,19 @@ void URenderer::InitializeViewports()
 
         if (SSplitter* TopSplitter = dynamic_cast<SSplitter*>(RootSplitter->GetChild(0)))
         {
-            TopSplitter->SetRatio(Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHTopRatio, 0.5f));
+            TopSplitter->SetRatio(
+                Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHTopRatio, 0.5f));
         }
 
         if (SSplitter* BottomSplitter = dynamic_cast<SSplitter*>(RootSplitter->GetChild(1)))
         {
-            BottomSplitter->SetRatio(Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHBottomRatio, 0.5f));
+            BottomSplitter->SetRatio(
+                Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHBottomRatio, 0.5f));
         }
     }
     RootSplitter->UpdateChildRects();
     RootWindow->Tick(0.f);
 }
-
 
 
 void URenderer::CreateCompositeConstantBuffer()
@@ -2141,7 +2147,6 @@ void URenderer::CompositeViewportsToBackBuffer()
     for (SViewport* SView : Viewports)
     {
         if (!SView) continue;
-
         FViewport* FView = SView->GetFViewport();
         if (!FView) continue;
 
@@ -2156,7 +2161,6 @@ void URenderer::CompositeViewportsToBackBuffer()
 
         // FRect를 이용해 합성용 상수버퍼 업데이트
         UpdateCompositeConstantBuffer(SView->GetRect());
-
         // 풀스크린 쿼드 출력
         DeviceContext->Draw(6, 0);
     }
@@ -2203,6 +2207,7 @@ void URenderer::CreateFullscreenQuadVertexBuffer()
         UE_LOG("Failed to create TextureVertexBuffer");
     }
 }
+
 /*
 void URenderer::ComputeViewportRects()
 {

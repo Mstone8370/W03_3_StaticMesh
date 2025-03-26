@@ -10,6 +10,8 @@
 #include "Editor/EditorDesigner.h"
 #include "Editor/Font/IconDefs.h"
 #include "Editor/Font/RawFonts.h"
+#include "Editor/Slate/SSplitter.h"
+#include "Editor/Viewport/FViewport.h"
 #include "Editor/Windows/ConsoleWindow.h"
 #include "Engine/GameFrameWork/Actor.h"
 #include "Engine/GameFrameWork/Camera.h"
@@ -749,12 +751,50 @@ void UI::PreferenceStyle()
 }
 void UI::RenderViewportTestWindow()
 {
-    ImGui::Begin("Viewport Splitter");
-    URenderer* Renderer = UEngine::Get().GetRenderer();
-    //ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
-    //ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
-    ImGui::Checkbox("Render Picking",&Renderer->bRenderPicking);
-    ImGui::End();
+	ImGui::Begin("Viewport Splitter");
+
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	if (!Renderer)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// Splitter On/Off 토글
+	if (ImGui::Checkbox("Use Splitter", &Renderer->bUseSplitter))
+	{
+		// 체크박스 변경 시 초기화 (뷰포트 구조 재구성)
+		Renderer->InitializeViewports();
+		if (!Renderer->bUseSplitter)
+		{
+			FViewport* FView = Renderer->MainViewport->GetFViewport();
+			SViewport* SView = Renderer->MainViewport;
+
+			// 1. Splitter 상태를 MainViewport만 남기도록 강제 설정
+			SSplitter* RootSplitter = dynamic_cast<SSplitter*>(Renderer->RootWindow);
+			if (RootSplitter)
+			{
+				RootSplitter->SetRatio(0,true); // 전체 Bottom 영역 사용
+				if (SSplitter* BottomSplitter = dynamic_cast<SSplitter*>(RootSplitter->GetChild(1)))
+				{
+					BottomSplitter->SetRatio(1,true); // 전체 Left 영역 사용
+				}
+				RootSplitter->UpdateChildRects(); // Rect 재계산
+			}
+
+			// 2. 전체 화면 기준으로 SViewport Rect 설정
+			FRect FullRect(0, 0, Renderer->ViewportInfo.Width, Renderer->ViewportInfo.Height);
+			SView->SetRect(FullRect);
+
+			// 3. FViewport의 사이즈 동기화
+			FView->Resize(FullRect.Width, FullRect.Height);
+		}
+		Renderer->ResizeViewports();
+	}
+
+	ImGui::Checkbox("Render Picking", &Renderer->bRenderPicking);
+
+	ImGui::End();
 }
 
 void UI::CreateUsingFont()
