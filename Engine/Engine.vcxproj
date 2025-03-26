@@ -241,7 +241,6 @@
     <ClInclude Include="Source\Engine\GameFrameWork\Cylinder.h" />
     <ClInclude Include="Source\Engine\GameFrameWork\Picker.h" />
     <ClInclude Include="Source\Engine\GameFrameWork\Sphere.h" />
-    <ClInclude Include="Source\Gizmo\Axis.h" />
     <ClInclude Include="Source\Gizmo\GizmoHandle.h" />
     <ClInclude Include="Source\Gizmo\WorldGrid.h" />
     <ClInclude Include="Source\pch.h" />
@@ -321,7 +320,6 @@
     <ClCompile Include="Source\Engine\GameFrameWork\Cylinder.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Picker.cpp" />
     <ClCompile Include="Source\Engine\GameFrameWork\Sphere.cpp" />
-    <ClCompile Include="Source\Gizmo\Axis.cpp" />
     <ClCompile Include="Source\Gizmo\GizmoHandle.cpp" />
     <ClCompile Include="Source\Gizmo\WorldGrid.cpp" />
     <ClCompile Include="Source\Launch\Launch.cpp" />

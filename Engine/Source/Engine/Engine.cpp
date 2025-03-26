@@ -6,7 +6,6 @@
 #include "Core/Input/PlayerController.h"
 #include "CoreUObject/ObjectFactory.h"
 #include "CoreUObject/World.h"
-#include "Gizmo/Axis.h"
 #include "GameFrameWork/Camera.h"
 #include "Gizmo/GizmoHandle.h"
 #include "Core/Rendering/TextureLoader.h"

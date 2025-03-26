@@ -491,11 +491,16 @@ void URenderer::PrepareMeshShader()
 
 void URenderer::ClearDepthSencil(float Depth)
 {
-    ID3D11RenderTargetView* CurrentRTV = nullptr;
     ID3D11DepthStencilView* CurrentDSV = nullptr;
-    DeviceContext->OMGetRenderTargets(1, &CurrentRTV, &CurrentDSV);
+    DeviceContext->OMGetRenderTargets(1, nullptr, &CurrentDSV);
     
-    DeviceContext->ClearDepthStencilView(CurrentDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, Depth, 0);
+    if (CurrentDSV)
+    {
+        DeviceContext->ClearDepthStencilView(CurrentDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, Depth, 0);
+
+        // Get을 통해 참조 카운트가 증가했으므로, release
+        CurrentDSV->Release();
+    }
 }
 
 HRESULT URenderer::GenerateAxis()
