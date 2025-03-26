@@ -75,6 +75,8 @@ public:
 
     void RenderGizmo(AGizmoHandle* Gizmo);
 
+    void RenderGizmoPicking(AGizmoHandle* Gizmo);
+
     /**
      * 정점 데이터로 Vertex Buffer를 생성합니다.
      * @param Vertices 버퍼로 변환할 정점 데이터 배열의 포인터

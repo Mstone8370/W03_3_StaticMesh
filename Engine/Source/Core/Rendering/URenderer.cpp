@@ -642,6 +642,19 @@ void URenderer::RenderGizmo(AGizmoHandle* Gizmo)
     }
 }
 
+void URenderer::RenderGizmoPicking(AGizmoHandle* Gizmo)
+{
+    for (auto& Comp : Gizmo->GetComponents())
+    {
+        if (UPrimitiveComponent* PrimitiveComp = dynamic_cast<UPrimitiveComponent*>(Comp))
+        {
+            uint32 UUID = PrimitiveComp->GetUUID();
+            PrimitiveComp->UpdateConstantPicking(*this, APicker::EncodeUUID(UUID));
+            PrimitiveComp->Render(this);
+        }
+    }
+}
+
 ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FVertexSimple* Vertices, UINT ByteWidth) const
 {
     D3D11_BUFFER_DESC VertexBufferDesc = {};
@@ -1638,11 +1651,6 @@ void URenderer::ReleasePickingFrameBuffer()
         PickingFrameBufferRTV->Release();
         PickingFrameBufferRTV = nullptr;
     }
-}
-
-void URenderer::PrepareZIgnore()
-{
-    DeviceContext->OMSetDepthStencilState(IgnoreDepthStencilState, 0);
 }
 
 void URenderer::PreparePicking()
