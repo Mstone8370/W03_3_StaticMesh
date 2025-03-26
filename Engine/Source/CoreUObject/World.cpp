@@ -405,6 +405,7 @@ void UWorld::LoadWorld(const char* InSceneName)
             {
                 AStaticMesh* MeshActor = static_cast<AStaticMesh*>(Actor);
                 MeshActor->SetAssetName(ObjectInfo->AssetName);
+                MeshActor->InitStaticMeshBoundingBox(this);
             }
         }
 

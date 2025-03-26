@@ -1836,6 +1836,13 @@ void URenderer::GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FV
     OutMax = Info.GetMax();
 }
 
+void URenderer::GetStaticMeshLocalBounds(FName Type, FVector& OutMin, FVector& OutMax)
+{
+    FStaticMeshBufferInfo Info = BufferCache->GetStaticMeshBufferInfo(Type);
+    OutMin = Info.VertexBufferInfo.GetMin();
+    OutMax = Info.VertexBufferInfo.GetMax();
+}
+
 void URenderer::RenderPickingTexture()
 {
     // Copy the picking texture to the back buffer

@@ -77,6 +77,12 @@ bool FBufferCache::BuildStaticMesh(const FString& ObjFilePath)
 
     FVertexBufferInfo VertexInfo(VertexBuffer, StaticMeshAsset->Vertices.Num(), D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, nullptr);
     FIndexBufferInfo IndexInfo(IndexBuffer, StaticMeshAsset->Indices.Num());
+    FVector Min = FVector(FLT_MAX,FLT_MAX, FLT_MAX);
+    FVector Max = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    FObjImporter::CalculateBoundingBox(StaticMeshAsset->Vertices, Min, Max);
+   
+    VertexInfo.SetMax(Max);
+    VertexInfo.SetMin(Min);
 
     FStaticMeshBufferInfo StaticMeshInfo(VertexInfo, IndexInfo);
     StaticMeshBufferCache.Add(Key, StaticMeshInfo);

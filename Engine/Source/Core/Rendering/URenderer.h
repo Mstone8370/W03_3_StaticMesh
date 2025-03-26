@@ -102,6 +102,7 @@ public:
 
     // 프리미티브의 바운딩 박스 크기를 Min, Max에 전달.
     void GetPrimitiveLocalBounds(EPrimitiveType Type, FVector& OutMin, FVector& OutMax);
+    void GetStaticMeshLocalBounds(FName Type, FVector& OutMin, FVector& OutMax);
 
     void SetRenderMode(EViewModeIndex Type);
 

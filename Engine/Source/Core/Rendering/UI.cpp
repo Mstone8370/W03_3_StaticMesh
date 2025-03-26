@@ -32,348 +32,355 @@ std::shared_ptr<ConsoleWindow> UI::ConsoleWindowInstance = nullptr;
 
 void UI::Initialize(HWND hWnd, const URenderer& Renderer, uint32 InClientWidth, uint32 InClientHeight)
 {
-    // Initialize ImGui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+	// Initialize ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
 
-	//CreateUsingFont();
+	CreateUsingFont();
 
-    // Fix Font Size
-    io.FontGlobalScale = 1.0f;
+	// Fix Font Size
+	io.FontGlobalScale = 1.0f;
 
-    // Initialize ImGui Backend
-    ImGui_ImplWin32_Init(hWnd);
-    ImGui_ImplDX11_Init(Renderer.GetDevice(), Renderer.GetDeviceContext());
+	// Initialize ImGui Backend
+	ImGui_ImplWin32_Init(hWnd);
+	ImGui_ImplDX11_Init(Renderer.GetDevice(), Renderer.GetDeviceContext());
 
-    ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
-    InitialClientSize = ClientSize;
-    bIsInitialized = true;
-    
-    io.DisplaySize = ClientSize;
+	ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
+	InitialClientSize = ClientSize;
+	bIsInitialized = true;
 
-    PreRatio = GetRatio();
-    CurRatio = GetRatio();
+	io.DisplaySize = ClientSize;
 
-    // Add Windows
-    //@TODO: Control, Property, Stat, etc...
-    ConsoleWindowInstance = std::make_shared<ConsoleWindow>();
+	PreRatio = GetRatio();
+	CurRatio = GetRatio();
+
+	// Add Windows
+	//@TODO: Control, Property, Stat, etc...
+	ConsoleWindowInstance = std::make_shared<ConsoleWindow>();
 	UEditorDesigner::Get().AddWindow("ConsoleWindow", ConsoleWindowInstance);
 }
 
 void UI::Update()
 {
 	// Set ImGui Style //
-    PreferenceStyle();
+	PreferenceStyle();
 
 	// New Frame //
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 
-    // 화면비 갱신 //
-    if (bWasWindowSizeUpdated)
-    {
-        PreRatio = CurRatio;
-        CurRatio = GetRatio();
-        UE_LOG("Current Ratio: %f, %f", CurRatio.x, CurRatio.y);
-    }
+	// 화면비 갱신 //
+	if (bWasWindowSizeUpdated)
+	{
+		PreRatio = CurRatio;
+		CurRatio = GetRatio();
+		UE_LOG("Current Ratio: %f, %f", CurRatio.x, CurRatio.y);
+	}
 
-    if (bShowDemoWindow)
+	if (bShowDemoWindow)
 		ImGui::ShowDemoWindow(&bShowDemoWindow);
 
-    RenderControlPanelWindow();
-    RenderPropertyWindow();
-    Debug::ShowConsole(bWasWindowSizeUpdated, PreRatio, CurRatio);
-    RenderSceneManagerWindow();
-    RenderViewportTestWindow();
+	RenderControlPanelWindow();
+	RenderPropertyWindow();
+	Debug::ShowConsole(bWasWindowSizeUpdated, PreRatio, CurRatio);
+	RenderSceneManagerWindow();
+	//RenderOverlayStatWindow();
+	RenderViewportTestWindow();
 
-    // UI::RenderSomePanel 들에 대한 업데이트 완료 //
-    bWasWindowSizeUpdated = false;
+	// UI::RenderSomePanel 들에 대한 업데이트 완료 //
+	bWasWindowSizeUpdated = false;
 
 	// Render Windows //
 	UEditorDesigner::Get().Render();
 
 	// Render ImGui //
-    ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-    bool bUiInput = ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-    APlayerController::Get().SetIsUiInput(bUiInput);
+	bool bUiInput = ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive() || ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+	APlayerController::Get().SetIsUiInput(bUiInput);
 }
 
 
 void UI::Shutdown()
 {
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void UI::OnClientSizeUpdated(uint32 InClientWidth, uint32 InClientHeight)
 {
 	// Create ImGUI Resources Again
-    ImGui_ImplDX11_InvalidateDeviceObjects();
-    ImGui_ImplDX11_CreateDeviceObjects();
+	ImGui_ImplDX11_InvalidateDeviceObjects();
+	ImGui_ImplDX11_CreateDeviceObjects();
 
 	// Resize ImGui Window
-    ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
+	ClientSize = ImVec2(static_cast<float>(InClientWidth), static_cast<float>(InClientHeight));
 
-    bWasWindowSizeUpdated = true;
+	bWasWindowSizeUpdated = true;
 
-    // Render Windows //
-    UEditorDesigner::Get().OnResize(InClientWidth, InClientHeight);
+	// Render Windows //
+	UEditorDesigner::Get().OnResize(InClientWidth, InClientHeight);
 }
 
 void UI::RenderControlPanelWindow()
 {
-    ImGui::Begin("Jungle Control Panel");
+	ImGui::Begin("Jungle Control Panel");
 
-    if (bWasWindowSizeUpdated)
-    {
-        auto* Window = ImGui::GetCurrentWindow();
+	if (bWasWindowSizeUpdated)
+	{
+		auto* Window = ImGui::GetCurrentWindow();
 
-        ImGui::SetWindowPos(ResizeToScreen(Window->Pos));
-        ImGui::SetWindowSize(ResizeToScreen(Window->Size));
-    }
-    
-    ImGui::Text("Hello, Jungle World!");
+		ImGui::SetWindowPos(ResizeToScreen(Window->Pos));
+		ImGui::SetWindowSize(ResizeToScreen(Window->Size));
+	}
 
-    ImGui::Separator();
+	ImGui::Text("Hello, Jungle World!");
 
-    ImGui::Text("Mouse pos: (%g, %g)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
+	ImGui::Separator();
+
+	ImGui::Text("Mouse pos: (%g, %g)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
 	ImGui::Text("Screen Size: (%g, %g)", ClientSize.x, ClientSize.y);
 
-    ImGui::Separator();
+	ImGui::Separator();
 
-    ImGui::Text("FPS: %.3f (what is that ms)", ImGui::GetIO().Framerate);
-    RenderMemoryUsage();
-    
-    ImGui::Separator();
-
-    RenderPrimitiveSelection();
-
-    ImGui::Separator();
-
-    RenderCameraSettings();
-
-    ImGui::Separator();
-
-    RenderRenderMode();
+	ImGui::Text("FPS: %.3f (what is that ms)", ImGui::GetIO().Framerate);
+	RenderMemoryUsage();
 
 	ImGui::Separator();
 
-    RenderGridGap();
-
-    ImGui::Separator();
-
-    RenderDebugRaycast();
+	RenderPrimitiveSelection();
 
 	ImGui::Separator();
 
-    if (ImGui::Button("Toggle New Console"))
-    {
-        UEditorDesigner::Get().Toggle();
-    }
+	RenderCameraSettings();
+
+	ImGui::Separator();
+
+	RenderRenderMode();
+
+	ImGui::Separator();
+
+	RenderGridGap();
+
+	ImGui::Separator();
+
+	RenderDebugRaycast();
+
+	ImGui::Separator();
+
+	if (ImGui::Button("Toggle New Console"))
+	{
+		UEditorDesigner::Get().Toggle();
+	}
 	ImGui::SameLine();
-    ImGui::Checkbox("Demo Window", &bShowDemoWindow);
+	ImGui::Checkbox("Demo Window", &bShowDemoWindow);
 
-    ImGui::End();
+	ImGui::End();
 }
 
 void UI::RenderMemoryUsage()
 {
-    const uint64 ContainerAllocByte = FPlatformMemory::GetAllocationBytes<EAT_Container>();
-    const uint64 ContainerAllocCount = FPlatformMemory::GetAllocationCount<EAT_Container>();
-    const uint64 ObjectAllocByte = FPlatformMemory::GetAllocationBytes<EAT_Object>();
-    const uint64 ObjectAllocCount = FPlatformMemory::GetAllocationCount<EAT_Object>();
-    ImGui::Text(
-        "Container Memory Uses: %llubyte, Count: %llu",
-        ContainerAllocByte,
-        ContainerAllocCount
-    );
-    ImGui::Text(
-        "Object Memory Uses: %llubyte, Count: %llu Objects",
-        ObjectAllocByte,
-        ObjectAllocCount
-    );
-    ImGui::Text(
-        "Total Memory Uses: %llubyte, Count: %llu",
-        ContainerAllocByte + ObjectAllocByte,
-        ContainerAllocCount + ObjectAllocCount
-    );
+	const uint64 ContainerAllocByte = FPlatformMemory::GetAllocationBytes<EAT_Container>();
+	const uint64 ContainerAllocCount = FPlatformMemory::GetAllocationCount<EAT_Container>();
+	const uint64 ObjectAllocByte = FPlatformMemory::GetAllocationBytes<EAT_Object>();
+	const uint64 ObjectAllocCount = FPlatformMemory::GetAllocationCount<EAT_Object>();
+	ImGui::Text(
+		"Container Memory Uses: %llubyte, Count: %llu",
+		ContainerAllocByte,
+		ContainerAllocCount
+	);
+	ImGui::Text(
+		"Object Memory Uses: %llubyte, Count: %llu Objects",
+		ObjectAllocByte,
+		ObjectAllocCount
+	);
+	ImGui::Text(
+		"Total Memory Uses: %llubyte, Count: %llu",
+		ContainerAllocByte + ObjectAllocByte,
+		ContainerAllocCount + ObjectAllocCount
+	);
 }
 
 void UI::RenderPrimitiveSelection()
 {
-    const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "TestStaticMesh"};
+	const char* items[] = { "Sphere", "Cube", "Cylinder", "Cone", "Arrow", "TestStaticMesh" };
 
-    ImGui::Combo("Primitive", &currentItem, items, IM_ARRAYSIZE(items));
+	ImGui::Combo("Primitive", &currentItem, items, IM_ARRAYSIZE(items));
 
-    if (ImGui::Button("Spawn"))
-    {
-        UWorld* World = UEngine::Get().GetWorld();
-        for (int i = 0 ;  i < NumOfSpawn; i++)
-        {
-            if (strcmp(items[currentItem], "Sphere") == 0)
-            {
-                World->SpawnActor<ASphere>();
-            }
-            else if (strcmp(items[currentItem], "Cube") == 0)
-            {
-                World->SpawnActor<ACube>();
-            }
-            else if (strcmp(items[currentItem], "Cylinder") == 0)
-            {
-                World->SpawnActor<ACylinder>();
-            }
-            else if (strcmp(items[currentItem], "Cone") == 0)
-            {
-                World->SpawnActor<ACone>();
-            }
-            else if (strcmp(items[currentItem], "Arrow") == 0)
-            {
-                World->SpawnActor<AArrow>();
-            }
-            else if (strcmp(items[currentItem], "TestStaticMesh") == 0)
-            {
-                World->SpawnActor<AStaticMesh>();
-            }
-            //else if (strcmp(items[currentItem], "Triangle") == 0)
-            //{
-            //    Actor->AddComponent<UTriangleComp>();   
-            //}
-        }
-    }
-    ImGui::SameLine();
-    ImGui::InputInt("Number of spawn", &NumOfSpawn, 0);
+	if (ImGui::Button("Spawn"))
+	{
+		UWorld* World = UEngine::Get().GetWorld();
+		for (int i = 0; i < NumOfSpawn; i++)
+		{
+			if (strcmp(items[currentItem], "Sphere") == 0)
+			{
+				World->SpawnActor<ASphere>();
+			}
+			else if (strcmp(items[currentItem], "Cube") == 0)
+			{
+				World->SpawnActor<ACube>();
+			}
+			else if (strcmp(items[currentItem], "Cylinder") == 0)
+			{
+				World->SpawnActor<ACylinder>();
+			}
+			else if (strcmp(items[currentItem], "Cone") == 0)
+			{
+				World->SpawnActor<ACone>();
+			}
+			else if (strcmp(items[currentItem], "Arrow") == 0)
+			{
+				World->SpawnActor<AArrow>();
+			}
+			else if (strcmp(items[currentItem], "TestStaticMesh") == 0)
+			{
+				AActor* Actor =World->SpawnActor<AStaticMesh>();
+				if (Actor)
+				{
+					AStaticMesh* MeshActor = static_cast<AStaticMesh*>(Actor);
+					MeshActor->InitStaticMeshBoundingBox(UEngine::Get().GetWorld());
+				}
 
-    ImGui::Separator();
+			}
+			//else if (strcmp(items[currentItem], "Triangle") == 0)
+			//{
+			//    Actor->AddComponent<UTriangleComp>();   
+			//}
+		}
+	}
+	ImGui::SameLine();
+	ImGui::InputInt("Number of spawn", &NumOfSpawn, 0);
 
-    UWorld* World = UEngine::Get().GetWorld();
-    uint32 bufferSize = 100;
-    char* SceneNameInput = new char[bufferSize];
+	ImGui::Separator();
 
-    strcpy_s(SceneNameInput, bufferSize, World->SceneName.c_char());
-    
-    if (ImGui::InputText("Scene Name", SceneNameInput, bufferSize))
-    {
-    	World->SceneName = SceneNameInput;
-    }
-    
-    if (ImGui::Button("New Scene"))
-    {
-        World->ClearWorld();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Save Scene"))
-    {
-        World->SaveWorld();   
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Load Scene"))
-    {
-        World->LoadWorld(SceneNameInput);
-    }
+	UWorld* World = UEngine::Get().GetWorld();
+	uint32 bufferSize = 100;
+	char* SceneNameInput = new char[bufferSize];
+
+	strcpy_s(SceneNameInput, bufferSize, World->SceneName.c_char());
+
+	if (ImGui::InputText("Scene Name", SceneNameInput, bufferSize))
+	{
+		World->SceneName = SceneNameInput;
+	}
+
+	if (ImGui::Button("New Scene"))
+	{
+		World->ClearWorld();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Save Scene"))
+	{
+		World->SaveWorld();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Load Scene"))
+	{
+		World->LoadWorld(SceneNameInput);
+	}
 }
 
 void UI::RenderCameraSettings()
 {
-    ImGui::Text("Camera");
+	ImGui::Text("Camera");
 
-    ACamera* Camera = FEditorManager::Get().GetCamera();
+	ACamera* Camera = FEditorManager::Get().GetCamera();
 
-    bool IsOrthogonal;
-    if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
-    {
-        IsOrthogonal = true;
-    }
-    else if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
-    {
-        IsOrthogonal = false;
-    }
+	bool IsOrthogonal;
+	if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)
+	{
+		IsOrthogonal = true;
+	}
+	else if (Camera->GetProjectionMode() == ECameraProjectionMode::Perspective)
+	{
+		IsOrthogonal = false;
+	}
 
-    if (ImGui::Checkbox("Orthogonal", &IsOrthogonal))
-    {
-        if (IsOrthogonal)
-        {
-            Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
-        }
-        else
-        {
-            Camera->SetProjectionMode(ECameraProjectionMode::Perspective);
-        }
-    }
+	if (ImGui::Checkbox("Orthogonal", &IsOrthogonal))
+	{
+		if (IsOrthogonal)
+		{
+			Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
+		}
+		else
+		{
+			Camera->SetProjectionMode(ECameraProjectionMode::Perspective);
+		}
+	}
 
-    float FOV = Camera->GetFieldOfView();
-    if (ImGui::DragFloat("FOV", &FOV, 0.1f, 20.f, 150.f))
-    {
-        FOV = FMath::Clamp(FOV, 20.f, 150.f);
-        Camera->SetFieldOfView(FOV);
-    }
+	float FOV = Camera->GetFieldOfView();
+	if (ImGui::DragFloat("FOV", &FOV, 0.1f, 20.f, 150.f))
+	{
+		FOV = FMath::Clamp(FOV, 20.f, 150.f);
+		Camera->SetFieldOfView(FOV);
+	}
 
-    float NearFar[2] = { Camera->GetNearClip(), Camera->GetFarClip() };
-    if (ImGui::DragFloat2("Near clip, Far clip", NearFar, 0.1f, 0.01f, 200.f))
-    {
-        NearFar[0] = FMath::Clamp(NearFar[0], 0.01f, 200.f);
-        NearFar[1] = FMath::Clamp(NearFar[1], 0.01f, 200.f);
+	float NearFar[2] = { Camera->GetNearClip(), Camera->GetFarClip() };
+	if (ImGui::DragFloat2("Near clip, Far clip", NearFar, 0.1f, 0.01f, 200.f))
+	{
+		NearFar[0] = FMath::Clamp(NearFar[0], 0.01f, 200.f);
+		NearFar[1] = FMath::Clamp(NearFar[1], 0.01f, 200.f);
 
-        if (NearFar[0] > NearFar[1])
-        {
-            std::swap(NearFar[0], NearFar[1]);
-        }
+		if (NearFar[0] > NearFar[1])
+		{
+			std::swap(NearFar[0], NearFar[1]);
+		}
 
-        Camera->SetNear(NearFar[0]);
-        Camera->SetFar(NearFar[1]);
-    }
-    
-    FVector CameraPosition = Camera->GetActorTransform().GetPosition();
-    if (ImGui::DragFloat3("Camera Location", reinterpret_cast<float*>(&CameraPosition), 0.1f))
-    {
-        FTransform Trans = Camera->GetActorTransform();
-        Trans.SetPosition(CameraPosition);
-        Camera->SetActorTransform(Trans);
-    }
+		Camera->SetNear(NearFar[0]);
+		Camera->SetFar(NearFar[1]);
+	}
 
-    FVector PrevEulerAngle = Camera->GetActorTransform().GetRotation().GetEuler();
-    FVector UIEulerAngle = { PrevEulerAngle.X, PrevEulerAngle.Y, PrevEulerAngle.Z };
-    if (ImGui::DragFloat3("Camera Rotation", reinterpret_cast<float*>(&UIEulerAngle), 0.1f))
-    {
-        FTransform Transform = Camera->GetActorTransform();
-        
-        UIEulerAngle.Y = FMath::Clamp(UIEulerAngle.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
-        Transform.SetRotation(UIEulerAngle);
-        Camera->SetActorTransform(Transform);
-    }
+	FVector CameraPosition = Camera->GetActorTransform().GetPosition();
+	if (ImGui::DragFloat3("Camera Location", reinterpret_cast<float*>(&CameraPosition), 0.1f))
+	{
+		FTransform Trans = Camera->GetActorTransform();
+		Trans.SetPosition(CameraPosition);
+		Camera->SetActorTransform(Trans);
+	}
 
-    float CurrentSpeed = APlayerController::Get().GetCurrentSpeed();
-    const float CameraMaxSpeed = APlayerController::Get().GetMaxSpeed();
-    const float CameraMinSpeed = APlayerController::Get().GetMinSpeed();
-    if (ImGui::DragFloat("Camera Speed", &CurrentSpeed, 0.1f, CameraMinSpeed, CameraMaxSpeed))
-    {
-        APlayerController::Get().SetCurrentSpeed(CurrentSpeed);
-    }
+	FVector PrevEulerAngle = Camera->GetActorTransform().GetRotation().GetEuler();
+	FVector UIEulerAngle = { PrevEulerAngle.X, PrevEulerAngle.Y, PrevEulerAngle.Z };
+	if (ImGui::DragFloat3("Camera Rotation", reinterpret_cast<float*>(&UIEulerAngle), 0.1f))
+	{
+		FTransform Transform = Camera->GetActorTransform();
 
-    float CurrentSensitivity = APlayerController::Get().GetMouseSensitivity();
-    const float CameraMaxSensitivity = APlayerController::Get().GetMaxSensitivity();
-    const float CameraMinSensitivity = APlayerController::Get().GetMinSensitivity();
-    if (ImGui::DragFloat("Camera Sensitivity", &CurrentSensitivity, 0.01f, CameraMinSensitivity, CameraMaxSensitivity))
-    {
-        APlayerController::Get().SetMouseSensitivity(CurrentSensitivity);
-    }
+		UIEulerAngle.Y = FMath::Clamp(UIEulerAngle.Y, -Camera->GetMaxPitch(), Camera->GetMaxPitch());
+		Transform.SetRotation(UIEulerAngle);
+		Camera->SetActorTransform(Transform);
+	}
 
-    FVector Forward = Camera->GetActorTransform().GetForward();
-    FVector Up = Camera->GetActorTransform().GetUp();
-    FVector Right = Camera->GetActorTransform().GetRight();
+	float CurrentSpeed = APlayerController::Get().GetCurrentSpeed();
+	const float CameraMaxSpeed = APlayerController::Get().GetMaxSpeed();
+	const float CameraMinSpeed = APlayerController::Get().GetMinSpeed();
+	if (ImGui::DragFloat("Camera Speed", &CurrentSpeed, 0.1f, CameraMinSpeed, CameraMaxSpeed))
+	{
+		APlayerController::Get().SetCurrentSpeed(CurrentSpeed);
+	}
 
-    ImGui::Text("Camera GetForward(): (%.2f %.2f %.2f)", Forward.X, Forward.Y, Forward.Z);
-    ImGui::Text("Camera GetUp(): (%.2f %.2f %.2f)", Up.X, Up.Y, Up.Z);
-    ImGui::Text("Camera GetRight(): (%.2f %.2f %.2f)", Right.X, Right.Y, Right.Z);
+	float CurrentSensitivity = APlayerController::Get().GetMouseSensitivity();
+	const float CameraMaxSensitivity = APlayerController::Get().GetMaxSensitivity();
+	const float CameraMinSensitivity = APlayerController::Get().GetMinSensitivity();
+	if (ImGui::DragFloat("Camera Sensitivity", &CurrentSensitivity, 0.01f, CameraMinSensitivity, CameraMaxSensitivity))
+	{
+		APlayerController::Get().SetMouseSensitivity(CurrentSensitivity);
+	}
 
-    ImGui::Separator();
+	FVector Forward = Camera->GetActorTransform().GetForward();
+	FVector Up = Camera->GetActorTransform().GetUp();
+	FVector Right = Camera->GetActorTransform().GetRight();
+
+	ImGui::Text("Camera GetForward(): (%.2f %.2f %.2f)", Forward.X, Forward.Y, Forward.Z);
+	ImGui::Text("Camera GetUp(): (%.2f %.2f %.2f)", Up.X, Up.Y, Up.Z);
+	ImGui::Text("Camera GetRight(): (%.2f %.2f %.2f)", Right.X, Right.Y, Right.Z);
+
+	ImGui::Separator();
 }
 
 void UI::RenderRenderMode()
@@ -393,30 +400,30 @@ void UI::RenderRenderMode()
 		}
 	}
 
-    bool bShowPrimitives = UEngine::Get().GetShowPrimitives();
-    if (ImGui::Checkbox("Show Primitives", &bShowPrimitives))
-    {
-        UEngine::Get().SetShowPrimitives(bShowPrimitives);
-    }
-    
-    ImGui::Separator();
+	bool bShowPrimitives = UEngine::Get().GetShowPrimitives();
+	if (ImGui::Checkbox("Show Primitives", &bShowPrimitives))
+	{
+		UEngine::Get().SetShowPrimitives(bShowPrimitives);
+	}
+
+	ImGui::Separator();
 }
 
 void UI::RenderPropertyWindow()
 {
-    ImGui::Begin("Properties");
+	ImGui::Begin("Properties");
 
-    if (bWasWindowSizeUpdated)
-    {
-        auto* Window = ImGui::GetCurrentWindow();
+	if (bWasWindowSizeUpdated)
+	{
+		auto* Window = ImGui::GetCurrentWindow();
 
-        ImGui::SetWindowPos(ResizeToScreen(Window->Pos));
-        ImGui::SetWindowSize(ResizeToScreen(Window->Size));
-    }
-    USceneComponent* SelectedComponent = FEditorManager::Get().GetSelectedComponent();
-    if (SelectedComponent != nullptr)
-    {
-        ImGui::Text("Selected Actor : %s", SelectedComponent->GetOwner()->GetName().c_char());
+		ImGui::SetWindowPos(ResizeToScreen(Window->Pos));
+		ImGui::SetWindowSize(ResizeToScreen(Window->Size));
+	}
+	USceneComponent* SelectedComponent = FEditorManager::Get().GetSelectedComponent();
+	if (SelectedComponent != nullptr)
+	{
+		ImGui::Text("Selected Actor : %s", SelectedComponent->GetOwner()->GetName().c_char());
 		ImGui::Text("Selected Component : %s", SelectedComponent->GetName().c_char());
 
 		bool bIsLocal = FEditorManager::Get().GetGizmoHandle()->bIsLocal;
@@ -425,255 +432,355 @@ void UI::RenderPropertyWindow()
 			FEditorManager::Get().ToggleGizmoHandleLocal(bIsLocal);
 		}
 
-        FTransform selectedTransform = SelectedComponent->GetComponentTransform();
-        float position[] = { selectedTransform.GetPosition().X, selectedTransform.GetPosition().Y, selectedTransform.GetPosition().Z };
-        float scale[] = { selectedTransform.GetScale().X, selectedTransform.GetScale().Y, selectedTransform.GetScale().Z };
+		FTransform selectedTransform = SelectedComponent->GetComponentTransform();
+		float position[] = { selectedTransform.GetPosition().X, selectedTransform.GetPosition().Y, selectedTransform.GetPosition().Z };
+		float scale[] = { selectedTransform.GetScale().X, selectedTransform.GetScale().Y, selectedTransform.GetScale().Z };
 
-        if (ImGui::DragFloat3("Translation", position, 0.1f))
-        {
-            selectedTransform.SetPosition(position[0], position[1], position[2]);
-            SelectedComponent->SetRelativeTransform(selectedTransform);
-        }
+		if (ImGui::DragFloat3("Translation", position, 0.1f))
+		{
+			selectedTransform.SetPosition(position[0], position[1], position[2]);
+			SelectedComponent->SetRelativeTransform(selectedTransform);
+		}
 
-        FVector PrevEulerAngle = selectedTransform.GetRotation().GetEuler();
-        FVector UIEulerAngle = PrevEulerAngle;
-        if (ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&UIEulerAngle), 0.1f))
-        {
-            FVector DeltaEulerAngle = UIEulerAngle - PrevEulerAngle;
+		FVector PrevEulerAngle = selectedTransform.GetRotation().GetEuler();
+		FVector UIEulerAngle = PrevEulerAngle;
+		if (ImGui::DragFloat3("Rotation", reinterpret_cast<float*>(&UIEulerAngle), 0.1f))
+		{
+			FVector DeltaEulerAngle = UIEulerAngle - PrevEulerAngle;
 
-            selectedTransform.Rotate(DeltaEulerAngle);
-            SelectedComponent->SetRelativeTransform(selectedTransform);
-        }
-        if (ImGui::DragFloat3("Scale", scale, 0.1f))
-        {
-            selectedTransform.SetScale(scale[0], scale[1], scale[2]);
-            SelectedComponent->SetRelativeTransform(selectedTransform);
-        }
-        if (FEditorManager::Get().GetGizmoHandle() != nullptr)
-        {
-            AGizmoHandle* Gizmo = FEditorManager::Get().GetGizmoHandle();
-            if(Gizmo->GetGizmoType() == EGizmoType::Translate)
-            {
-                    ImGui::Text("GizmoType: Translate");
-            }
-            else if (Gizmo->GetGizmoType() == EGizmoType::Rotate)
-            {
-                    ImGui::Text("GizmoType: Rotate");
-            }
-            else if (Gizmo->GetGizmoType() == EGizmoType::Scale)
-            {
-                    ImGui::Text("GizmoType: Scale");
-            }
-        }
+			selectedTransform.Rotate(DeltaEulerAngle);
+			SelectedComponent->SetRelativeTransform(selectedTransform);
+		}
+		if (ImGui::DragFloat3("Scale", scale, 0.1f))
+		{
+			selectedTransform.SetScale(scale[0], scale[1], scale[2]);
+			SelectedComponent->SetRelativeTransform(selectedTransform);
+		}
+		if (FEditorManager::Get().GetGizmoHandle() != nullptr)
+		{
+			AGizmoHandle* Gizmo = FEditorManager::Get().GetGizmoHandle();
+			if (Gizmo->GetGizmoType() == EGizmoType::Translate)
+			{
+				ImGui::Text("GizmoType: Translate");
+			}
+			else if (Gizmo->GetGizmoType() == EGizmoType::Rotate)
+			{
+				ImGui::Text("GizmoType: Rotate");
+			}
+			else if (Gizmo->GetGizmoType() == EGizmoType::Scale)
+			{
+				ImGui::Text("GizmoType: Scale");
+			}
+		}
 
-        if (ImGui::Button("Remove"))
-        {
+		if (ImGui::Button("Remove"))
+		{
 			UWorld* World = UEngine::Get().GetWorld();
 			//FEditorManager::Get().SelectComponent(nullptr);
 			World->DestroyActor(SelectedComponent->GetOwner());
-        }
+		}
 
-        ImGui::Separator();
-        const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj" };
+		ImGui::Separator();
+		const char* Items[] = { "BT.obj","x-35_obj.obj", "cube.obj", "pineapple.obj", "mst.obj", "plant.obj" };
 
-        if (SelectedComponent != PrevSelectedComponent)
-        {
-            AStaticMesh* StaticMeshOwner = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
-            if (StaticMeshOwner)
-            {
-                FString MeshName = StaticMeshOwner->GetAssetName();
-                for (int i = 0; i < IM_ARRAYSIZE(Items); ++i)
-                {
-                    if (MeshName.Equals(Items[i]))
-                    {
-                        CurrentMesh = i;
-                        break;
-                    }
-                }
-            }
-            PrevSelectedComponent = SelectedComponent;
-        }
+		if (SelectedComponent != PrevSelectedComponent)
+		{
+			AStaticMesh* StaticMeshOwner = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
+			if (StaticMeshOwner)
+			{
+				FString MeshName = StaticMeshOwner->GetAssetName();
+				for (int i = 0; i < IM_ARRAYSIZE(Items); ++i)
+				{
+					if (MeshName.Equals(Items[i]))
+					{
+						CurrentMesh = i;
+						break;
+					}
+				}
+			}
+			PrevSelectedComponent = SelectedComponent;
+		}
 
-        if (ImGui::BeginCombo("Static Mesh DropList", Items[CurrentMesh]))
-        {
-            for (int i = 0; i < IM_ARRAYSIZE(Items); i++)
-            {
-                bool isSelected = (CurrentMesh == i);
-                if (ImGui::Selectable(Items[i], isSelected)) {
-                    CurrentMesh = i;
-                    AStaticMesh* SelectedActor = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
-                    if (UStaticMeshComponent* MeshComponent = SelectedActor->FindComponent<UStaticMeshComponent>())
-                    {
-                        SelectedActor->SetAssetName(Items[CurrentMesh]);
-                        MeshComponent->ChangeStaticMesh(Items[CurrentMesh]);
-                    }
-                }
-                if (isSelected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
-    }
+		if (ImGui::BeginCombo("Static Mesh DropList", Items[CurrentMesh]))
+		{
+			for (int i = 0; i < IM_ARRAYSIZE(Items); i++)
+			{
+				bool isSelected = (CurrentMesh == i);
+				if (ImGui::Selectable(Items[i], isSelected)) {
+					CurrentMesh = i;
+					AStaticMesh* SelectedActor = dynamic_cast<AStaticMesh*>(SelectedComponent->GetOwner());
+					if (UStaticMeshComponent* MeshComponent = SelectedActor->FindComponent<UStaticMeshComponent>())
+					{
+						SelectedActor->SetAssetName(Items[CurrentMesh]);
+						MeshComponent->ChangeStaticMesh(Items[CurrentMesh]);
+					}
+				}
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+	}
 
-    ImGui::End();
+	ImGui::End();
 }
 
 void UI::RenderGridGap()
 {
-    ImGui::Text("World Grid");
+	ImGui::Text("World Grid");
 
-    float MaxVal = 10.f;
-    float MinVal = 0.5f;
+	float MaxVal = 10.f;
+	float MinVal = 0.5f;
 
-    float GridGap = UEngine::Get().GetWorldGridGap();
+	float GridGap = UEngine::Get().GetWorldGridGap();
 
-    if (ImGui::DragFloat("Grid Gap", &GridGap, 0.01f, MinVal, MaxVal))
-    {
-        GridGap = GridGap > MaxVal ? MaxVal : (GridGap < MinVal ? MinVal : GridGap); // Clamp
-        UEngine::Get().SetWorldGridGap(GridGap);
-    }
+	if (ImGui::DragFloat("Grid Gap", &GridGap, 0.01f, MinVal, MaxVal))
+	{
+		GridGap = GridGap > MaxVal ? MaxVal : (GridGap < MinVal ? MinVal : GridGap); // Clamp
+		UEngine::Get().SetWorldGridGap(GridGap);
+	}
 
-    ImGui::Separator();
+	ImGui::Separator();
 }
 
 void UI::RenderDebugRaycast()
 {
-    bool bDebugRaycast = UEngine::Get().GetWorld()->IsDebuggingRaycast();
-    if (ImGui::Checkbox("Debug Raycast", &bDebugRaycast))
-    {
-        UEngine::Get().GetWorld()->SetDebugRaycast(bDebugRaycast);
-    }
+	bool bDebugRaycast = UEngine::Get().GetWorld()->IsDebuggingRaycast();
+	if (ImGui::Checkbox("Debug Raycast", &bDebugRaycast))
+	{
+		UEngine::Get().GetWorld()->SetDebugRaycast(bDebugRaycast);
+	}
 }
 
 void UI::RenderSceneManagerWindow()
 {
-    // Using those as a base value to create width/height that are factor of the size of our font
-    const float TEXT_BASE_WIDTH = ImGui::CalcTextSize("A").x;
-    const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
+	// Using those as a base value to create width/height that are factor of the size of our font
+	const float TEXT_BASE_WIDTH = ImGui::CalcTextSize("A").x;
+	const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
 
-    ImGui::Begin("Outliner");
-    /*
-    TArray<AActor*> Actors = UEngine::Get().GetWorld()->GetActors();
-    
-    if (ImGui::TreeNodeEx("Primitives", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        for (const auto& Actor : Actors)
-        {
-            if (Actor->IsGizmoActor() || Actor->IsA<AAxis>())
-            {
-                continue;
-            }
-            
-            TSet<UActorComponent*> Comps = Actor->GetComponents();
-            
-            bool bHasPrimitive = false;
-            for (const auto& Comp : Comps)
-            {
-                if (Comp->IsA<UPrimitiveComponent>())
-                {
-                    bHasPrimitive = true;
-                    break;
-                }
-            }
-            
-            if (bHasPrimitive)
-            {
-                ImGui::Text(*Actor->GetName());
-            }
-        }
-        
-        ImGui::TreePop();
-    }
+	ImGui::Begin("Outliner");
+	/*
+	TArray<AActor*> Actors = UEngine::Get().GetWorld()->GetActors();
+
+	if (ImGui::TreeNodeEx("Primitives", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		for (const auto& Actor : Actors)
+		{
+			if (Actor->IsGizmoActor() || Actor->IsA<AAxis>())
+			{
+				continue;
+			}
+
+			TSet<UActorComponent*> Comps = Actor->GetComponents();
+
+			bool bHasPrimitive = false;
+			for (const auto& Comp : Comps)
+			{
+				if (Comp->IsA<UPrimitiveComponent>())
+				{
+					bHasPrimitive = true;
+					break;
+				}
+			}
+
+			if (bHasPrimitive)
+			{
+				ImGui::Text(*Actor->GetName());
+			}
+		}
+
+		ImGui::TreePop();
+	}
 	*/
 
-    static ImGuiSelectionBasicStorage OutlinerSelection;
-    ImGui::Text("Selection size: %d", OutlinerSelection.Size);
-    static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBodyUntilResize | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable;
+	static ImGuiSelectionBasicStorage OutlinerSelection;
+	ImGui::Text("Selection size: %d", OutlinerSelection.Size);
+	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBodyUntilResize | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable;
 
 	if (ImGui::BeginTable("table", 7, flags, ImVec2(0.0f, TEXT_BASE_HEIGHT * 16)))
-    {
-        ImGui::TableSetupColumn("V", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_IndentDisable);
-        ImGui::TableSetupColumn("*", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
-        ImGui::TableSetupColumn("P", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
-        ImGui::TableSetupColumn("ItemLabel", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentEnable | ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_NoHide);
-        ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, TEXT_BASE_WIDTH * 18.0f);
-        ImGui::TableSetupColumn("UUID", ImGuiTableColumnFlags_WidthFixed, TEXT_BASE_WIDTH * 18.0f);
-        ImGui::TableSetupColumn("PUUID", ImGuiTableColumnFlags_WidthFixed, TEXT_BASE_WIDTH * 18.0f);
-        ImGui::TableHeadersRow();
+	{
+		ImGui::TableSetupColumn("V", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_IndentDisable);
+		ImGui::TableSetupColumn("*", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
+		ImGui::TableSetupColumn("P", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize);
+		ImGui::TableSetupColumn("ItemLabel", ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_IndentEnable | ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_NoHide);
+		ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, TEXT_BASE_WIDTH * 18.0f);
+		ImGui::TableSetupColumn("UUID", ImGuiTableColumnFlags_WidthFixed, TEXT_BASE_WIDTH * 18.0f);
+		ImGui::TableSetupColumn("PUUID", ImGuiTableColumnFlags_WidthFixed, TEXT_BASE_WIDTH * 18.0f);
+		ImGui::TableHeadersRow();
 
-        ActorTreeNode* tree = UEngine::Get().GetWorld()->WorldNode;
-        ImGuiMultiSelectFlags ms_flags = ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect2d;
-        ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(ms_flags, OutlinerSelection.Size, -1);
-        ActorTreeNode::ApplySelectionRequests(ms_io, tree, &OutlinerSelection);
+		ActorTreeNode* tree = UEngine::Get().GetWorld()->WorldNode;
+		ImGuiMultiSelectFlags ms_flags = ImGuiMultiSelectFlags_ClearOnEscape | ImGuiMultiSelectFlags_BoxSelect2d;
+		ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(ms_flags, OutlinerSelection.Size, -1);
+		ActorTreeNode::ApplySelectionRequests(ms_io, tree, &OutlinerSelection);
 		ActorTreeNode::DisplayNode(tree, &OutlinerSelection);
-        ms_io = ImGui::EndMultiSelect();
-        ActorTreeNode::ApplySelectionRequests(ms_io, tree, &OutlinerSelection);
+		ms_io = ImGui::EndMultiSelect();
+		ActorTreeNode::ApplySelectionRequests(ms_io, tree, &OutlinerSelection);
 
-        ImGui::EndTable();
-    }
-    ImGui::End();
+		ImGui::EndTable();
+	}
+	ImGui::End();
 }
+
+void UI::RenderOverlayStatWindow()
+{
+	// 윈도우 크기 및 위치 계산
+	float controllWindowWidth = static_cast<float>(ClientSize.x) * 0.5f;
+	float controllWindowHeight = static_cast<float>(ClientSize.y) * 0.5f;
+	float controllWindowPosX = (static_cast<float>(ClientSize.x) - controllWindowWidth) * 0.5f;
+	float controllWindowPosY = (static_cast<float>(ClientSize.y) - controllWindowHeight) * 0.5f;
+
+	ImGui::SetNextWindowPos(ImVec2(controllWindowPosX, controllWindowPosY));
+	ImGui::SetNextWindowSize(ImVec2(controllWindowWidth, controllWindowHeight), ImGuiCond_Always);
+
+	// 윈도우 생성 (완전 투명 배경, 이동/크기 조절 불가)
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_AlwaysAutoResize;
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+	ImGui::Begin("MemoryTableOverlay", nullptr, windowFlags);
+
+	// 테이블 셀 패딩 설정
+	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(50, 4));
+
+	// 5열 테이블 생성 (테두리 및 행 배경 활성화)
+	ImGuiTableFlags tableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+	if (ImGui::BeginTable("MemoryTable", 5, tableFlags))
+	{
+		// 열 설정
+		ImGui::TableSetupColumn("메모리 타입");
+		ImGui::TableSetupColumn("할당 메모리 (MB)");
+		ImGui::TableSetupColumn("메모리 사용률 (%)");
+		ImGui::TableSetupColumn("메모리 풀");
+		ImGui::TableSetupColumn("할당 횟수");
+
+		// 헤더 데이터 정의 및 출력
+		static const char* headers[5] = { "메모리 타입", "할당 메모리 (MB)", "메모리 사용률 (%)", "메모리 풀", "할당 횟수" };
+		ImGui::TableNextRow();
+		ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(0, 0, 0, 0));
+		for (int col = 0; col < 5; col++)
+		{
+			ImGui::TableSetColumnIndex(col);
+			ImGui::TextColored(ImVec4(1.0f, 0.65f, 0.0f, 1.0f), "%s", headers[col]);
+		}
+
+		// FPlatformMemory를 통해 메모리 할당 정보 계산
+		const uint64 containerBytes = FPlatformMemory::GetAllocationBytes<EAT_Container>();
+		const uint64 containerCount = FPlatformMemory::GetAllocationCount<EAT_Container>();
+		const uint64 objectBytes = FPlatformMemory::GetAllocationBytes<EAT_Object>();
+		const uint64 objectCount = FPlatformMemory::GetAllocationCount<EAT_Object>();
+
+		double containerMB = static_cast<double>(containerBytes) / (1024.0 * 1024.0);
+		double objectMB = static_cast<double>(objectBytes) / (1024.0 * 1024.0);
+		double totalBytes = static_cast<double>(containerBytes + objectBytes);
+
+		double containerUsage = (totalBytes > 0.0) ? (static_cast<double>(containerBytes) / totalBytes) * 100.0 : 0.0;
+		double objectUsage = (totalBytes > 0.0) ? (static_cast<double>(objectBytes) / totalBytes) * 100.0 : 0.0;
+
+		// 행 데이터 정의 (TArray<TArray<std::string>> 사용)
+		TArray<TArray<std::string>> rows;
+		{
+			TArray<std::string> row;
+			row.Add("컨테이너");
+			row.Add(std::to_string(containerMB));
+			row.Add(std::to_string(containerUsage));
+			row.Add("N/A");  // 메모리 풀 정보는 추후 제공
+			row.Add(std::to_string(containerCount));
+			rows.Add(row);
+		}
+		{
+			TArray<std::string> row;
+			row.Add("오브젝트");
+			row.Add(std::to_string(objectMB));
+			row.Add(std::to_string(objectUsage));
+			row.Add("N/A");
+			row.Add(std::to_string(objectCount));
+			rows.Add(row);
+		}
+
+		// 각 행 출력 (모든 셀은 좌측 정렬)
+		for (const auto& row : rows)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(0, 0, 0, 128));
+			for (int col = 0; col < row.Num(); col++)
+			{
+				ImGui::TableSetColumnIndex(col);
+				ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", row[col].c_str());
+			}
+		}
+
+		ImGui::EndTable();
+	}
+
+	ImGui::PopStyleVar();
+	ImGui::End();
+	ImGui::PopStyleColor();
+}
+
 
 void UI::PreferenceStyle()
 {
-    // Window
-    ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.9f);
-    ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.5f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_TitleBg] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().WindowRounding = 5.0f;
+	// Window
+	ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.9f);
+	ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.5f, 0.0f, 1.0f);
+	ImGui::GetStyle().Colors[ImGuiCol_TitleBg] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+	ImGui::GetStyle().WindowRounding = 5.0f;
 
-    ImGui::GetStyle().FrameRounding = 3.0f;
+	ImGui::GetStyle().FrameRounding = 3.0f;
 
-    // Sep
-    ImGui::GetStyle().Colors[ImGuiCol_Separator] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+	// Sep
+	ImGui::GetStyle().Colors[ImGuiCol_Separator] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
 
-    // Frame
-    ImGui::GetStyle().Colors[ImGuiCol_FrameBg] = ImVec4(0.31f, 0.31f, 0.31f, 0.6f);
-    ImGui::GetStyle().Colors[ImGuiCol_FrameBgActive] = ImVec4(0.203f, 0.203f, 0.203f, 0.6f);
-    ImGui::GetStyle().Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.0f, 0.5f, 0.0f, 0.6f);
+	// Frame
+	ImGui::GetStyle().Colors[ImGuiCol_FrameBg] = ImVec4(0.31f, 0.31f, 0.31f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_FrameBgActive] = ImVec4(0.203f, 0.203f, 0.203f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.0f, 0.5f, 0.0f, 0.6f);
 
-    // Button
-    ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(0.105f, 0.105f, 0.105f, 0.6f);
-    ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.105f, 0.105f, 0.105f, 0.6f);
-    ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(0.0f, 0.5f, 0.0f, 0.6f);
+	// Button
+	ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(0.105f, 0.105f, 0.105f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.105f, 0.105f, 0.105f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(0.0f, 0.5f, 0.0f, 0.6f);
 
-    ImGui::GetStyle().Colors[ImGuiCol_Header] = ImVec4(0.203f, 0.203f, 0.203f, 0.6f);
-    ImGui::GetStyle().Colors[ImGuiCol_HeaderActive] = ImVec4(0.105f, 0.105f, 0.105f, 0.6f);
-    ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered] = ImVec4(0.0f, 0.5f, 0.0f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_Header] = ImVec4(0.203f, 0.203f, 0.203f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_HeaderActive] = ImVec4(0.105f, 0.105f, 0.105f, 0.6f);
+	ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered] = ImVec4(0.0f, 0.5f, 0.0f, 0.6f);
 
-    // Text
-    ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 0.9f);
+	// Text
+	ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 0.9f);
 
 }
 void UI::RenderViewportTestWindow()
 {
-    ImGui::Begin("Viewport Splitter");
-    URenderer* Renderer = UEngine::Get().GetRenderer();
-    ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
-    ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
-    ImGui::Checkbox("Render Picking",&Renderer->bRenderPicking);
-    ImGui::End();
+	ImGui::Begin("Viewport Splitter");
+	URenderer* Renderer = UEngine::Get().GetRenderer();
+	ImGui::SliderFloat("Horizontal Split", &Renderer->HorizontalSplitRatio, 0.1f, 0.9f);
+	ImGui::SliderFloat("Vertical Split", &Renderer->VerticalSplitRatio, 0.1f, 0.9f);
+	ImGui::Checkbox("Render Picking", &Renderer->bRenderPicking);
+	ImGui::End();
 }
 
-//void UI::CreateUsingFont()
-//{
-//    ImGuiIO& io = ImGui::GetIO();
-//    io.Fonts->AddFontFromFileTTF(R"(C:\Windows\Fonts\malgun.ttf)", 14.0f, NULL, io.Fonts->GetGlyphRangesKorean());
-//
-//    ImFontConfig FeatherFontConfig;
-//    FeatherFontConfig.PixelSnapH = true;
-//    FeatherFontConfig.FontDataOwnedByAtlas = false;
-//    FeatherFontConfig.GlyphOffset = ImVec2(0, 0);
-//    static constexpr ImWchar IconRanges[] = {
-//        ICON_MOVE,      ICON_MOVE + 1,
-//        ICON_ROTATE,    ICON_ROTATE + 1,
-//        ICON_SCALE,     ICON_SCALE + 1,
-//        ICON_MONITOR,   ICON_MONITOR + 1,
-//        ICON_BAR_GRAPH, ICON_BAR_GRAPH + 1,
-//        ICON_NEW,       ICON_NEW + 1,
-//        ICON_SAVE,      ICON_SAVE + 1,
-//        ICON_LOAD,      ICON_LOAD + 1,
-//        0 };
-//
-//    io.Fonts->AddFontFromMemoryTTF(FeatherRawData, FontSizeOfFeather, 22.0f, &FeatherFontConfig, IconRanges);
-//}
+void UI::CreateUsingFont()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontFromFileTTF(R"(C:\Windows\Fonts\malgun.ttf)", 14.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+
+	ImFontConfig FeatherFontConfig;
+	FeatherFontConfig.PixelSnapH = true;
+	FeatherFontConfig.FontDataOwnedByAtlas = false;
+	FeatherFontConfig.GlyphOffset = ImVec2(0, 0);
+	static constexpr ImWchar IconRanges[] = {
+		ICON_MOVE,      ICON_MOVE + 1,
+		ICON_ROTATE,    ICON_ROTATE + 1,
+		ICON_SCALE,     ICON_SCALE + 1,
+		ICON_MONITOR,   ICON_MONITOR + 1,
+		ICON_BAR_GRAPH, ICON_BAR_GRAPH + 1,
+		ICON_NEW,       ICON_NEW + 1,
+		ICON_SAVE,      ICON_SAVE + 1,
+		ICON_LOAD,      ICON_LOAD + 1,
+		0 };
+
+	io.Fonts->AddFontFromMemoryTTF(FeatherRawData, FontSizeOfFeather, 22.0f, &FeatherFontConfig, IconRanges);
+}
