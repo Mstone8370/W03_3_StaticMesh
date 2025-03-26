@@ -217,14 +217,15 @@ void UWorld::RenderMesh(URenderer& Renderer)
     */
 }
 
-void UWorld::RenderBoundingBoxes(URenderer& Renderer)
+void UWorld::RenderBoundingBox(URenderer& Renderer)
 {
-    Renderer.PrepareMain();
-    Renderer.PrepareMainShader();
-    for (FBox* Box : BoundingBoxes)
+    if (USceneComponent* SelectedSceneComp = FEditorManager::Get().GetSelectedComponent())
     {
-        if (Box && Box->bCanBeRendered && Box->IsValidBox())
+        if (FBox* Box = SelectedSceneComp->GetBoundingBox().get())
         {
+            Renderer.PrepareMain();
+            Renderer.PrepareMainShader();
+            
             Renderer.RenderBox(*Box);
         }
     }
@@ -387,7 +388,7 @@ void UWorld::LoadWorld(const char* InSceneName)
             {
                 AStaticMesh* MeshActor = static_cast<AStaticMesh*>(Actor);
                 MeshActor->SetAssetName(ObjectInfo->AssetName);
-                MeshActor->InitStaticMeshBoundingBox(this);
+                MeshActor->InitStaticMeshBoundingBox();
             }
         }
 
@@ -435,14 +436,22 @@ bool UWorld::LineTrace(const FRay& Ray, USceneComponent* FirstHitComponent) cons
     if (FirstHitComponent)
         *FirstHitComponent = nullptr;
     TArray<TPair<USceneComponent*, float>> Hits;
-    for (FBox* Box : BoundingBoxes)
+    for (TObjectIterator<UPrimitiveComponent> It; It; ++It)
     {
-        float Distance = 0.f;
-        if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
+        if (UPrimitiveComponent* PrimitiveComp = *It)
         {
-            if (USceneComponent* Owner = Box->GetOwner())
+            if (!PrimitiveComp->bCanBeRendered)
             {
-                Hits.Add({Owner, Distance});
+                continue;
+            }
+            
+            if (FBox* Box = PrimitiveComp->GetBoundingBox().get())
+            {
+                float Distance = 0.f;
+                if (Box && Box->IsValidBox() && Box->IntersectRay(Ray, Distance))
+                {
+                    Hits.Add({Box->GetOwner(), Distance});
+                }
             }
         }
     }

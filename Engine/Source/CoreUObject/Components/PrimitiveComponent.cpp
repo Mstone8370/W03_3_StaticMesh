@@ -63,14 +63,6 @@ void UPrimitiveComponent::InitBoundingBox()
 
     BoundingBox = std::make_shared<FBox>();
     BoundingBox->Init(this, Min, Max);
-
-    if (AActor* Owner = GetOwner())
-    {
-        if (UWorld* World = Owner->GetWorld())
-        {
-			World->AddBoundingBox(BoundingBox.get());
-        }
-    }
 }
 
 void UPrimitiveComponent::UpdateBoundingBox()

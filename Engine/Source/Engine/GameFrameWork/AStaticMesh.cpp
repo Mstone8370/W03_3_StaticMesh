@@ -12,13 +12,9 @@ AStaticMesh::AStaticMesh()
     bUseBoundingBox = true;
     bRenderBoundingBox = true;
 
-    // 루트 컴포넌트 생성
-    USceneComponent* Root = AddComponent<USceneComponent>();
-    RootComponent = Root;
-
-    // UStaticMeshComponent 생성 및 설정
+    // UStaticMeshComponent 생성 및 루트로 설정
     MeshComponent = AddComponent<UStaticMeshComponent>();
-    MeshComponent->SetupAttachment(RootComponent);
+    RootComponent = MeshComponent;
     
     // Default Mesh 로드
     FString staticMeshPath = "Resources/" + AssetName;
@@ -36,10 +32,9 @@ AStaticMesh::AStaticMesh()
         OutputDebugString(L"\n");
         UEngine::Get().GetRenderer()->GetBufferCache()->BuildStaticMesh(ObjPath);
     }
- 
 }
 
-void AStaticMesh::BeginPlay(){}
+void AStaticMesh::BeginPlay() {}
 
 void AStaticMesh::Tick(float DeltaTime)
 {
@@ -50,8 +45,7 @@ const char* AStaticMesh::GetTypeName()
     return "AStaticMesh";
 }
 
-void AStaticMesh::InitStaticMeshBoundingBox(UWorld* World)
+void AStaticMesh::InitStaticMeshBoundingBox()
 {
-    MeshComponent->InitStaticMeshBoundingBox(World);
-
+    MeshComponent->InitStaticMeshBoundingBox();
 }

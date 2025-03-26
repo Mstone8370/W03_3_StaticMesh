@@ -40,6 +40,8 @@ public:
 	void SetupAttachment(USceneComponent* InParent, bool bUpdateChildTransform = false);
 	// 부모의 월드 트랜스폼을 받아서 자신의 로컬 트랜스폼을 갱신
 	void ApplyParentWorldTransform(const FTransform& InTransform);
+	
+	std::shared_ptr<FBox> GetBoundingBox() const { return BoundingBox; }
 
 protected:
 	USceneComponent* Parent = nullptr;
