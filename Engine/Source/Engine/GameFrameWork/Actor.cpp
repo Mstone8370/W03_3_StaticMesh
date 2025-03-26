@@ -52,7 +52,7 @@ void AActor::Tick(float DeltaTime)
 		FTransform BillboardTransform = UUIDBillboard->GetWorldTransform();
 		FVector BillboardPosition = GetActorTransform().GetPosition() + FVector(0.f, 0.f, 1.f);
 		BillboardTransform.SetPosition(BillboardPosition);
-		BillboardTransform.LookAt(FEditorManager::Get().GetCamera()->GetActorTransform().GetPosition());
+		BillboardTransform.LookAt(FEditorManager::Get().GetMainCamera()->GetActorTransform().GetPosition());
 		UUIDBillboard->SetRelativeTransform(BillboardTransform);
 	}
 }

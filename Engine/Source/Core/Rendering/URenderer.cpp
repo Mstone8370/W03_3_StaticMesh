@@ -512,7 +512,7 @@ void URenderer::RenderWorldGrid()
 {
     PrepareWorldGrid();
 
-    AActor* CameraActor = FEditorManager::Get().GetCamera();
+    AActor* CameraActor = FEditorManager::Get().GetMainCamera();
     if (CameraActor == nullptr)
     {
         return;
@@ -1783,7 +1783,7 @@ void URenderer::OnClientSizeUpdated(const uint32 InClientWidth, const uint32 InC
         CreatePickingFrameBuffer();
     }
 
-    if (ACamera* Camera = FEditorManager::Get().GetCamera())
+    if (ACamera* Camera = FEditorManager::Get().GetMainCamera())
     {
         UpdateProjectionMatrix(Camera);
     }
@@ -1889,7 +1889,7 @@ void URenderer::RenderViewports(UWorld* RenderWorld, float DeltaTime)
     DeviceContext->RSSetState(RasterizerState_Solid);
     CompositeViewportsToBackBuffer();
 
-    if (ACamera* MainCamera = FEditorManager::Get().GetCamera())
+    if (ACamera* MainCamera = FEditorManager::Get().GetMainCamera())
     {
         UpdateViewMatrix(MainCamera->GetActorTransform());
         UpdateProjectionMatrix(MainCamera);

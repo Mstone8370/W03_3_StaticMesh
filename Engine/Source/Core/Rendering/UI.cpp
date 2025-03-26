@@ -284,7 +284,7 @@ void UI::RenderCameraSettings()
 {
     ImGui::Text("Camera");
 
-    ACamera* Camera = FEditorManager::Get().GetCamera();
+    ACamera* Camera = FEditorManager::Get().GetMainCamera();
 
     bool IsOrthogonal;
     if (Camera->GetProjectionMode() == ECameraProjectionMode::Orthographic)

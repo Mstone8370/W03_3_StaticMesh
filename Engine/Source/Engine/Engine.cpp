@@ -261,7 +261,7 @@ void UEngine::InitWorld()
 	// Add ActorTreeNode to World->ActorTreeNodes //
     World->WorldNode = new ActorTreeNode(*World->GetName(), *World->GetClass()->Name, nullptr, World->GetUUID(), nullptr);
 	World->ActorTreeNodes.Add(World->WorldNode);
-
+    /*
     if (ACamera* Camera = World->SpawnActor<ACamera>())
     {
         FEditorManager::Get().SetCamera(Camera);
@@ -271,12 +271,16 @@ void UEngine::InitWorld()
         
         InitEditorCameraWithEngineConfig(Camera);
     }
-    
+    */
     World->SpawnActor<AAxis>();
     World->SpawnActor<APicker>();
     FEditorManager::Get().SetGizmoHandle(World->SpawnActor<AGizmoHandle>());
 
     FEditorManager::Get().InitializeDefaultViewportCameras(World);
+    ACamera* Camera = FEditorManager::Get().GetMainCamera();
+    Camera->OnCameraMoved.Bind(Renderer.get(), &URenderer::UpdateViewMatrix);
+    Camera->OnCameraProjectionChanged.Bind(Renderer.get(), &URenderer::UpdateProjectionMatrix);
+    InitEditorCameraWithEngineConfig(Camera);
     Renderer->InitializeViewports();
     World->BeginPlay();
 }

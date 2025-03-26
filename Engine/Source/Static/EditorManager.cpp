@@ -28,10 +28,10 @@ void FEditorManager::SelectActor(AActor* NewActor)
     GizmoHandle->SetActive(true);
 }
 
-void FEditorManager::SetCamera(ACamera* NewCamera)
+void FEditorManager::SetMainCamera(ACamera* NewCamera)
 {
-    Camera = NewCamera;
-    ViewportCameras[EEditorViewportType::Perspective]=NewCamera;
+    MainCamera = NewCamera;
+    ViewportCameras[EEditorViewportType::Perspective] = NewCamera;
 }
 
 void FEditorManager::ToggleGizmoHandleLocal(bool bIsLocal)
@@ -100,10 +100,10 @@ void FEditorManager::InitializeDefaultViewportCameras(UWorld* World)
 
     for (const TPair<EEditorViewportType, FVector>& Info : ViewInfos)
     {
-        if (Info.Key==EEditorViewportType::Perspective)
+        if (Info.Key == EEditorViewportType::Perspective)
         {
-            ACamera* NewCamera = Camera;
-            RegisterViewportCamera(Info.Key, Camera);
+            ACamera* Camera = World->SpawnActor<ACamera>();
+            SetMainCamera(Camera);
             continue;
         }
         ACamera* Camera = World->SpawnActor<ACamera>();

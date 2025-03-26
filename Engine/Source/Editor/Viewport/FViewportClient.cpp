@@ -26,6 +26,7 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)
 {
+    /*
     if (APlayerInput::Get().IsMousePressed(true))
     {
         APlayerInput::Get().CacheCursorPosition();
@@ -94,5 +95,5 @@ void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)
 
         Camera->SetActorTransform(CameraTransform);
         APlayerInput::Get().FixMouseCursor();
-    }
+    }*/
 }

@@ -3,6 +3,7 @@
 #include "Core/AbstractClass/Singleton.h"
 #include "Math/Vector.h"
 
+class ACamera;
 struct FTransform;
 
 class APlayerController : public TSingleton<APlayerController>
@@ -14,10 +15,12 @@ public :
 	~APlayerController();
 
 	void ProcessPlayerInput(float DeltaTime);
+	bool HandleUiCapture();
+	void HandleCursorLock();
 
-	void HandleCameraMovement(float DeltaTime);
+	void HandleCameraMovement(ACamera* Camera, bool bIsPerspective, float DeltaTime);
 	void SaveCameraProperties(class ACamera* Camera);
-	void HandleCameraRotation(ACamera* Camera, FTransform& Transform, bool bIsPerspective);
+	void HandleCameraRotation(ACamera* Camera, bool bIsPerspective);
 	FVector GetCameraMovementDirection(ACamera* Camera, bool bIsPerspective);
 
 	float GetCurrentSpeed() const { return CurrentSpeed; }
