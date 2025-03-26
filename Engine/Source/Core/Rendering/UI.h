@@ -16,6 +16,8 @@ public:
 	int currentItem = 0;
 	int NumOfSpawn = 1;
 	bool bIsInitialized = false;
+	static bool bShowStatMemory;
+	static bool bShowStatFPS;
 	
 	void Initialize(HWND hWnd, const class URenderer& Renderer, UINT InClientWidth, UINT InClientHeight);
 	void Update();
@@ -30,6 +32,7 @@ public:// UIWindows
 	void RenderCameraSettings();
 	void RenderRenderMode();
 	void RenderPropertyWindow();
+	void RenderFPSStat();
 	void RenderGridGap();
 	void RenderDebugRaycast();
 	void RenderSceneManagerWindow();

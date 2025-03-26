@@ -7,6 +7,11 @@ struct FSubMesh;
 //Raw Data
 struct FObjInfo;
 
+struct FMaterialSubmeshPair {
+    FName MaterialName;
+    FSubMesh SubMesh;
+};
+
 class ObjReader
 {
 public:
