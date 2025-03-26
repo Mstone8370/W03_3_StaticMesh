@@ -1855,7 +1855,6 @@ void URenderer::UpdateProjectionMatrix(const ACamera* Camera)
 void URenderer::UpdateProjectionMatrixAspect(const ACamera* Camera, float Width, float Height)
 {
     float AspectRatio = Width / Height;
-
     float FOV = FMath::DegreesToRadians(Camera->GetFieldOfView());
     float NearClip = Camera->GetNearClip();
     float FarClip = Camera->GetFarClip();
@@ -2085,7 +2084,8 @@ void URenderer::InitializeViewports()
             BottomSplitter->SetRatio(Config->GetEngineConfigValue<float>(EEngineConfigValueType::EEC_SplitterHBottomRatio, 0.5f));
         }
     }
-
+    RootSplitter->UpdateChildRects();
+    RootWindow->Tick(0.f);
 }
 
 

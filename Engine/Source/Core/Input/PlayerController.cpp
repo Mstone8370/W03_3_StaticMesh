@@ -124,10 +124,10 @@ void APlayerController::HandleZoom()
 		// Ortho: 폭 조절
 		float Width = Camera->GetOrthoWidth();
 		float NewWidth = FMath::Clamp(Width * (1.f - WheelDelta * ZoomSpeed), 1.0f, 500.0f);
-		float Aspect = static_cast<float>(UEngine::Get().GetClientWidth()) / UEngine::Get().GetClientHeight();
-		float Height = NewWidth / Aspect;
+		//float Aspect = SView->GetRect().Width/SView->GetRect().Height;
+		//float Height = NewWidth / Aspect;
 
-		Camera->SetOrthoSize(NewWidth, Height);
+		Camera->SetOrthoSize(NewWidth, SView->GetRect());
 	}
 
 	// 카메라 변경 사항 반영

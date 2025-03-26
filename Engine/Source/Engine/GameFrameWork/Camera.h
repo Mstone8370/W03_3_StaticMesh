@@ -45,10 +45,19 @@ public:
     
     float GetOrthoWidth() const { return OrthoWidth; }
     float GetOrthoHeight() const { return OrthoHeight; }
-    void SetOrthoSize(float Width, float Height)
+    void SetOrthoSize(float Width,float Height)
     {
         OrthoWidth = Width;
+        //float Aspect = Width/Height; // or per-viewport ratio
         OrthoHeight = Height;
+    }
+    void SetOrthoSize(float Width,FRect ViewportRect)
+    {
+        OrthoWidth = Width;
+        float Aspect = (ViewportRect.Height > 0.f)
+            ? (ViewportRect.Width / ViewportRect.Height)
+            : 1.0f; // fallback
+        OrthoHeight = Width/Aspect;
     }
     FMatrix GetProjectionMatrix(float AspectRatio) const;
 

@@ -3,6 +3,7 @@
 
 #include "Editor/Viewport/FViewport.h"
 #include "Editor/Viewport/FViewportClient.h"
+#include "GameFrameWork/Camera.h"
 
 SViewport::SViewport()
 {
@@ -22,7 +23,7 @@ SViewport::~SViewport()
 void SViewport::Tick(float DeltaTime)
 {
     if (!Viewport)
-        return; 
+        return;
 
     // 여기에 더 필요한 Tick 동작이 있다면 추가 가능 (예: 애니메이션, Gizmo 등)
 }
@@ -35,7 +36,11 @@ void SViewport::Render(const FRenderContext& Context)
     }
 }
 
-
+void SViewport::SetRect(const FRect& InRect)
+{
+    Rect = InRect;
+    Viewport->GetCamera()->SetOrthoSize(Viewport->GetCamera()->GetOrthoWidth(), Rect);
+}
 
 void SViewport::SetFViewport(FViewport* InViewport)
 {
@@ -46,6 +51,7 @@ FViewport* SViewport::GetFViewport() const
 {
     return Viewport;
 }
+
 void SViewport::InitializeFViewport(ID3D11Device* Device)
 {
     if (!Viewport)
@@ -56,10 +62,12 @@ void SViewport::InitializeFViewport(ID3D11Device* Device)
 
     Viewport->Initialize(Device, Width, Height);
 }
+
 bool SViewport::IsHover(const FPoint& MousePos) const
 {
     return Rect.Contains(MousePos);
 }
+
 void SViewport::UpdateFViewportSize()
 {
     if (!Viewport)

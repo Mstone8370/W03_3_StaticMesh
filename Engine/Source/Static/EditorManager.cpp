@@ -116,10 +116,6 @@ void FEditorManager::InitializeDefaultViewportCameras(UWorld* World)
         if (Info.Key != EEditorViewportType::Perspective)
         {
             Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
-            float OrthoWidth = 5.f;
-            float Aspect = static_cast<float>(UEngine::Get().GetClientWidth()) / UEngine::Get().GetClientHeight();
-            float OrthoHeight = OrthoWidth / Aspect;
-            Camera->SetOrthoSize(OrthoWidth, OrthoHeight);
         }
 
         RegisterViewportCamera(Info.Key, Camera);
