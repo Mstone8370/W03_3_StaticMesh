@@ -174,7 +174,7 @@ float4 mainPS(PS_INPUT input) : SV_TARGET
     float4 finalColor = float4(textureColor.rgb * lighting, textureColor.a);
     finalColor.a *= d;
     
-    return diffuseTex;
+    return finalColor;
 }
 
 

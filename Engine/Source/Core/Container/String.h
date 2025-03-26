@@ -229,6 +229,8 @@ public:
 	FORCEINLINE TCHAR& operator[](const size_t Index);
 	FORCEINLINE const TCHAR& operator[](const size_t Index) const;
 
+	friend bool operator<(const FString& Lhs, const FString& Rhs);
+	friend bool operator>(const FString& Lhs, const FString& Rhs);
 
 };
 
@@ -267,6 +269,16 @@ FString operator+(const FString& Lhs, const FString& Rhs)
 {
 	FString CopyLhs{ Lhs };
 	return CopyLhs += Rhs;
+}
+
+inline bool operator<(const FString& Lhs, const FString& Rhs)
+{
+	return Lhs.PrivateString < Rhs.PrivateString;;
+}
+
+inline bool operator>(const FString& Lhs, const FString& Rhs)
+{
+	return Lhs.PrivateString > Rhs.PrivateString;;
 }
 
 FORCEINLINE bool FString::operator==(const FString& Rhs) const

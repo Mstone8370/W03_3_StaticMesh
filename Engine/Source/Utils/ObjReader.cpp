@@ -419,21 +419,34 @@ void ObjReader::ReadMaterialFile()
 void ObjReader::CreateSubMesh()
 {
     int32 currentStartIndex = 0;
-    
-    // MaterialIndexMap에 기록된 내용을 활용하여 SubMesh 생성
+    TArray<FMaterialSubmeshPair> MaterialSubmeshPairs;
+
+    // MaterialIndexMap에 기록된 내용을 활용하여 MaterialSubmeshPairs 생성
     for (auto& pair : MaterialIndexMap)
     {
-        FSubMesh Submesh;
+        FMaterialSubmeshPair Pair;
+        Pair.MaterialName = pair.Key;
         TArray<uint32>& indices = pair.Value;
         int32 count = indices.Num();
 
-        Submesh.startIndex = currentStartIndex;
-        Submesh.endIndex = currentStartIndex + count - 1;
-        SubMeshes.Add(Submesh);
-
-        if (!MaterialsName.Contains(pair.Key)) {
-            MaterialsName.Add(pair.Key);
-        }
+        Pair.SubMesh.startIndex = currentStartIndex;
+        Pair.SubMesh.endIndex = currentStartIndex + count - 1;
         currentStartIndex += count;
+
+        MaterialSubmeshPairs.Add(Pair);
+    }
+
+    // MaterialSubmeshPairs를 머티리얼 이름 기준으로 정렬
+    MaterialSubmeshPairs.Sort([](const FMaterialSubmeshPair& A, const FMaterialSubmeshPair& B) {
+        return A.MaterialName.ToString() < B.MaterialName.ToString();
+        });
+
+    // 정렬된 결과를 기반으로 MaterialsName과 SubMeshes 업데이트
+    MaterialsName.Empty();
+    SubMeshes.Empty();
+    for (const auto& Pair : MaterialSubmeshPairs)
+    {
+        MaterialsName.Add(Pair.MaterialName);
+        SubMeshes.Add(Pair.SubMesh);
     }
 }
