@@ -1,0 +1,36 @@
+{
+  "ActorCount" : 4,
+  "Actors" : {
+    "38" : {
+      "AssetName" : "icg.obj",
+      "Location" : [-22.426220, 5.425305, -0.539548],
+      "Rotation" : [0.000000, -0.000006, 0.000000],
+      "Scale" : [10.000000, 10.000000, 10.000000],
+      "Type" : "AStaticMesh"
+    },
+    "40" : {
+      "AssetName" : "bshobj.obj",
+      "Location" : [-23.905811, -12.596074, -0.524753],
+      "Rotation" : [0.000000, -0.000006, 36.229752],
+      "Scale" : [10.000000, 10.000000, 10.000000],
+      "Type" : "AStaticMesh"
+    },
+    "42" : {
+      "AssetName" : "pubg.obj",
+      "Location" : [-31.279751, 4.592731, 0.000000],
+      "Rotation" : [0.000000, -0.000006, 0.000000],
+      "Scale" : [15.000000, 15.000000, 15.000000],
+      "Type" : "AStaticMesh"
+    },
+    "44" : {
+      "AssetName" : "ksw.obj",
+      "Location" : [-23.872988, 20.157623, 0.000000],
+      "Rotation" : [0.000000, -0.000006, -22.521439],
+      "Scale" : [10.000000, 10.000000, 10.000000],
+      "Type" : "AStaticMesh"
+    }
+  },
+  "NextUUID" : 46,
+  "SceneName" : "pubg",
+  "Version" : 1
+}

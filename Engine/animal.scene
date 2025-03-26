@@ -1,0 +1,29 @@
+{
+  "ActorCount" : 3,
+  "Actors" : {
+    "32" : {
+      "AssetName" : "tent.obj",
+      "Location" : [0.000000, -0.333522, 0.000000],
+      "Rotation" : [0.000000, -0.000006, 0.000000],
+      "Scale" : [10.000000, 10.000000, 10.000000],
+      "Type" : "AStaticMesh"
+    },
+    "34" : {
+      "AssetName" : "Cat.obj",
+      "Location" : [-5.774616, 3.442807, 0.000000],
+      "Rotation" : [0.000000, -0.000006, -57.058887],
+      "Scale" : [0.050000, 0.050000, 0.050000],
+      "Type" : "AStaticMesh"
+    },
+    "36" : {
+      "AssetName" : "raccoon.obj",
+      "Location" : [-2.999683, -1.689019, 0.000000],
+      "Rotation" : [0.000000, -0.000003, 53.312897],
+      "Scale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "AStaticMesh"
+    }
+  },
+  "NextUUID" : 40,
+  "SceneName" : "animal",
+  "Version" : 1
+}
