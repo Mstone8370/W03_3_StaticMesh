@@ -52,10 +52,6 @@ public:
 	void LoadWorld(const char* InSceneName);
 	void SaveWorld();
 
-	void AddZIgnoreComponent(UPrimitiveComponent* InComponent);
-	void RemoveZIgnoreComponent(UPrimitiveComponent* InComponent) { ZIgnoreRenderComponents.Remove(InComponent); }
-	bool ContainsZIgnoreComponent(UPrimitiveComponent* InComponent) {return ZIgnoreRenderComponents.Find(InComponent) != -1; }
-	
 	// render
 	void AddRenderComponent(class UPrimitiveComponent* Component) { RenderComponents.Add(Component); }
 	void RemoveRenderComponent(class UPrimitiveComponent* Component) { RenderComponents.Remove(Component); }
@@ -92,7 +88,6 @@ public:
 	
 protected:
 	TArray<AActor*> Actors;
-	TArray<UPrimitiveComponent*> ZIgnoreRenderComponents;
 	TArray<UBillboardComponent*> BillboardComponents;
 	TArray<UTextBillboardComponent*> TextBillboardComponents;
 	TArray<AActor*> ActorsToSpawn;

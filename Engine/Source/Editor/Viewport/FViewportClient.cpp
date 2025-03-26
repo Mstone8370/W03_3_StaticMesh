@@ -21,6 +21,15 @@ void FViewportClient::Draw(FViewport* Viewport, const FRenderContext& Context)
     Context.World->RenderMesh(*Context.Renderer);
     Context.World->RenderBoundingBoxes(*Context.Renderer);
     Context.World->RenderDebugLines(*Context.Renderer, Context.DeltaTime);
+
+    // Prepare new layer for Axis
+    Context.Renderer->ClearCurrentDepthSencilView();
+    Context.Renderer->RenderAxis();
+    
+    // Prepare new layer for Gizmo
+    Context.Renderer->ClearCurrentDepthSencilView();
+    Context.Renderer->SetRenderMode(EViewModeIndex::ERS_Solid);
+    Context.Renderer->RenderGizmo(FEditorManager::Get().GetGizmoHandle());
 }
 
 void FViewportClient::ProcessInput(FViewport* Viewport, float DeltaTime)

@@ -73,11 +73,6 @@ void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Component->EndPlay(EndPlayReason);
 		if (const auto PrimitiveComp = dynamic_cast<UPrimitiveComponent*>(Component))
 		{
-			if (World->ContainsZIgnoreComponent(PrimitiveComp))
-			{
-				World->RemoveZIgnoreComponent(PrimitiveComp);
-			}
-
 			GetWorld()->RemoveRenderComponent(PrimitiveComp);
 		}
 		if (FEditorManager::Get().GetSelectedComponent() && FEditorManager::Get().GetSelectedComponent()->GetOwner() == this)

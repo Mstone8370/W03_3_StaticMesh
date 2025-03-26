@@ -111,13 +111,7 @@ void UWorld::RenderPickingTexture(URenderer& Renderer)
         RenderComponent->Render(&Renderer);
     }
 
-    Renderer.PrepareZIgnore();
-    for (auto& RenderComponent : ZIgnoreRenderComponents)
-    {
-        uint32 UUID = RenderComponent->GetUUID();
-        RenderComponent->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
-        RenderComponent->Render(&Renderer);
-    }
+    Renderer.RenderGizmo(FEditorManager::Get().GetGizmoHandle());
 }
 
 void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& View)
@@ -155,17 +149,9 @@ void UWorld::RenderPickingTextureForViewport(URenderer& Renderer, FViewport& Vie
         Component->Render(&Renderer);
     }
 
-    // 5. ZIgnore 오브젝트 렌더링 (깊이 무시)
-    Renderer.PrepareZIgnore();
-
-    for (UPrimitiveComponent* Component : ZIgnoreRenderComponents)
-    {
-        if (!Component) continue;
-
-        uint32 UUID = Component->GetUUID();
-        Component->UpdateConstantPicking(Renderer, APicker::EncodeUUID(UUID));
-        Component->Render(&Renderer);
-    }
+    // 5. 기즈모 렌더링 (깊이 무시)
+    Renderer.ClearCurrentDepthSencilView();
+    Renderer.RenderGizmoPicking(FEditorManager::Get().GetGizmoHandle());
 }
 
 
@@ -187,7 +173,7 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
-
+    /*
     Renderer.PrepareZIgnore();
     for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
@@ -197,6 +183,7 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
+    */
 }
 
 void UWorld::RenderMesh(URenderer& Renderer)
@@ -217,7 +204,7 @@ void UWorld::RenderMesh(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
-
+    /*
     Renderer.PrepareZIgnore();
     for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
@@ -227,6 +214,7 @@ void UWorld::RenderMesh(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
+    */
 }
 
 void UWorld::RenderBoundingBoxes(URenderer& Renderer)
@@ -341,12 +329,6 @@ void UWorld::SaveWorld()
 {
     const UWorldInfo& WorldInfo = GetWorldInfo();
     JsonSaveHelper::SaveScene(WorldInfo);
-}
-
-void UWorld::AddZIgnoreComponent(UPrimitiveComponent* InComponent)
-{
-    ZIgnoreRenderComponents.Add(InComponent);
-    InComponent->SetIsOrthoGraphic(true);
 }
 
 void UWorld::LoadWorld(const char* InSceneName)
