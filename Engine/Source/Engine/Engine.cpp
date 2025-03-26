@@ -92,8 +92,8 @@ void UEngine::Initialize(HINSTANCE hInstance, const WCHAR* InWindowTitle, const 
 
     InitWindow(ClientWidth, ClientHeight);
 
-    
     InitRenderer();
+    
     InitWorld();
 
     InitTextureLoader();

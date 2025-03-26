@@ -11,6 +11,7 @@
 #include "Constants.h"
 #include "Editor/Slate/SViewport.h"
 
+class AGizmoHandle;
 struct FVertexSimple;
 struct FVector4;
 class UWorld;
@@ -64,10 +65,6 @@ public:
 
     HRESULT GenerateAxis();
 
-    ID3D11Buffer* AxisVertexBuffer;
-
-    uint32 AxisVertexNum = 6; // 라인 개수 * 정점 개수
-
     void PrepareAxis();
     
     void RenderAxis();
@@ -75,6 +72,8 @@ public:
     void PrepareWorldGrid();
 
     void RenderWorldGrid();
+
+    void RenderGizmo(AGizmoHandle* Gizmo);
 
     /**
      * 정점 데이터로 Vertex Buffer를 생성합니다.
@@ -295,6 +294,11 @@ private:
     // 현재 버퍼의 크기로 그릴 수 있는 선의 최대 개수로, 그려야 할 선의 개수와는 다름에 주의.
     uint32 DebugLineCurrentMaxNum = 0;
     uint32 DebugLineNumStep = 5;
+
+    // Axis
+    ID3D11Buffer* AxisVertexBuffer = nullptr;
+
+    uint32 AxisVertexNum = 6; // 라인 개수 * 정점 개수
 
 #pragma region picking
 

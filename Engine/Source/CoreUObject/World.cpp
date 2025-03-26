@@ -187,7 +187,7 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
-
+    /*
     Renderer.PrepareZIgnore();
     for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
@@ -197,6 +197,7 @@ void UWorld::RenderMainTexture(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
+    */
 }
 
 void UWorld::RenderMesh(URenderer& Renderer)
@@ -217,7 +218,7 @@ void UWorld::RenderMesh(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
-
+    /*
     Renderer.PrepareZIgnore();
     for (auto& RenderComponent : ZIgnoreRenderComponents)
     {
@@ -227,6 +228,7 @@ void UWorld::RenderMesh(URenderer& Renderer)
         }
         RenderComponent->Render(&Renderer);
     }
+    */
 }
 
 void UWorld::RenderBoundingBoxes(URenderer& Renderer)

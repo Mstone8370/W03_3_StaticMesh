@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "URenderer.h"
 
+#include "GizmoHandle.h"
 #include "RenderContext.h"
 #include "Components/StaticMeshComponent.h"
 #include "Static/EditorManager.h"
@@ -628,6 +629,17 @@ void URenderer::RenderWorldGrid()
     // restore
     DeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     // 나머지는 PrepareMainShader에서 작업중이므로, 생략
+}
+
+void URenderer::RenderGizmo(AGizmoHandle* Gizmo)
+{
+    for (auto& Comp : Gizmo->GetComponents())
+    {
+        if (UPrimitiveComponent* PrimitiveComp = dynamic_cast<UPrimitiveComponent*>(Comp))
+        {
+            PrimitiveComp->Render(this);
+        }
+    }
 }
 
 ID3D11Buffer* URenderer::CreateImmutableVertexBuffer(const FVertexSimple* Vertices, UINT ByteWidth) const
